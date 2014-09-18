@@ -13,6 +13,8 @@ object Arithmetic extends StandardTokenParsers {
 
   import lexical.NumericLit
 
+  def convertNumeric(x: Int): Term = if (x <= 0) Zero else Succ(convertNumeric(x - 1))
+
   /**
    * Expr ::= 'true'
    * | 'false'
@@ -23,6 +25,7 @@ object Arithmetic extends StandardTokenParsers {
    * | 'iszero' Expr
    */
   def Expr: Parser[Term] = (
+    numericLit ^^ { case chars => convertNumeric(chars.toInt) } |
     "false" ^^ { case chars => False } |
     "true" ^^ { case chars => True } |
     "0" ^^ { case chars => Zero } |
