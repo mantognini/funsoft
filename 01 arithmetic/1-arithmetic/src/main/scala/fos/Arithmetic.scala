@@ -26,7 +26,10 @@ object Arithmetic extends StandardTokenParsers {
     "false" ^^ { case chars => False } |
     "true" ^^ { case chars => True } |
     "0" ^^ { case chars => Zero } |
-    "iszero" ~> Expr ^^ { case e1 => IsZero(e1) }
+    ("if" ~> Expr) ~ ("then" ~> Expr) ~ ("else" ~> Expr) ^^ { case cond ~ then ~ elze => IfThenElse(cond, then, elze) } | 
+    "succ" ~> Expr ^^ { case e => Succ(e) } |
+    "pred" ~> Expr ^^ { case e => Pred(e) } |
+    "iszero" ~> Expr ^^ { case e => IsZero(e) }
     | failure("illegal start of expression"))
 
   //   ... To complete ... 
@@ -35,7 +38,7 @@ object Arithmetic extends StandardTokenParsers {
     val tokens = new lexical.Scanner(StreamReader(new java.io.InputStreamReader(System.in)))
     phrase(Expr)(tokens) match {
       case Success(trees, _) =>
-      //   ... To complete ... 
+        //   ... To complete ... 
         println(trees)
       case e =>
         println(e)
