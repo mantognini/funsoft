@@ -15,6 +15,34 @@ object Arithmetic extends StandardTokenParsers {
 
   def convertNumeric(x: Int): Term = if (x <= 0) Zero else Succ(convertNumeric(x - 1))
 
+  def isNV(t: Term): Boolean = t match {
+    case Zero => true
+    case Succ(t) if isNV(t) => true
+    //    case Pred(t) if isNV(t) => true // useless
+    case _ => false
+  }
+
+  def isNormal(t: Term): Boolean = t match {
+    case Zero => true
+    case False => true
+    case True => true
+    case _ => false
+  }
+
+  def canRed(t: Term): Boolean = t match {
+    case Pred(Zero) => true
+    case Pred(Succ(t)) if isNV(t) => true
+    case Succ(t) if canRed(t) => true
+    case t => false
+  }
+
+  def red(t: Term): Term = t match {
+    case Pred(Zero) => Zero
+    case Pred(Succ(t)) if isNV(t) => t
+    case Succ(t) if canRed(t) => t
+    case t => t
+  }
+
   /**
    * Specifications 1/3
    *  	Write a parser that recognizes this language, using the combinator library
