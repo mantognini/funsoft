@@ -18,7 +18,7 @@ object Arithmetic extends StandardTokenParsers {
   /**
    * Specifications 1/3
    *  	Write a parser that recognizes this language, using the combinator library
-   *   
+   *
    * Expr ::= 'true'
    * | 'false'
    * | 'if' Expr 'then' Expr 'else' Expr
@@ -77,7 +77,7 @@ object Arithmetic extends StandardTokenParsers {
   def smallStepReduction = ???
   def bigStepEvaluation = ???
 
-def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = {
     parse(System.in, System.out)
     println
   }
@@ -97,7 +97,7 @@ def main(args: Array[String]): Unit = {
           //   ... To complete ... 
           print(trees)
         case e =>
-          println(e)
+          print(e)
       }
     }
   }
