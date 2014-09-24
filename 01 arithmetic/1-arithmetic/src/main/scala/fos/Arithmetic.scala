@@ -32,7 +32,7 @@ object Arithmetic extends StandardTokenParsers {
     "false" ^^ { case chars => False } |
     "true" ^^ { case chars => True } |
     "0" ^^ { case chars => Zero } |
-    ("if" ~> Expr) ~ ("then" ~> Expr) ~ ("else" ~> Expr) ^^ { case cond ~ zen ~ elze => IfThenElse(cond, zen, elze) } |
+    ("if" ~> Expr) ~ ("then" ~> Expr) ~ ("else" ~> Expr) ^^ { case cond ~ zen ~ elze => If(cond, zen, elze) } |
     "succ" ~> Expr ^^ { case e => Succ(e) } |
     "pred" ~> Expr ^^ { case e => Pred(e) } |
     "iszero" ~> Expr ^^ { case e => IsZero(e) }
