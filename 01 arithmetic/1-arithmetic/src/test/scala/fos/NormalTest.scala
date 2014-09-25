@@ -8,12 +8,17 @@ class NormalTest extends FlatSpec with Matchers {
     assert(Arithmetic.isNormal(Zero))
   }
 
-  "1" should "be normal" in {
+  "sequence of succ" should "be normal" in {
     assert(Arithmetic.isNormal(Succ(Zero)))
+    assert(Arithmetic.isNormal(Succ(Succ(Zero))))
   }
 
-  "2" should "be normal" in {
-    assert(Arithmetic.isNormal(Succ(Succ(Zero))))
+  "term with pred" should "NOT be normal" in {
+    assert(!Arithmetic.isNormal(Pred(Zero)))
+    assert(!Arithmetic.isNormal(Pred(Succ(Zero))))
+    assert(!Arithmetic.isNormal(Pred(Pred(Zero))))
+    assert(!Arithmetic.isNormal(Succ(Pred(Zero))))
+    assert(!Arithmetic.isNormal(Succ(Succ(Pred(Zero)))))
   }
 
   "true" should "be normal" in {
@@ -29,6 +34,7 @@ class NormalTest extends FlatSpec with Matchers {
     assert(!Arithmetic.isNormal(If(False, True, True)))
     assert(!Arithmetic.isNormal(If(True, Succ(Zero), True)))
     assert(!Arithmetic.isNormal(If(True, True, If(True, True, True))))
+    assert(!Arithmetic.isNormal(If(If(IsZero(True), False, Succ(Succ(True))), IsZero(Zero), Succ(False))))
   }
 
   "iszero" should "NOT be normal" in {
