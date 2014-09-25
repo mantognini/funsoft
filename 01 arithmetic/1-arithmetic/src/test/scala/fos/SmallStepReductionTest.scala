@@ -11,14 +11,14 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
     Console.withOut(output) {
       Arithmetic.smallStepRed(input)
     }
-    output.toString() shouldBe (expectedOutput)
+    output.toString.trim shouldBe (expectedOutput)
   }
 
   "Values" should "be left as it" in {
-    testToReduce(False, "False\nFalse\n")
+    testToReduce(False, "False")
     testToReduce(True, "True")
     testToReduce(Zero, "Zero")
-    //testToReduce(Succ(Zero), Succ(Zero))
+    testToReduce(Succ(Zero), "Succ(Zero)")
   }
 
 }
