@@ -64,4 +64,6 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
   }
 
   // TODO: Test failures
+
+  // TODO test system output string format
 }

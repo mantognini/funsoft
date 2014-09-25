@@ -14,6 +14,13 @@ class InputTest extends FlatSpec with Matchers {
     outputStream.toString() should be(expectedOutput)
   }
 
+  def testFail(input: String) {
+    val outputStream = new ByteArrayOutputStream
+    Arithmetic.parse(input, outputStream)
+
+    assert(outputStream.toString() contains "failure")
+  }
+
   "Our parser" should "parse true correctly" in {
     testParse("true", "True")
   }
@@ -62,6 +69,14 @@ class InputTest extends FlatSpec with Matchers {
     testParse("5", "Succ(Succ(Succ(Succ(Succ(Zero)))))")
   }
 
-  // TODO test failures
+  it should "not parse malformed inputs" in {
+    testFail("if")
+    testFail("not_in_the_grammar")
+    testFail("true true")
+    testFail("if true then true")
+    testFail("iszero iszero")
+    testFail("succ")
+    testFail("pred if then true else false")
+  }
 
 }
