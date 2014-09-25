@@ -16,8 +16,7 @@ Compilation
 ------------
 
 ```sh
-sbt run < inputs
-~; compile; test
+sbt ~test
 ```
 
 
