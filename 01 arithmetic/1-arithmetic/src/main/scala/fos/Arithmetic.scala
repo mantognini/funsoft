@@ -109,7 +109,7 @@ object Arithmetic extends StandardTokenParsers {
   def smallStepRed(t: Term): Unit = {
     println(t)
     try {
-      if (!isNormal(t)) smallStepRed(t)
+      if (!isNormal(t)) smallStepRed(stepRed(t))
     } catch {
       case e: NoRuleApplies => println("Stuck term: " + t)
     }

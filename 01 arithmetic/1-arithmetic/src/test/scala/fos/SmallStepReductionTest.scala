@@ -6,24 +6,27 @@ import java.io.ByteArrayOutputStream
 
 class SmallStepReductionTest extends FlatSpec with Matchers {
 
-  def testToReduce(input: Term, expectedOutput: String) {
+  def testReducedResult(input: Term, finalResult: String) {
     val output = new ByteArrayOutputStream
     Console.withOut(output) {
       Arithmetic.smallStepRed(input)
     }
-    output.toString.trim shouldBe (expectedOutput)
+    """(.*)$""".r findFirstIn output.toString match {
+      case Some(lastLine) => lastLine shouldBe (finalResult)
+      case e => throw new Exception("smallStepRed returned <<" + output.toString + ">> and it seams like empty string")
+    }
   }
 
   "Values" should "be left as it" in {
-    testToReduce(False, "False")
-    testToReduce(True, "True")
-    testToReduce(Zero, "Zero")
-    testToReduce(Succ(Zero), "Succ(Zero)")
-    testToReduce(Succ(Succ(Zero)), "Succ(Succ(Zero))")
+    testReducedResult(False, "False")
+    testReducedResult(True, "True")
+    testReducedResult(Zero, "Zero")
+    testReducedResult(Succ(Zero), "Succ(Zero)")
+    testReducedResult(Succ(Succ(Zero)), "Succ(Succ(Zero))")
   }
 
   "If statement" should "be properly reduced" in {
-    testToReduce(If(True, True, True), "True")
+    testReducedResult(If(True, True, True), "True")
   }
 
 }
