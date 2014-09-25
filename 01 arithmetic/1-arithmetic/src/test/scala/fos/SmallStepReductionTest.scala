@@ -14,10 +14,17 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
     assertFun(output.toString)
   }
 
-  def lastLine(expected: String)(output: String): Unit = {
-    """(.*)$""".r findFirstIn output match {
+  def lastLine(expected: String)(reductionOutput: String): Unit = {
+    """(.*)$""".r findFirstIn reductionOutput match {
       case Some(lastLine) => lastLine shouldBe (expected)
-      case e => throw new Exception("smallStepRed returned <<" + output.toString + ">> and it seams like empty string")
+      case e => throw new Exception("smallStepRed returned <<" + reductionOutput.toString + ">> and it seams like empty string")
+    }
+  }
+
+  def stuckTerm(expected: String)(reductionOutput: String): Unit = {
+    """Stuck term: (.*)""".r findFirstMatchIn reductionOutput match {
+      case Some(stuckExpr) => stuckExpr.group(1) shouldBe (expected)
+      case e => reductionOutput should contain("a well-formed stuck term output")
     }
   }
 
@@ -67,11 +74,10 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
     testRed(IsZero(If(If(IsZero(Succ(Zero)), True, False), True, Succ(Zero))))(lastLine("False"))
   }
 
-  "unreduceable inputs" should "produce an stuck term message" in {
-
-  }
-
   // TODO: Test failures
+  "unreduceable inputs" should "produce an stuck term message" in {
+    testRed(Succ(False))(stuckTerm("Succ(False)"))
+  }
 
   // TODO test system output string format
 }
