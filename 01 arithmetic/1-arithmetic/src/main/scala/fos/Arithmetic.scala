@@ -30,20 +30,6 @@ object Arithmetic extends StandardTokenParsers {
 
   def isNormal(t: Term): Boolean = isV(t) || isNV(t)
 
-  def canRed(t: Term): Boolean = t match {
-    case Pred(Zero) => true
-    case Pred(Succ(t)) if isNV(t) => true
-    case Succ(t) if canRed(t) => true
-    case t => false
-  }
-
-  def red(t: Term): Term = t match {
-    case Pred(Zero) => Zero
-    case Pred(Succ(t)) if isNV(t) => t
-    case Succ(t) if canRed(t) => t
-    case t => t
-  }
-
   /**
    * Specifications 1/3
    *  	Write a parser that recognizes this language, using the combinator library
@@ -105,6 +91,7 @@ object Arithmetic extends StandardTokenParsers {
    */
 
   class NoRuleApplies extends Exception
+
   def stepRed(t: Term): Term = t match {
     case If(True, t2, t3) => t2
     case If(False, t2, t3) => t3
