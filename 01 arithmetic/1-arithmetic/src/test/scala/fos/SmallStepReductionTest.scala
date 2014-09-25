@@ -19,6 +19,11 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
     testToReduce(True, "True")
     testToReduce(Zero, "Zero")
     testToReduce(Succ(Zero), "Succ(Zero)")
+    testToReduce(Succ(Succ(Zero)), "Succ(Succ(Zero))")
+  }
+
+  "If statement" should "be properly reduced" in {
+    testToReduce(If(True, True, True), "True")
   }
 
 }
