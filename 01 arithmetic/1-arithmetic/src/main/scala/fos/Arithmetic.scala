@@ -2,6 +2,7 @@ package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
+import java.lang.Exception
 
 /**
  * This object implements a parser and evaluator for the NB
@@ -18,16 +19,16 @@ object Arithmetic extends StandardTokenParsers {
   def isNV(t: Term): Boolean = t match {
     case Zero => true
     case Succ(t) if isNV(t) => true
-    //    case Pred(t) if isNV(t) => true // useless
     case _ => false
   }
 
-  def isNormal(t: Term): Boolean = t match {
-    case Zero => true
+  def isV(t: Term): Boolean = t match {
     case False => true
     case True => true
     case _ => false
   }
+
+  def isNormal(t: Term): Boolean = isV(t) || isNV(t)
 
   def canRed(t: Term): Boolean = t match {
     case Pred(Zero) => true
@@ -102,7 +103,32 @@ object Arithmetic extends StandardTokenParsers {
    * Stuck term: Pred(Succ(Succ(Succ(False))))
    * Big step: Stuck term: Succ(False)
    */
-  def smallStepReduction = ???
+
+  class NoRuleApplies extends Exception
+  def stepRed(t: Term): Term = t match {
+    case If(True, t2, t3) => t2
+    case If(False, t2, t3) => t3
+    case If(t1, t2, t3) => If(stepRed(t1), t2, t3)
+    case Succ(t1) => Succ(stepRed(t1))
+    case Pred(Zero) => Zero
+    case Pred(Succ(nv)) if isNV(nv) => nv
+    case Pred(t1) => Pred(stepRed(t1))
+    case IsZero(Zero) => True
+    case IsZero(Succ(nv)) if isNV(nv) => False
+    case IsZero(t1) => IsZero(stepRed(t1))
+    case _ => throw new NoRuleApplies
+  }
+
+  def smallStepRed(t: Term): Unit = {
+    println(t)
+    try {
+      stepRed(t) match {
+        case t if !isNormal(t) => smallStepRed(t)
+      }
+    } catch {
+      case e: NoRuleApplies => println("Stuck term: " + t)
+    }
+  }
   def bigStepEvaluation = ???
 
   def main(args: Array[String]): Unit = {
