@@ -114,7 +114,9 @@ object Arithmetic extends StandardTokenParsers {
       case e: NoRuleApplies => println("Stuck term: " + t)
     }
   }
-  def bigStepEvaluation = ???
+  def bigStepEvaluation(t: Term): Unit = {
+    // TODO
+  }
 
   def main(args: Array[String]): Unit = {
     parse(System.in, System.out)
