@@ -6,10 +6,10 @@ Some links
 * [Foundation of software website] [1]
 * ..
 
-Installation
+Installation & Customizations
 ------------
 
-Actually nothing tricky...
+* [Eclipse console Plugin] [2]
 
 
 Compilation
@@ -21,3 +21,4 @@ sbt ~test
 
 
 [1]:http://lamp.epfl.ch/teaching/foundsoft
+[2]:http://marketplace.eclipse.org/content/terminal-plug
