@@ -27,6 +27,10 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
       case e => reductionOutput should contain("a well-formed stuck term output")
     }
   }
+  
+  def matchExactly(expected: String)(reductionOutput: String): Unit = {
+    reductionOutput shouldBe expected
+  }
 
   "Values" should "be left as it" in {
     testRed(False)(lastLine("False"))
@@ -84,5 +88,32 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
     testRed(Succ(IsZero(Succ(Zero))))(stuckTerm("Succ(False)"))
   }
 
-  // TODO test system output string format
+  "string output" should "match specifications" in {
+    // No evaluation step (Values)
+    testRed(False)(matchExactly("False\n"))
+    testRed(True)(matchExactly("True\n"))
+    testRed(Zero)(matchExactly("Zero\n"))
+    testRed(Succ(Zero))(matchExactly("Succ(Zero)\n"))
+    testRed(Succ(Succ(Zero)))(matchExactly("Succ(Succ(Zero))\n"))
+    
+    // 1 or more evaluation steps
+    testRed(IsZero(Zero))(matchExactly("IsZero(Zero)\nTrue\n"))
+    testRed(If(IsZero(Succ(Zero)), True, Pred(Zero)))(matchExactly(
+"""If(IsZero(Succ(Zero)),True,Pred(Zero))
+If(False,True,Pred(Zero))
+Pred(Zero)
+Zero
+"""
+    ))
+    testRed(If(IsZero(Pred(Pred(Succ(Succ(Zero))))),If(IsZero(Zero),True,False),False))(matchExactly(
+"""If(IsZero(Pred(Pred(Succ(Succ(Zero))))),If(IsZero(Zero),True,False),False)
+If(IsZero(Pred(Succ(Zero))),If(IsZero(Zero),True,False),False)
+If(IsZero(Zero),If(IsZero(Zero),True,False),False)
+If(True,If(IsZero(Zero),True,False),False)
+If(IsZero(Zero),True,False)
+If(True,True,False)
+True
+"""
+    ))
+  }
 }
