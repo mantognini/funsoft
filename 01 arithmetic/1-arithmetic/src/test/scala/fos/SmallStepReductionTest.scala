@@ -74,9 +74,14 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
     testRed(IsZero(If(If(IsZero(Succ(Zero)), True, False), True, Succ(Zero))))(lastLine("False"))
   }
 
-  // TODO: Test failures
   "unreduceable inputs" should "produce an stuck term message" in {
     testRed(Succ(False))(stuckTerm("Succ(False)"))
+    testRed(Pred(Succ(Succ(Succ(False)))))(stuckTerm("Pred(Succ(Succ(Succ(False))))"))
+    testRed(IsZero(If(True, False, True)))(stuckTerm("IsZero(False)"))
+    testRed(If(False, True, IsZero(True)))(stuckTerm("IsZero(True)"))
+    testRed(Pred(False))(stuckTerm("Pred(False)"))
+    testRed(If(IsZero(Pred(Succ(Zero))), Succ(True), Succ(False)))(stuckTerm("Succ(True)"))
+    testRed(Succ(IsZero(Succ(Zero))))(stuckTerm("Succ(False)"))
   }
 
   // TODO test system output string format
