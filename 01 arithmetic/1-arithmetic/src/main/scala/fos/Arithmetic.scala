@@ -124,17 +124,8 @@ object Arithmetic extends StandardTokenParsers {
     implicit def value2Either(v: Value): EitherType = Left(v)
     implicit def stuck2Either(s: Stuck): EitherType = Right(s)
 
-    object BSuccRule {
-      def apply(nv: Term) = Succ(nv)
-      def unapply(t: Term): Option[Term] = t match {
-        case nv if isNV(nv) => Some(nv)
-        case _ => None
-      }
-    }
-
     def applyBRule(t: Term): EitherType = t match {
       case t if isV(t) => Value(t) // B-VALUE
-      case BSuccRule(t) => Value(t) // B-SUCC
       case t => Stuck(t) // Stuck because no rule apply
     }
 
