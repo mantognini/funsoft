@@ -15,11 +15,11 @@ class BigStepRedTest extends FlatSpec with Matchers {
   }
 
   def shouldProduce(expected: String)(evalOutput: String): Unit = {
-    ("Big step: " + expected) shouldBe evalOutput
+    evalOutput shouldBe ("Big step: " + expected)
   }
 
   def shouldStuckWith(expected: String)(evalOutput: String): Unit = {
-    ("Big step: Stuck term: " + expected) shouldBe evalOutput
+    evalOutput shouldBe ("Big step: Stuck term: " + expected)
   }
 
   def testSP = ttools.testReduction(testEval, shouldProduce)_
