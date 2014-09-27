@@ -145,10 +145,22 @@ object Arithmetic extends StandardTokenParsers {
       }
     }
 
+    // Handle B-PREDSUCC rule
+    object BPredSuccRule {
+      def unapply(t: Term) = t match {
+        case Pred(t) => applyBRule(t) match {
+          case Value(Succ(nv)) if isNV(nv) => Some(nv)
+          case _ => None
+        }
+        case _ => None
+      }
+    }
+
     def applyBRule(t: Term): ApplyBRuleResult = t match {
       case t if isV(t) => Value(t) // B-VALUE
       case BIfRule(v) => Value(v) // B-IFTRUE + B-IFFALSE
       case BPredZeroRule(z) => Value(z) // B-PREDZERO
+      case BPredSuccRule(nv) => Value(nv) // B-PREDSUCC
       case t => Stuck(t) // Stuck because no rule apply
     }
 
