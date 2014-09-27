@@ -127,7 +127,7 @@ object Arithmetic extends StandardTokenParsers {
     object BSuccRule {
       def apply(nv: Term) = Succ(nv)
       def unapply(t: Term): Option[Term] = t match {
-        case Succ(nv) if isNV(nv) => Some(nv)
+        case nv if isNV(nv) => Some(nv)
         case _ => None
       }
     }
