@@ -128,6 +128,7 @@ object Arithmetic extends StandardTokenParsers {
         case If(t1, t2, t3) => (applyBRule(t1), applyBRule(t2), applyBRule(t3)) match {
           case (Value(True), (Value(t2)), _) => Some(Value(t2))
           case (Value(False), _, Value(t3)) => Some(Value(t3))
+          case (s @ Stuck(_), _, _) => Some(s)
           case _ => None
         }
         case _ => None
@@ -139,6 +140,8 @@ object Arithmetic extends StandardTokenParsers {
       def unapply(t: Term) = t match {
         case Succ(t1) => applyBRule(t1) match {
           case Value(nv1) if isNV(nv1) => Some(Value(Succ(nv1)))
+          case Value(nv1) => Some(Stuck(t))
+          case s @ Stuck(_) => Some(s)
           case _ => None
         }
         case _ => None
@@ -150,6 +153,7 @@ object Arithmetic extends StandardTokenParsers {
       def unapply(t: Term) = t match {
         case Pred(t1) => applyBRule(t1) match {
           case Value(Zero) => Some(Value(Zero))
+          case s @ Stuck(_) => Some(s)
           case _ => None
         }
         case _ => None
@@ -161,6 +165,7 @@ object Arithmetic extends StandardTokenParsers {
       def unapply(t: Term) = t match {
         case Pred(t1) => applyBRule(t1) match {
           case Value(Succ(nv1)) if isNV(nv1) => Some(Value(nv1))
+          case s @ Stuck(_) => Some(s)
           case _ => None
         }
         case _ => None
@@ -173,6 +178,7 @@ object Arithmetic extends StandardTokenParsers {
         case IsZero(t1) => applyBRule(t1) match {
           case Value(Zero) => Some(Value(True))
           case Value(Succ(nv1)) if isNV(nv1) => Some(Value(False))
+          case s @ Stuck(_) => Some(s)
           case _ => None
         }
         case _ => None
