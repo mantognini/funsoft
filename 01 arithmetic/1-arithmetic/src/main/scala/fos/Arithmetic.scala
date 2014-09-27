@@ -203,24 +203,24 @@ object Arithmetic extends StandardTokenParsers {
   }
 
   def main(args: Array[String]): Unit = {
-    parse(System.in, System.out)
+    parse(System.in, System.out)(_ => {})
     println
   }
 
-  def parse(string: String, output: java.io.OutputStream) = {
-    parse_impl(new lexical.Scanner(string), output)
-  }
+  def parse(string: String, output: java.io.OutputStream)(onSuccess: ActionOnSuccess) =
+    parse_impl(new lexical.Scanner(string), output, onSuccess)
 
-  def parse(input: java.io.InputStream, output: java.io.OutputStream) = {
-    parse_impl(new lexical.Scanner(StreamReader(new java.io.InputStreamReader(input))), output)
-  }
+  def parse(input: java.io.InputStream, output: java.io.OutputStream)(onSuccess: ActionOnSuccess) =
+    parse_impl(new lexical.Scanner(StreamReader(new java.io.InputStreamReader(input))), output, onSuccess)
 
-  def parse_impl(tokens: lexical.Scanner, output: java.io.OutputStream) {
+  type ActionOnSuccess = Term => Unit
+
+  def parse_impl(tokens: lexical.Scanner, output: java.io.OutputStream, onSuccess: ActionOnSuccess) {
     Console.withOut(output) {
       phrase(Expr)(tokens) match {
-        case Success(trees, _) =>
-          // TODO
-          print(trees)
+        case Success(tree, _) =>
+          print(tree)
+          onSuccess(tree)
         case e =>
           print(e)
       }
