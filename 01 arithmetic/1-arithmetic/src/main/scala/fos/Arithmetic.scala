@@ -135,7 +135,7 @@ object Arithmetic extends StandardTokenParsers {
     }
 
     // Handle B-PREDZERO rule
-    object BPredZero {
+    object BPredZeroRule {
       def unapply(t: Term) = t match {
         case Pred(t) => applyBRule(t) match {
           case Value(Zero) => Some(Zero)
@@ -148,7 +148,7 @@ object Arithmetic extends StandardTokenParsers {
     def applyBRule(t: Term): ApplyBRuleResult = t match {
       case t if isV(t) => Value(t) // B-VALUE
       case BIfRule(v) => Value(v) // B-IFTRUE + B-IFFALSE
-      case BPredZero(z) => Value(z) // B-PREDZERO
+      case BPredZeroRule(z) => Value(z) // B-PREDZERO
       case t => Stuck(t) // Stuck because no rule apply
     }
 
