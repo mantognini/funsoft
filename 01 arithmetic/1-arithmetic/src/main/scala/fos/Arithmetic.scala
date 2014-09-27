@@ -143,4 +143,9 @@ object Arithmetic extends StandardTokenParsers {
       }
     }
   }
+
+  // TODO change names according to the statement:
+  // Write a **reduce** method which performs one step of the evaluation
+  // Write an **eval** method which implements a big step evaluator
+  // even though we probably don't need to change the methods' name it doesn't cost us much to do it.
 }
