@@ -31,81 +31,87 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
   def matchExactly(expected: String)(reductionOutput: String): Unit = {
     reductionOutput shouldBe expected
   }
+  
+  def testLL = ttools.testReduction(testRed, lastLine)_
+  def testST = ttools.testReduction(testRed, stuckTerm)_
+  def testME = ttools.testReduction(testRed, matchExactly)_
 
   "Values" should "be left as it" in {
-    testRed(False)(lastLine("False"))
-    testRed(True)(lastLine("True"))
-    testRed(Zero)(lastLine("Zero"))
-    testRed(Succ(Zero))(lastLine("Succ(Zero)"))
-    testRed(Succ(Succ(Zero)))(lastLine("Succ(Succ(Zero))"))
+    testLL(False, "False")
+    
+    testLL(False, "False")
+    testLL(True, "True")
+    testLL(Zero, "Zero")
+    testLL(Succ(Zero), "Succ(Zero)")
+    testLL(Succ(Succ(Zero)), "Succ(Succ(Zero))")
   }
 
   "If statement" should "be properly reduced" in {
-    testRed(If(True, True, False))(lastLine("True"))
-    testRed(If(False, True, False))(lastLine("False"))
-    testRed(If(If(True, True, False), True, False))(lastLine("True"))
-    testRed(If(If(False, True, False), True, False))(lastLine("False"))
-    testRed(If(If(True, True, False), If(False, True, False), False))(lastLine("False"))
+    testLL(If(True, True, False), "True")
+    testLL(If(False, True, False), "False")
+    testLL(If(If(True, True, False), True, False), "True")
+    testLL(If(If(False, True, False), True, False), "False")
+    testLL(If(If(True, True, False), If(False, True, False), False), "False")
   }
 
   "Pred" should "be properly reduced" in {
-    testRed(Pred(Zero))(lastLine("Zero"))
-    testRed(Pred(Succ(Zero)))(lastLine("Zero"))
+    testLL(Pred(Zero), "Zero")
+    testLL(Pred(Succ(Zero)), "Zero")
   }
 
   "IsZero" should "be properly reduced" in {
-    testRed(IsZero(Zero))(lastLine("True"))
-    testRed(IsZero(Succ(Zero)))(lastLine("False"))
-    testRed(IsZero(Succ(Pred(Zero))))(lastLine("False"))
+    testLL(IsZero(Zero), "True")
+    testLL(IsZero(Succ(Zero)), "False")
+    testLL(IsZero(Succ(Pred(Zero))), "False")
   }
 
   "Congruences" should "be properly reduced" in {
-    testRed(If(IsZero(Zero), True, False))(lastLine("True"))
-    testRed(If(IsZero(Pred(Succ(Zero))), True, False))(lastLine("True"))
-    testRed(If(IsZero(Succ(Pred(Zero))), True, False))(lastLine("False"))
+    testLL(If(IsZero(Zero), True, False), "True")
+    testLL(If(IsZero(Pred(Succ(Zero))), True, False), "True")
+    testLL(If(IsZero(Succ(Pred(Zero))), True, False), "False")
 
-    testRed(IsZero(Pred(Zero)))(lastLine("True"))
-    testRed(IsZero(Pred(Succ(Zero))))(lastLine("True"))
-    testRed(IsZero(Pred(Succ(Succ(Zero)))))(lastLine("False"))
+    testLL(IsZero(Pred(Zero)), "True")
+    testLL(IsZero(Pred(Succ(Zero))), "True")
+    testLL(IsZero(Pred(Succ(Succ(Zero)))), "False")
 
-    testRed(Pred(Pred(Succ(Succ(Succ(Zero))))))(lastLine("Succ(Zero)"))
+    testLL(Pred(Pred(Succ(Succ(Succ(Zero))))), "Succ(Zero)")
 
-    testRed(Succ(Pred(Pred(Succ(Zero)))))(lastLine("Succ(Zero)"))
+    testLL(Succ(Pred(Pred(Succ(Zero)))), "Succ(Zero)")
   }
 
   "More complex compositions" should "be properly reduced" in {
-    testRed(If(IsZero(Pred(Succ(Zero))), Succ(Pred(Zero)), Pred(Zero)))(lastLine("Succ(Zero)"))
-    testRed(IsZero(If(If(IsZero(Succ(Zero)), True, False), True, Succ(Zero))))(lastLine("False"))
+    testLL(If(IsZero(Pred(Succ(Zero))), Succ(Pred(Zero)), Pred(Zero)), "Succ(Zero)")
+    testLL(IsZero(If(If(IsZero(Succ(Zero)), True, False), True, Succ(Zero))), "False")
   }
 
   "unreduceable inputs" should "produce an stuck term message" in {
-    testRed(Succ(False))(stuckTerm("Succ(False)"))
-    testRed(Pred(Succ(Succ(Succ(False)))))(stuckTerm("Pred(Succ(Succ(Succ(False))))"))
-    testRed(IsZero(If(True, False, True)))(stuckTerm("IsZero(False)"))
-    testRed(If(False, True, IsZero(True)))(stuckTerm("IsZero(True)"))
-    testRed(Pred(False))(stuckTerm("Pred(False)"))
-    testRed(If(IsZero(Pred(Succ(Zero))), Succ(True), Succ(False)))(stuckTerm("Succ(True)"))
-    testRed(Succ(IsZero(Succ(Zero))))(stuckTerm("Succ(False)"))
+    testST(Succ(False), "Succ(False)")
+    testST(Pred(Succ(Succ(Succ(False)))), "Pred(Succ(Succ(Succ(False))))")
+    testST(IsZero(If(True, False, True)), "IsZero(False)")
+    testST(If(False, True, IsZero(True)), "IsZero(True)")
+    testST(Pred(False), "Pred(False)")
+    testST(If(IsZero(Pred(Succ(Zero))), Succ(True), Succ(False)), "Succ(True)")
+    testST(Succ(IsZero(Succ(Zero))), "Succ(False)")
   }
 
   "string output" should "match specifications" in {
     // No evaluation step (Values)
-    testRed(False)(matchExactly("False\n"))
-    testRed(True)(matchExactly("True\n"))
-    testRed(Zero)(matchExactly("Zero\n"))
-    testRed(Succ(Zero))(matchExactly("Succ(Zero)\n"))
-    testRed(Succ(Succ(Zero)))(matchExactly("Succ(Succ(Zero))\n"))
+    testME(False, "False\n")
+    testME(True, "True\n")
+    testME(Zero, "Zero\n")
+    testME(Succ(Zero), "Succ(Zero)\n")
+    testME(Succ(Succ(Zero)), "Succ(Succ(Zero))\n")
     
     // 1 or more evaluation steps
-    testRed(IsZero(Zero))(matchExactly("IsZero(Zero)\nTrue\n"))
-    testRed(If(IsZero(Succ(Zero)), True, Pred(Zero)))(matchExactly(
+    testME(IsZero(Zero), "IsZero(Zero)\nTrue\n")
+    testME(If(IsZero(Succ(Zero)), True, Pred(Zero)), 
 """If(IsZero(Succ(Zero)),True,Pred(Zero))
 If(False,True,Pred(Zero))
 Pred(Zero)
 Zero
 """
-    ))
-    testRed(If(IsZero(Pred(Pred(Succ(Succ(Zero))))),If(IsZero(Zero),True,False),False))(matchExactly(
+    )
+    testME(If(IsZero(Pred(Pred(Succ(Succ(Zero))))),If(IsZero(Zero),True,False),False), 
 """If(IsZero(Pred(Pred(Succ(Succ(Zero))))),If(IsZero(Zero),True,False),False)
 If(IsZero(Pred(Succ(Zero))),If(IsZero(Zero),True,False),False)
 If(IsZero(Zero),If(IsZero(Zero),True,False),False)
@@ -114,6 +120,6 @@ If(IsZero(Zero),True,False)
 If(True,True,False)
 True
 """
-    ))
+    )
   }
 }

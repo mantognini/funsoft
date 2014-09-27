@@ -14,8 +14,18 @@ class BigStepRedTest extends FlatSpec with Matchers {
     assertFun(output.toString)
   }
   
+  def shouldProduce(expected: String)(evalOutput: String): Unit = {
+    ("Big step: " + expected) shouldBe evalOutput
+  }
+  
+  def shouldStuckWith(expected: String)(evalOutput: String): Unit = {
+    ("Big step: Stuck term: " + expected) shouldBe evalOutput
+  }
+  
   "evaluation" should "produce the expected result" in {
-    // TODO
+    // Values should be left as it
+//    testEval(True)(shouldProduce("True"))
+//    testEval(True)(shouldProduce("True"))
   }
   
   "unreduceable inputs" should "fail and produce right StuckTern" in {
