@@ -116,9 +116,17 @@ object Arithmetic extends StandardTokenParsers {
   }
 
   def bigStepEvaluation(t: Term): Unit = {
-    t match {
-      case t if isV(t) => t
+
+    def value(t: Term): Either[Term, Term] = Left(t)
+    def stuck(t: Term): Either[Term, Term] = Right(t)
+
+    def applyBRule(t: Term): Either[Term, Term] = t match {
+      case t if isV(t) => value(t) // B-VALUE
+      case t => stuck(t) // Stuck because no rule apply
     }
+
+    print("Big step: ")
+    applyBRule(t).fold(v => print(v), t => print("Stuck term: " + t))
   }
 
   def main(args: Array[String]): Unit = {
