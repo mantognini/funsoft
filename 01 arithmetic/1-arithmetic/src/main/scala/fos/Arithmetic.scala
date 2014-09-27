@@ -126,8 +126,8 @@ object Arithmetic extends StandardTokenParsers {
     object BIfRule {
       def unapply(t: Term) = t match {
         case If(t1, t2, t3) => (applyBRule(t1), applyBRule(t2), applyBRule(t3)) match {
-          case (Value(True), (Value(t2)), _) => Some(t2)
-          case (Value(False), _, Value(t3)) => Some(t3)
+          case (Value(True), (Value(t2)), _) => Some(Value(t2))
+          case (Value(False), _, Value(t3)) => Some(Value(t3))
           case _ => None
         }
         case _ => None
@@ -138,7 +138,7 @@ object Arithmetic extends StandardTokenParsers {
     object BSuccRule {
       def unapply(t: Term) = t match {
         case Succ(t1) => applyBRule(t1) match {
-          case Value(nv1) if isNV(nv1) => Some(Succ(nv1))
+          case Value(nv1) if isNV(nv1) => Some(Value(Succ(nv1)))
           case _ => None
         }
         case _ => None
@@ -149,7 +149,7 @@ object Arithmetic extends StandardTokenParsers {
     object BPredZeroRule {
       def unapply(t: Term) = t match {
         case Pred(t1) => applyBRule(t1) match {
-          case Value(Zero) => Some(Zero)
+          case Value(Zero) => Some(Value(Zero))
           case _ => None
         }
         case _ => None
@@ -160,7 +160,7 @@ object Arithmetic extends StandardTokenParsers {
     object BPredSuccRule {
       def unapply(t: Term) = t match {
         case Pred(t1) => applyBRule(t1) match {
-          case Value(Succ(nv1)) if isNV(nv1) => Some(nv1)
+          case Value(Succ(nv1)) if isNV(nv1) => Some(Value(nv1))
           case _ => None
         }
         case _ => None
@@ -171,8 +171,8 @@ object Arithmetic extends StandardTokenParsers {
     object BIsZeroRule {
       def unapply(t: Term) = t match {
         case IsZero(t1) => applyBRule(t1) match {
-          case Value(Zero) => Some(True)
-          case Value(Succ(nv1)) if isNV(nv1) => Some(False)
+          case Value(Zero) => Some(Value(True))
+          case Value(Succ(nv1)) if isNV(nv1) => Some(Value(False))
           case _ => None
         }
         case _ => None
@@ -181,11 +181,11 @@ object Arithmetic extends StandardTokenParsers {
 
     def applyBRule(t: Term): ApplyBRuleResult = t match {
       case v if isV(v) => Value(v) // B-VALUE
-      case BIfRule(v) => Value(v) // B-IFTRUE + B-IFFALSE
-      case BSuccRule(nv) => Value(nv) // B-SUCC
-      case BPredZeroRule(z) => Value(z) // B-PREDZERO
-      case BPredSuccRule(nv) => Value(nv) // B-PREDSUCC
-      case BIsZeroRule(bool) => Value(bool) // B-ISZEROZERO + B-ISZEROSUCC
+      case BIfRule(v) => v // B-IFTRUE + B-IFFALSE
+      case BSuccRule(nv) => nv // B-SUCC
+      case BPredZeroRule(z) => z // B-PREDZERO
+      case BPredSuccRule(nv) => nv // B-PREDSUCC
+      case BIsZeroRule(bool) => bool // B-ISZEROZERO + B-ISZEROSUCC
       case _ => Stuck(t) // Stuck because no rule apply
     }
 
