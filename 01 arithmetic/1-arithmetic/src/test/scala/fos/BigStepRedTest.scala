@@ -25,24 +25,34 @@ class BigStepRedTest extends WordSpec with Matchers {
   def testSW = ttools.testReduction(testEval, shouldStuckWith)_
 
   val tests = ttools.getSomeEvaluationTestingValues()
-  "Terms" when {
+  val failtests =
+    Map(
+      Succ(IsZero(Zero)) -> "Succ(IsZero(Zero))",
+      Pred(Succ(Succ(Succ(False)))) -> "Succ(False)", // Example from the statement
+      IsZero(If(True, False, True)) -> "IsZero(If(True, False, True))" // Example from forum
+      )
+  // TODO more cases?
+
+  "BigStep evaluator" when {
     for ((category, subtests) <- tests) {
-      category should {
-        for (x <- subtests) {
-          "properly reduce " + x._1 in {
-            testSP(x._1, x._2)
+      "term is in category " + category + " and is well defined" when {
+        for (test <- subtests) {
+          "term is " + test._1 should {
+            "produce " + test._2 in {
+              testSP(test._1, test._2)
+            }
           }
         }
       }
     }
-  }
 
-  // TODO reactivate those test
-  //  "unreduceable inputs" should "fail and produce right StuckTern" in {
-  //    testSW(Succ(IsZero(Zero)), "Succ(IsZero(Zero))")
-  //    testSW(Pred(Succ(Succ(Succ(False)))), "Succ(False)") // Example from the statement
-  //    testSW(IsZero(If(True, False, True)), "IsZero(If(True, False, True))") // Example from forum
-  //    // TODO more cases?
-  //  }
+    "input is invalid" should {
+      for (failtest <- failtests) {
+        "print «Stuck term: " + failtest._2 + "» with " + failtest._1 in {
+          testSW(failtest._1, failtest._2)
+        }
+      }
+    }
+  }
 
 }
