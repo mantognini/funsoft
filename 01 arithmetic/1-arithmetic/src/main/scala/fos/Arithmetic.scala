@@ -93,7 +93,7 @@ object Arithmetic extends StandardTokenParsers {
 
   class NoRuleApplies extends Exception
 
-  def smallStepRed(t: Term): Unit = {
+  def reduce(t: Term): Unit = {
     def stepRed(t: Term): Term = t match {
       case If(True, t2, t3) => t2
       case If(False, t2, t3) => t3
@@ -110,7 +110,7 @@ object Arithmetic extends StandardTokenParsers {
 
     println(t)
     try {
-      if (!isNormal(t)) smallStepRed(stepRed(t))
+      if (!isNormal(t)) reduce(stepRed(t))
     } catch {
       case e: NoRuleApplies => println("Stuck term: " + t)
     }
@@ -204,7 +204,7 @@ object Arithmetic extends StandardTokenParsers {
 
   def main(args: Array[String]): Unit = {
     parse(System.in, System.out) { tree =>
-      smallStepRed(tree)
+      reduce(tree)
       bigStepEvaluation(tree)
     }
     println

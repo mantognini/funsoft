@@ -9,7 +9,7 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
   def testRed(input: Term)(assertFun: String => Unit): Unit = {
     val output = new ByteArrayOutputStream
     Console.withOut(output) {
-      Arithmetic.smallStepRed(input)
+      Arithmetic.reduce(input)
     }
     assertFun(output.toString)
   }
