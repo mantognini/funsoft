@@ -41,47 +41,29 @@ class SmallStepReductionTest extends FlatSpec with Matchers {
   }
 
   "If statement" should "be properly reduced" in {
-    testLL(If(True, True, False), "True")
-    testLL(If(False, True, False), "False")
-    testLL(If(If(True, True, False), True, False), "True")
-    testLL(If(If(False, True, False), True, False), "False")
-    testLL(If(If(True, True, False), If(False, True, False), False), "False")
+    ttools.getSomeEvaluationTestingValues()("if") foreach (x => testLL(x._1, x._2))
   }
 
   "Pred" should "be properly reduced" in {
-    testLL(Pred(Zero), "Zero")
-    testLL(Pred(Succ(Zero)), "Zero")
+    ttools.getSomeEvaluationTestingValues()("pred") foreach (x => testLL(x._1, x._2))
   }
 
   "IsZero" should "be properly reduced" in {
-    testLL(IsZero(Zero), "True")
-    testLL(IsZero(Succ(Zero)), "False")
-    testLL(IsZero(Succ(Pred(Zero))), "False")
+    ttools.getSomeEvaluationTestingValues()("isZero") foreach (x => testLL(x._1, x._2))
   }
 
   "Congruences" should "be properly reduced" in {
-    testLL(If(IsZero(Zero), True, False), "True")
-    testLL(If(IsZero(Pred(Succ(Zero))), True, False), "True")
-    testLL(If(IsZero(Succ(Pred(Zero))), True, False), "False")
-
-    testLL(IsZero(Pred(Zero)), "True")
-    testLL(IsZero(Pred(Succ(Zero))), "True")
-    testLL(IsZero(Pred(Succ(Succ(Zero)))), "False")
-
-    testLL(Pred(Pred(Succ(Succ(Succ(Zero))))), "Succ(Zero)")
-
-    testLL(Succ(Pred(Pred(Succ(Zero)))), "Succ(Zero)")
+    ttools.getSomeEvaluationTestingValues()("smallStepCongruences") foreach (x => testLL(x._1, x._2))
   }
 
   "More complex compositions" should "be properly reduced" in {
-    testLL(If(IsZero(Pred(Succ(Zero))), Succ(Pred(Zero)), Pred(Zero)), "Succ(Zero)")
-    testLL(IsZero(If(If(IsZero(Succ(Zero)), True, False), True, Succ(Zero))), "False")
+    ttools.getSomeEvaluationTestingValues()("complex") foreach (x => testLL(x._1, x._2))
   }
 
   "unreduceable inputs" should "produce an stuck term message" in {
     testST(Succ(False), "Succ(False)")
-    testST(Pred(Succ(Succ(Succ(False)))), "Pred(Succ(Succ(Succ(False))))")
-    testST(IsZero(If(True, False, True)), "IsZero(False)")
+    testST(Pred(Succ(Succ(Succ(False)))), "Pred(Succ(Succ(Succ(False))))") // Example from the statement
+    testST(IsZero(If(True, False, True)), "IsZero(False)") // Example from forum
     testST(If(False, True, IsZero(True)), "IsZero(True)")
     testST(Pred(False), "Pred(False)")
     testST(If(IsZero(Pred(Succ(Zero))), Succ(True), Succ(False)), "Succ(True)")
