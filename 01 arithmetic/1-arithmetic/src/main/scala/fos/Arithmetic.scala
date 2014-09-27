@@ -119,30 +119,20 @@ object Arithmetic extends StandardTokenParsers {
   def bigStepEvaluation(t: Term): Unit = {
 
     case class Value(t: Term)
-    case class IfTrue(zen: Term)
-    case class IfFalse(elze: Term)
     case class Stuck(t: Term)
     type EitherType = Either[Value, Stuck]
 
     implicit def value2Either(v: Value): EitherType = Left(v)
     implicit def stuck2Either(s: Stuck): EitherType = Right(s)
 
-    object BIfTrueRule {
-      def apply(zen: Term) = IfTrue(zen)
+    // Handle both B-IFTRUE and B-IFFALSE rules (DRY)
+    object BIfRule {
+      case class IfValue(v: Term) // dummy type
+      def apply(v: Term) = IfValue(v)
       def unapply(t: Term) = t match {
-        case If(cond, zen, _) => applyBRule(cond) match {
-          case Left(Value(True)) => Some(zen)
-          case _ => None
-        }
-        case _ => None
-      }
-    }
-
-    object BIfFalseRule {
-      def apply(elze: Term) = IfFalse(elze)
-      def unapply(t: Term) = t match {
-        case If(cond, _, elze) => applyBRule(cond) match {
-          case Left(Value(False)) => Some(elze)
+        case If(cond, zen, elze) => (applyBRule(cond), applyBRule(zen), applyBRule(elze)) match {
+          case (Left(Value(True)), Left(Value(zen)), _) => Some(zen)
+          case (Left(Value(False)), _, Left(Value(elze))) => Some(elze)
           case _ => None
         }
         case _ => None
@@ -151,8 +141,7 @@ object Arithmetic extends StandardTokenParsers {
 
     def applyBRule(t: Term): EitherType = t match {
       case t if isV(t) => Value(t) // B-VALUE
-      case BIfTrueRule(zen) => Value(zen) // B-IFTRUE
-      case BIfFalseRule(elze) => Value(elze) // B-IFFALSE
+      case BIfRule(v) => Value(v) // B-IFTRUE + B-IFFALSE
       case t => Stuck(t) // Stuck because no rule apply
     }
 
