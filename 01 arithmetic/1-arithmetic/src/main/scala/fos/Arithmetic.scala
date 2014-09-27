@@ -127,8 +127,6 @@ object Arithmetic extends StandardTokenParsers {
 
     // Handle both B-IFTRUE and B-IFFALSE rules (DRY)
     object BIfRule {
-      case class IfValue(v: Term) // dummy type
-      def apply(v: Term) = IfValue(v)
       def unapply(t: Term) = t match {
         case If(cond, zen, elze) => (applyBRule(cond), applyBRule(zen), applyBRule(elze)) match {
           case (Left(Value(True)), Left(Value(zen)), _) => Some(zen)
