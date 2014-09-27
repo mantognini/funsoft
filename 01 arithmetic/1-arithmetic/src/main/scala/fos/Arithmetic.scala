@@ -116,7 +116,7 @@ object Arithmetic extends StandardTokenParsers {
     }
   }
 
-  def bigStepEvaluation(t: Term): Unit = {
+  def eval(t: Term): Unit = {
 
     abstract class ApplyBRuleResult
     case class Value(t: Term) extends ApplyBRuleResult
@@ -205,7 +205,7 @@ object Arithmetic extends StandardTokenParsers {
   def main(args: Array[String]): Unit = {
     parse(System.in, System.out) { tree =>
       reduce(tree)
-      bigStepEvaluation(tree)
+      eval(tree)
     }
     println
   }

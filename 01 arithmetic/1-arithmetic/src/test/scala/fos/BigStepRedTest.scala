@@ -8,7 +8,7 @@ class BigStepRedTest extends WordSpec with Matchers {
   def testEval(input: Term)(assertFun: String => Unit): Unit = {
     val output = new ByteArrayOutputStream
     Console.withOut(output) {
-      Arithmetic.bigStepEvaluation(input)
+      Arithmetic.eval(input)
     }
     assertFun(output.toString)
   }
