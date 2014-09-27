@@ -40,7 +40,8 @@ object ttools {
         (IsZero(Pred(Succ(Zero))), "True"),
         (IsZero(Pred(Succ(Succ(Zero)))), "False"),
         (Pred(Pred(Succ(Succ(Succ(Zero))))), "Succ(Zero)"),
-        (Succ(Pred(Pred(Succ(Zero)))), "Succ(Zero)")),
+        (Succ(Pred(Pred(Succ(Zero)))), "Succ(Zero)"),
+        (IsZero(Pred(If(True, Succ(Zero), False))), "True")),
       "complex" -> List(
         (If(IsZero(Pred(Succ(Zero))), Succ(Pred(Zero)), Pred(Zero)), "Succ(Zero)"),
         (IsZero(If(If(IsZero(Succ(Zero)), True, False), True, Succ(Zero))), "False")))
