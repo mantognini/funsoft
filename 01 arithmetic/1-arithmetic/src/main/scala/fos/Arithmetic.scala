@@ -117,18 +117,21 @@ object Arithmetic extends StandardTokenParsers {
 
   def bigStepEvaluation(t: Term): Unit = {
 
-    type EitherType = Either[Term, Term] // value, stuck
+    case class Value(t: Term)
+    case class Stuck(t: Term)
+    type EitherType = Either[Value, Stuck]
 
-    def value(t: Term): EitherType = Left(t)
-    def stuck(t: Term): EitherType = Right(t)
+    implicit def value2Either(v: Value): EitherType = Left(v)
+    implicit def stuck2Either(s: Stuck): EitherType = Right(s)
+
 
     def applyBRule(t: Term): EitherType = t match {
-      case t if isV(t) => value(t) // B-VALUE
-      case t => stuck(t) // Stuck because no rule apply
+      case t if isV(t) => Value(t) // B-VALUE
+      case t => Stuck(t) // Stuck because no rule apply
     }
 
     print("Big step: ")
-    applyBRule(t).fold(v => print(v), t => print("Stuck term: " + t))
+    applyBRule(t).fold({ case Value(v) => print(v) }, { case Stuck(t) => print("Stuck term: " + t) })
   }
 
   def main(args: Array[String]): Unit = {
