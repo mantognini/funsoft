@@ -31,7 +31,7 @@ class BigStepRedTest extends WordSpec with Matchers {
       Pred(Succ(Succ(Succ(False)))) -> "Succ(False)", // Example from the statement
       Pred(Succ(Succ(False))) -> "Succ(False)",
       Pred(Succ(False)) -> "Succ(False)",
-      IsZero(If(True, False, True)) -> "IsZero(If(True, False, True))" // Example from forum
+      IsZero(If(True, False, True)) -> "IsZero(If(True,False,True))" // Example from forum
       )
   // TODO more cases?
 
