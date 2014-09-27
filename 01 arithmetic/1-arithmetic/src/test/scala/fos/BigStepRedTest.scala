@@ -27,6 +27,21 @@ class BigStepRedTest extends FlatSpec with Matchers {
 
   "Values" should "be left as it" in {
     ttools.getSomeEvaluationTestingValues()("values") foreach (x => testSP(x._1, x._2))
+
+  "False" should "be left as is" in {
+    testSP(False, "False")
+  }
+
+  "True" should "be left as is" in {
+    testSP(True, "True")
+  }
+
+  "Succ(Zero)" should "be left as is" in {
+    testSP(Succ(Zero), "Succ(Zero)")
+  }
+
+  "Succ(Succ(Zero)" should "be left as is" in {
+    testSP(Succ(Succ(Zero)), "Succ(Succ(Zero))")
   }
 
   "If statement" should "be properly reduced" in {
