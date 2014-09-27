@@ -136,7 +136,7 @@ object Arithmetic extends StandardTokenParsers {
     Console.withOut(output) {
       phrase(Expr)(tokens) match {
         case Success(trees, _) =>
-          //   ... To complete ... 
+          // TODO
           print(trees)
         case e =>
           print(e)
