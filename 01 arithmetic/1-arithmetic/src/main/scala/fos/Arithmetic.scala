@@ -156,11 +156,12 @@ object Arithmetic extends StandardTokenParsers {
       }
     }
 
-    // Handle B-ISZEROZERO rule
-    object BIsZeroZeroRule {
+    // Handle B-ISZEROZERO and B-ISZEROSUCC rules (DRY)
+    object BIsZeroRule {
       def unapply(t: Term) = t match {
         case IsZero(t) => applyBRule(t) match {
           case Value(Zero) => Some(True)
+          case Value(Succ(nv)) if isNV(nv) => Some(False)
           case _ => None
         }
         case _ => None
@@ -172,7 +173,7 @@ object Arithmetic extends StandardTokenParsers {
       case BIfRule(v) => Value(v) // B-IFTRUE + B-IFFALSE
       case BPredZeroRule(z) => Value(z) // B-PREDZERO
       case BPredSuccRule(nv) => Value(nv) // B-PREDSUCC
-      case BIsZeroZeroRule(tru) => Value(tru) // B-ISZEROZERO
+      case BIsZeroRule(bool) => Value(bool) // B-ISZEROZERO + B-ISZEROSUCC
       case t => Stuck(t) // Stuck because no rule apply
     }
 
