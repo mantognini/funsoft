@@ -22,13 +22,14 @@ object Arithmetic extends StandardTokenParsers {
     case _ => false
   }
 
-  def isV(t: Term): Boolean = t match {
+  def isBool(t: Term): Boolean = t match {
     case False => true
     case True => true
     case _ => false
   }
 
-  def isNormal(t: Term): Boolean = isV(t) || isNV(t)
+  def isV(t: Term): Boolean = isBool(t) || isNV(t)
+  def isNormal = isV _ // for this language it's the same
 
   /**
    * Specifications 1/3
