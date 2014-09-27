@@ -134,6 +134,17 @@ object Arithmetic extends StandardTokenParsers {
       }
     }
 
+    // Handle B-SUCC rule
+    object BSuccRule {
+      def unapply(t: Term) = t match {
+        case Succ(t) => applyBRule(t) match {
+          case Value(nv) if isNV(nv) => Some(Succ(nv))
+          case _ => None
+        }
+        case _ => None
+      }
+    }
+
     // Handle B-PREDZERO rule
     object BPredZeroRule {
       def unapply(t: Term) = t match {
@@ -171,6 +182,7 @@ object Arithmetic extends StandardTokenParsers {
     def applyBRule(t: Term): ApplyBRuleResult = t match {
       case t if isV(t) => Value(t) // B-VALUE
       case BIfRule(v) => Value(v) // B-IFTRUE + B-IFFALSE
+      case BSuccRule(nv) => Value(nv) // B-SUCC
       case BPredZeroRule(z) => Value(z) // B-PREDZERO
       case BPredSuccRule(nv) => Value(nv) // B-PREDSUCC
       case BIsZeroRule(bool) => Value(bool) // B-ISZEROZERO + B-ISZEROSUCC
