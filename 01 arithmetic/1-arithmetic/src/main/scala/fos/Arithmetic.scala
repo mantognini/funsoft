@@ -116,7 +116,9 @@ object Arithmetic extends StandardTokenParsers {
   }
 
   def bigStepEvaluation(t: Term): Unit = {
-    // TODO
+    t match {
+      case t if isV(t) => t
+    }
   }
 
   def main(args: Array[String]): Unit = {
