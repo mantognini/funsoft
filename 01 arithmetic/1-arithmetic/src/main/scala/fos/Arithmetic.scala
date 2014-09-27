@@ -125,9 +125,9 @@ object Arithmetic extends StandardTokenParsers {
     // Handle both B-IFTRUE and B-IFFALSE rules (DRY)
     object BIfRule {
       def unapply(t: Term) = t match {
-        case If(cond, zen, elze) => (applyBRule(cond), applyBRule(zen), applyBRule(elze)) match {
-          case (Value(True), (Value(zen)), _) => Some(zen)
-          case (Value(False), _, Value(elze)) => Some(elze)
+        case If(t1, t2, t3) => (applyBRule(t1), applyBRule(t2), applyBRule(t3)) match {
+          case (Value(True), (Value(t2)), _) => Some(t2)
+          case (Value(False), _, Value(t3)) => Some(t3)
           case _ => None
         }
         case _ => None
@@ -137,8 +137,8 @@ object Arithmetic extends StandardTokenParsers {
     // Handle B-SUCC rule
     object BSuccRule {
       def unapply(t: Term) = t match {
-        case Succ(t) => applyBRule(t) match {
-          case Value(nv) if isNV(nv) => Some(Succ(nv))
+        case Succ(t1) => applyBRule(t1) match {
+          case Value(nv1) if isNV(nv1) => Some(Succ(nv1))
           case _ => None
         }
         case _ => None
@@ -148,7 +148,7 @@ object Arithmetic extends StandardTokenParsers {
     // Handle B-PREDZERO rule
     object BPredZeroRule {
       def unapply(t: Term) = t match {
-        case Pred(t) => applyBRule(t) match {
+        case Pred(t1) => applyBRule(t1) match {
           case Value(Zero) => Some(Zero)
           case _ => None
         }
@@ -159,8 +159,8 @@ object Arithmetic extends StandardTokenParsers {
     // Handle B-PREDSUCC rule
     object BPredSuccRule {
       def unapply(t: Term) = t match {
-        case Pred(t) => applyBRule(t) match {
-          case Value(Succ(nv)) if isNV(nv) => Some(nv)
+        case Pred(t1) => applyBRule(t1) match {
+          case Value(Succ(nv1)) if isNV(nv1) => Some(nv1)
           case _ => None
         }
         case _ => None
@@ -170,9 +170,9 @@ object Arithmetic extends StandardTokenParsers {
     // Handle B-ISZEROZERO and B-ISZEROSUCC rules (DRY)
     object BIsZeroRule {
       def unapply(t: Term) = t match {
-        case IsZero(t) => applyBRule(t) match {
+        case IsZero(t1) => applyBRule(t1) match {
           case Value(Zero) => Some(True)
-          case Value(Succ(nv)) if isNV(nv) => Some(False)
+          case Value(Succ(nv1)) if isNV(nv1) => Some(False)
           case _ => None
         }
         case _ => None
