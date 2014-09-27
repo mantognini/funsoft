@@ -180,13 +180,13 @@ object Arithmetic extends StandardTokenParsers {
     }
 
     def applyBRule(t: Term): ApplyBRuleResult = t match {
-      case t if isV(t) => Value(t) // B-VALUE
+      case v if isV(v) => Value(v) // B-VALUE
       case BIfRule(v) => Value(v) // B-IFTRUE + B-IFFALSE
       case BSuccRule(nv) => Value(nv) // B-SUCC
       case BPredZeroRule(z) => Value(z) // B-PREDZERO
       case BPredSuccRule(nv) => Value(nv) // B-PREDSUCC
       case BIsZeroRule(bool) => Value(bool) // B-ISZEROZERO + B-ISZEROSUCC
-      case t => Stuck(t) // Stuck because no rule apply
+      case _ => Stuck(t) // Stuck because no rule apply
     }
 
     print("Big step: ")
