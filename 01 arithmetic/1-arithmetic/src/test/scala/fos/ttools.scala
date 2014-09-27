@@ -10,7 +10,7 @@ object ttools {
     redFun(t)(testFun(expected))
   }
 
-  def getSomeEvaluationTestingValues(): Map[String, List[Tuple2[Term, String]]] = {
+  def getSomeEvaluationTestingValues(): Map[String, List[(Term, String)]] = {
     Map(
       "values" -> List(
         (False, "False"),
