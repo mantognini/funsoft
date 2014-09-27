@@ -17,6 +17,7 @@ object ttools {
         (True, "True"),
         (Zero, "Zero"),
         (Succ(Zero), "Succ(Zero)"),
+        (Succ(Pred(Zero)), "Succ(Zero)"),
         (Succ(Succ(Zero)), "Succ(Succ(Zero))")),
       "if" -> List(
         (If(True, True, False), "True"),
