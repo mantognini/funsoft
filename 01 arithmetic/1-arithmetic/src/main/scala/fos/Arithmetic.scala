@@ -203,7 +203,10 @@ object Arithmetic extends StandardTokenParsers {
   }
 
   def main(args: Array[String]): Unit = {
-    parse(System.in, System.out)(_ => {})
+    parse(System.in, System.out) { tree =>
+      smallStepRed(tree)
+      bigStepEvaluation(tree)
+    }
     println
   }
 
