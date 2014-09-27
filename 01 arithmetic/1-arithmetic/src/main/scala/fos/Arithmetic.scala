@@ -93,21 +93,21 @@ object Arithmetic extends StandardTokenParsers {
 
   class NoRuleApplies extends Exception
 
-  def stepRed(t: Term): Term = t match {
-    case If(True, t2, t3) => t2
-    case If(False, t2, t3) => t3
-    case If(t1, t2, t3) => If(stepRed(t1), t2, t3)
-    case Succ(t1) => Succ(stepRed(t1))
-    case Pred(Zero) => Zero
-    case Pred(Succ(nv)) if isNV(nv) => nv
-    case Pred(t1) => Pred(stepRed(t1))
-    case IsZero(Zero) => True
-    case IsZero(Succ(nv)) if isNV(nv) => False
-    case IsZero(t1) => IsZero(stepRed(t1))
-    case _ => throw new NoRuleApplies
-  }
-
   def smallStepRed(t: Term): Unit = {
+    def stepRed(t: Term): Term = t match {
+      case If(True, t2, t3) => t2
+      case If(False, t2, t3) => t3
+      case If(t1, t2, t3) => If(stepRed(t1), t2, t3)
+      case Succ(t1) => Succ(stepRed(t1))
+      case Pred(Zero) => Zero
+      case Pred(Succ(nv)) if isNV(nv) => nv
+      case Pred(t1) => Pred(stepRed(t1))
+      case IsZero(Zero) => True
+      case IsZero(Succ(nv)) if isNV(nv) => False
+      case IsZero(t1) => IsZero(stepRed(t1))
+      case _ => throw new NoRuleApplies
+    }
+
     println(t)
     try {
       if (!isNormal(t)) smallStepRed(stepRed(t))
