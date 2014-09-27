@@ -10,12 +10,14 @@ object ttools {
     redFun(t)(testFun(expected))
   }
 
-  def getSomeEvaluationTestingValues(): Map[String, List[Tuple2[Term, String]]] = {
+  def getSomeEvaluationTestingValues(): Map[String, List[(Term, String)]] = {
     Map(
       "values" -> List(
         (False, "False"),
         (True, "True"),
+        (Zero, "Zero"),
         (Succ(Zero), "Succ(Zero)"),
+        (Succ(Pred(Zero)), "Succ(Zero)"),
         (Succ(Succ(Zero)), "Succ(Succ(Zero))")),
       "if" -> List(
         (If(True, True, False), "True"),
@@ -38,10 +40,12 @@ object ttools {
         (IsZero(Pred(Succ(Zero))), "True"),
         (IsZero(Pred(Succ(Succ(Zero)))), "False"),
         (Pred(Pred(Succ(Succ(Succ(Zero))))), "Succ(Zero)"),
-        (Succ(Pred(Pred(Succ(Zero)))), "Succ(Zero)")),
+        (Succ(Pred(Pred(Succ(Zero)))), "Succ(Zero)"),
+        (IsZero(Pred(If(True, Succ(Zero), False))), "True")),
       "complex" -> List(
         (If(IsZero(Pred(Succ(Zero))), Succ(Pred(Zero)), Pred(Zero)), "Succ(Zero)"),
-        (IsZero(If(If(IsZero(Succ(Zero)), True, False), True, Succ(Zero))), "False")))
+        (IsZero(If(If(IsZero(Succ(Zero)), True, False), True, Succ(Zero))), "False"),
+        (If(True, True, Succ(False)), "True")))
   }
 
 }

@@ -1,10 +1,9 @@
 package fos
 
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
+import org.scalatest._
 import java.io.ByteArrayOutputStream
 
-class BigStepRedTest extends FlatSpec with Matchers {
+class BigStepRedTest extends WordSpec with Matchers {
 
   def testEval(input: Term)(assertFun: String => Unit): Unit = {
     val output = new ByteArrayOutputStream
@@ -25,31 +24,37 @@ class BigStepRedTest extends FlatSpec with Matchers {
   def testSP = ttools.testReduction(testEval, shouldProduce)_
   def testSW = ttools.testReduction(testEval, shouldStuckWith)_
 
-  "Values" should "be left as it" in {
-    ttools.getSomeEvaluationTestingValues()("values") foreach (x => testSP(x._1, x._2))
-  }
+  val tests = ttools.getSomeEvaluationTestingValues()
+  val failtests =
+    Map(
+      Succ(IsZero(Zero)) -> "Succ(IsZero(Zero))",
+      Pred(Succ(Succ(Succ(False)))) -> "Succ(False)", // Example from the statement
+      Pred(Succ(Succ(False))) -> "Succ(False)",
+      Pred(Succ(False)) -> "Succ(False)",
+      IsZero(If(True, False, True)) -> "IsZero(If(True,False,True))" // Example from forum
+      )
+  // TODO more cases?
 
-  "If statement" should "be properly reduced" in {
-    ttools.getSomeEvaluationTestingValues()("if") foreach (x => testSP(x._1, x._2))
-  }
+  "BigStep evaluator" when {
+    for ((category, subtests) <- tests) {
+      "term is in category " + category + " and is well defined" when {
+        for (test <- subtests) {
+          "term is " + test._1 should {
+            "produce " + test._2 in {
+              testSP(test._1, test._2)
+            }
+          }
+        }
+      }
+    }
 
-  "Pred" should "be properly reduced" in {
-    ttools.getSomeEvaluationTestingValues()("pred") foreach (x => testSP(x._1, x._2))
-  }
-
-  "IsZero" should "be properly reduced" in {
-    ttools.getSomeEvaluationTestingValues()("isZero") foreach (x => testSP(x._1, x._2))
-  }
-
-  "More complex compositions" should "be properly reduced" in {
-    ttools.getSomeEvaluationTestingValues()("complex") foreach (x => testSP(x._1, x._2))
-  }
-
-  "unreduceable inputs" should "fail and produce right StuckTern" in {
-    testSW(Succ(IsZero(Zero)), "Succ(IsZero(Zero))")
-    testSW(Pred(Succ(Succ(Succ(False)))), "Succ(False)") // Example from the statement
-    testSW(IsZero(If(True, False, True)), "IsZero(If(True, False, True))") // Example from forum
-    // TODO more cases?
+    "input is invalid" should {
+      for (failtest <- failtests) {
+        "print «Stuck term: " + failtest._2 + "» with " + failtest._1 in {
+          testSW(failtest._1, failtest._2)
+        }
+      }
+    }
   }
 
 }

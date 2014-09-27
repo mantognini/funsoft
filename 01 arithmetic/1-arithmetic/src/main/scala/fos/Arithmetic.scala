@@ -22,13 +22,14 @@ object Arithmetic extends StandardTokenParsers {
     case _ => false
   }
 
-  def isV(t: Term): Boolean = t match {
+  def isBool(t: Term): Boolean = t match {
     case False => true
     case True => true
     case _ => false
   }
 
-  def isNormal(t: Term): Boolean = isV(t) || isNV(t)
+  def isV(t: Term): Boolean = isBool(t) || isNV(t)
+  def isNormal = isV _ // for this language it's the same
 
   /**
    * Specifications 1/3
@@ -116,7 +117,89 @@ object Arithmetic extends StandardTokenParsers {
   }
 
   def bigStepEvaluation(t: Term): Unit = {
-    // TODO
+
+    abstract class ApplyBRuleResult
+    case class Value(t: Term) extends ApplyBRuleResult
+    case class Stuck(t: Term) extends ApplyBRuleResult
+
+    // Handle both B-IFTRUE and B-IFFALSE rules (DRY)
+    object BIfRule {
+      def unapply(t: Term) = t match {
+        case If(t1, t2, t3) => (applyBRule(t1), applyBRule(t2), applyBRule(t3)) match {
+          case (Value(True), (Value(t2)), _) => Some(Value(t2))
+          case (Value(False), _, Value(t3)) => Some(Value(t3))
+          case (s @ Stuck(_), _, _) => Some(s)
+          case _ => None
+        }
+        case _ => None
+      }
+    }
+
+    // Handle B-SUCC rule
+    object BSuccRule {
+      def unapply(t: Term) = t match {
+        case Succ(t1) => applyBRule(t1) match {
+          case Value(nv1) if isNV(nv1) => Some(Value(Succ(nv1)))
+          case Value(nv1) => Some(Stuck(t))
+          case s @ Stuck(_) => Some(s)
+          case _ => None
+        }
+        case _ => None
+      }
+    }
+
+    // Handle B-PREDZERO rule
+    object BPredZeroRule {
+      def unapply(t: Term) = t match {
+        case Pred(t1) => applyBRule(t1) match {
+          case Value(Zero) => Some(Value(Zero))
+          case s @ Stuck(_) => Some(s)
+          case _ => None
+        }
+        case _ => None
+      }
+    }
+
+    // Handle B-PREDSUCC rule
+    object BPredSuccRule {
+      def unapply(t: Term) = t match {
+        case Pred(t1) => applyBRule(t1) match {
+          case Value(Succ(nv1)) if isNV(nv1) => Some(Value(nv1))
+          case s @ Stuck(_) => Some(s)
+          case _ => None
+        }
+        case _ => None
+      }
+    }
+
+    // Handle B-ISZEROZERO and B-ISZEROSUCC rules (DRY)
+    object BIsZeroRule {
+      def unapply(t: Term) = t match {
+        case IsZero(t1) => applyBRule(t1) match {
+          case Value(Zero) => Some(Value(True))
+          case Value(Succ(nv1)) if isNV(nv1) => Some(Value(False))
+          case s @ Stuck(_) => Some(s)
+          case _ => None
+        }
+        case _ => None
+      }
+    }
+
+    def applyBRule(t: Term): ApplyBRuleResult = t match {
+      case v if isV(v) => Value(v) // B-VALUE
+      case BIfRule(v) => v // B-IFTRUE + B-IFFALSE
+      case BSuccRule(nv) => nv // B-SUCC
+      case BPredZeroRule(z) => z // B-PREDZERO
+      case BPredSuccRule(nv) => nv // B-PREDSUCC
+      case BIsZeroRule(bool) => bool // B-ISZEROZERO + B-ISZEROSUCC
+      case _ => Stuck(t) // Stuck because no rule apply
+    }
+
+    print("Big step: ")
+    applyBRule(t) match {
+      case Value(v) => print(v)
+      case Stuck(t) => print("Stuck term: " + t)
+    }
   }
 
   def main(args: Array[String]): Unit = {
