@@ -222,7 +222,6 @@ object Arithmetic extends StandardTokenParsers {
     Console.withOut(output) {
       phrase(Expr)(tokens) match {
         case Success(tree, _) =>
-          print(tree)
           onSuccess(tree)
         case e =>
           print(e)

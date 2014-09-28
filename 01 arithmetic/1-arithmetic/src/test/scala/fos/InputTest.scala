@@ -9,14 +9,14 @@ class InputTest extends FlatSpec with Matchers {
 
   def testParse(input: String, expectedOutput: String) {
     val outputStream = new ByteArrayOutputStream
-    Arithmetic.parse(input, outputStream)(_ => {})
+    Arithmetic.parse(input, outputStream)(print _)
 
     outputStream.toString() should be(expectedOutput)
   }
 
   def testFail(input: String) {
     val outputStream = new ByteArrayOutputStream
-    Arithmetic.parse(input, outputStream)(_ => {})
+    Arithmetic.parse(input, outputStream)(print _)
 
     assert(outputStream.toString() contains "failure")
   }
