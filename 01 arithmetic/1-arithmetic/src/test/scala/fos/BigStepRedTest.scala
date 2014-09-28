@@ -28,12 +28,17 @@ class BigStepRedTest extends WordSpec with Matchers {
   val failtests =
     Map(
       Succ(IsZero(Zero)) -> "Succ(IsZero(Zero))",
+      Succ(IsZero(Pred(False))) -> "Pred(False)",
       Pred(Succ(Succ(Succ(False)))) -> "Succ(False)", // Example from the statement
       Pred(Succ(Succ(False))) -> "Succ(False)",
       Pred(Succ(False)) -> "Succ(False)",
-      IsZero(If(True, False, True)) -> "IsZero(If(True,False,True))" // Example from forum
-      )
-  // TODO more cases?
+      IsZero(Pred(False)) -> "Pred(False)",
+      IsZero(If(Succ(Zero), True, False)) -> "If(Succ(Zero),True,False)",
+      IsZero(If(True, False, True)) -> "IsZero(If(True,False,True))", // Example from forum
+      If(False, True, Succ(False)) -> "Succ(False)",
+      If(True, Succ(True), False) -> "Succ(True)",
+      If(True, IsZero(IsZero(Zero)), Succ(True)) -> "IsZero(IsZero(Zero))",
+      If(Pred(Zero), True, True) -> "If(Pred(Zero),True,True)")
 
   "BigStep evaluator" when {
     for ((category, subtests) <- tests) {

@@ -69,6 +69,11 @@ object Arithmetic extends StandardTokenParsers {
    *   If there are syntax errors, it should not attempt any reduction,
    *   and only print the error message.
    *
+   *   ++ Warning ++: As said on the forum:
+   *   	-> http://moodle.epfl.ch/mod/forum/discuss.php?d=191328#yui_3_13_0_2_1411912198661_151
+   *   Big step should print the inner most term it cannot
+   *   reduce!
+   *
    * Example 1:
    * input: if iszero pred pred 2 then if iszero 0 then true else false else false
    * output:
@@ -126,8 +131,14 @@ object Arithmetic extends StandardTokenParsers {
     object BIfRule {
       def unapply(t: Term) = t match {
         case If(t1, t2, t3) => (applyBRule(t1), applyBRule(t2), applyBRule(t3)) match {
-          case (Value(True), (Value(t2)), _) => Some(Value(t2))
-          case (Value(False), _, Value(t3)) => Some(Value(t3))
+          case (Value(True), v2, v3) => v2 match {
+            case Value(v) => Some(Value(v))
+            case s @ Stuck(_) => Some(s)
+          }
+          case (Value(False), v2, v3) => v3 match {
+            case Value(v) => Some(Value(v))
+            case s @ Stuck(_) => Some(s)
+          }
           case (s @ Stuck(_), _, _) => Some(s)
           case _ => None
         }
@@ -140,7 +151,6 @@ object Arithmetic extends StandardTokenParsers {
       def unapply(t: Term) = t match {
         case Succ(t1) => applyBRule(t1) match {
           case Value(nv1) if isNV(nv1) => Some(Value(Succ(nv1)))
-          case Value(nv1) => Some(Stuck(t))
           case s @ Stuck(_) => Some(s)
           case _ => None
         }
