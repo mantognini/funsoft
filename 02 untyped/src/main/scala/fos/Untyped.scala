@@ -12,11 +12,19 @@ object Untyped extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".")
   import lexical.Identifier
 
+  def variable = "(" + stringLit + ")" ^^ { Var(_) }
+  def abstraction = "\\" ~> stringLit ~ ("." ~> Term) ^^ { case name ~ term => Abs(Var(name), term) }
+  def application = Term ~ rep(Term) ^^ { case t ~ ts => ??? }
+  def parentheses = "(" ~> Term <~ ")"
+
   /**
    * Term     ::= AbsOrVar { AbsOrVar }
    */
   def Term: Parser[Term] = (
-    //   ... To complete ... 
+    variable |
+    abstraction |
+    application |
+    parentheses |
     failure("illegal start of term"))
 
   //   ... To complete ... 
