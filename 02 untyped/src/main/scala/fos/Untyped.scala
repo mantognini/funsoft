@@ -3,7 +3,8 @@ package fos
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
 
-/** This object implements a parser and evaluator for the
+/**
+ * This object implements a parser and evaluator for the
  *  untyped lambda calculus found in Chapter 5 of
  *  the TAPL book.
  */
@@ -11,10 +12,11 @@ object Untyped extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".")
   import lexical.Identifier
 
-  /** Term     ::= AbsOrVar { AbsOrVar }
+  /**
+   * Term     ::= AbsOrVar { AbsOrVar }
    */
   def Term: Parser[Term] = (
-  //   ... To complete ... 
+    //   ... To complete ... 
     failure("illegal start of term"))
 
   //   ... To complete ... 
@@ -22,25 +24,27 @@ object Untyped extends StandardTokenParsers {
   /** Term 't' does not match any reduction rule. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
 
-  /** Normal order (leftmost, outermost redex first).
+  /**
+   * Normal order (leftmost, outermost redex first).
    *
    *  @param t the initial term
    *  @return  the reduced term
    */
   def reduceNormalOrder(t: Term): Term = t match {
-  //   ... To complete ... 
+    //   ... To complete ... 
     case _ =>
       throw NoRuleApplies(t)
   }
 
   /** Call by value reducer. */
   def reduceCallByValue(t: Term): Term = t match {
-  //   ... To complete ... 
+    //   ... To complete ... 
     case _ =>
       throw NoRuleApplies(t)
   }
 
-  /** Returns a stream of terms, each being one step of reduction.
+  /**
+   * Returns a stream of terms, each being one step of reduction.
    *
    *  @param t      the initial term
    *  @param reduce the method that reduces a term by one step.
@@ -54,7 +58,6 @@ object Untyped extends StandardTokenParsers {
       case NoRuleApplies(_) =>
         Stream.cons(t, Stream.empty)
     }
-
 
   def main(args: Array[String]): Unit = {
     val tokens = new lexical.Scanner(StreamReader(new java.io.InputStreamReader(System.in)))
