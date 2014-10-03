@@ -1,4 +1,4 @@
-Repo for fundation of software project & co
+Repo for foundation of software project & co
 =======
 
 Some links
