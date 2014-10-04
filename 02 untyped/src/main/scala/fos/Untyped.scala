@@ -46,10 +46,13 @@ object Untyped extends StandardTokenParsers {
    *  @param t the initial term
    *  @return  the reduced term
    */
-  def reduceNormalOrder(t: Term): Term = t match {
-    //   ... To complete ... 
-    case _ =>
-      throw NoRuleApplies(t)
+  def reduceNormalOrder(t: Term): Term = {
+    def reduce(t: Term): Option[Term] = None
+
+    reduce(t) match {
+      case Some(t) => t
+      case None => throw NoRuleApplies(t)
+    }
   }
 
   /** Call by value reducer. */
