@@ -17,6 +17,8 @@ class PrettyPrintTest extends FlatSpec with Matchers {
     Abs(x, Abs(y, App(x, y))) -> """\x. \y. x y""",
     Abs(x, App(Abs(y, App(y, z)), y)) -> """\x. (\y. y z) y""",
     App(App(Abs(x, Abs(f, x)), y), z) -> """(\x. \f. x) y z""",
+    App(x, Abs(y, y)) -> """x (\y. y)""",
+    App(Abs(x, x), Abs(y, y)) -> """(\x. x) (\y. y)""",
     App(Abs(x, Abs(y, App(App(z, x), y))), Abs(x, x)) -> """(\x. \y. (z x) y) (\x. x)""")
 
   // TODO Add more test
