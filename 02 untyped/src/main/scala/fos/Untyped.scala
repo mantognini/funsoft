@@ -12,8 +12,8 @@ object Untyped extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".")
   import lexical.Identifier
 
-  def variable = "(" + stringLit + ")" ^^ { Var(_) }
-  def abstraction = "\\" ~> stringLit ~ ("." ~> Term) ^^ { case name ~ term => Abs(Var(name), term) }
+  def variable = ident ^^ { Var(_) }
+  def abstraction = "\\" ~> ident ~ ("." ~> Term) ^^ { case name ~ term => Abs(Var(name), term) }
   def parentheses = "(" ~> Term <~ ")"
   def vap = variable | abstraction | parentheses
   def application = vap ~ rep(vap) ^^ { case t ~ tx => ??? }
