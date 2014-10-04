@@ -16,25 +16,21 @@ object Untyped extends StandardTokenParsers {
   def abstraction = "\\" ~> ident ~ ("." ~> Term) ^^ { case name ~ term => Abs(Var(name), term) }
   def parentheses = "(" ~> Term <~ ")" ^^ { Par(_) }
   def vap = variable | abstraction | parentheses
-  def application = rep1(vap) ^^ {
-    case ts =>
-      def reduce(ts: List[Term]): Term = ts match {
-        case a :: Nil => a
-        case a :: b :: Nil => App(a, b)
-        case a :: b :: ts => App(App(a, b), reduce(ts))
-      }
-      reduce(ts)
-  }
 
   /**
    * Term     ::= AbsOrVar { AbsOrVar }
    */
   def Term: Parser[Term] = (
-    variable |
-    abstraction |
-    application |
-    parentheses |
-    failure("illegal start of term"))
+    rep1(vap) ^^ {
+      case ts =>
+        def reduce(ts: List[Term]): Term = ts match {
+          case a :: Nil => a
+          case a :: b :: Nil => App(a, b)
+          case a :: b :: ts => App(App(a, b), reduce(ts))
+        }
+        reduce(ts)
+    }
+    | failure("illegal start of term"))
 
   case class ParseException(e: String) extends Exception
 
