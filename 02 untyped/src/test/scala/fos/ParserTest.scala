@@ -5,6 +5,8 @@ import org.scalatest._
 class ParserTest extends WordSpec with Matchers {
 
   // A few shortcuts...
+  val f = Var("f")
+  val g = Var("g")
   val x = Var("x")
   val y = Var("y")
   val z = Var("z")
@@ -19,7 +21,12 @@ class ParserTest extends WordSpec with Matchers {
       """\y.y""" -> Abs(y, y),
       """\y.\x. x y""" -> Abs(y, Abs(x, App(x, y))),
       """\x. x y z""" -> Abs(x, App(App(x, y), z)),
+      """\x. (x y z)""" -> Abs(x, App(App(x, y), z)),
+      """\x. (x y) z""" -> Abs(x, App(App(x, y), z)),
       """\x. x (y z)""" -> Abs(x, App(x, App(y, z))),
+      """\f.f(f(succ0))""" -> Abs(f, App(f, App(f, Var("succ0")))),
+      """\f.f (f succ0)""" -> Abs(f, App(f, App(f, Var("succ0")))),
+      """(\f. f (f (g z))) (\x. g (g (g x)))""" -> App(Abs(f, App(f, App(f, App(g, z)))), Abs(x, App(g, App(g, App(g, x))))),
       """(x)""" -> x,
       """(x y)""" -> App(x, y) // TODO add more tests
       )
