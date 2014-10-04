@@ -16,7 +16,14 @@ object Untyped extends StandardTokenParsers {
   def abstraction = "\\" ~> ident ~ ("." ~> Term) ^^ { case name ~ term => Abs(Var(name), term) }
   def parentheses = "(" ~> Term <~ ")"
   def vap = variable | abstraction | parentheses
-  def application = vap ~ rep(vap) ^^ { case t ~ tx => ??? }
+  def application = vap ~ rep1(vap) ^^ { // at least two terms are needed for application
+    case t ~ tx =>
+      def reduce(tx: List[Term]): Term = tx match {
+        case t :: Nil => t
+        case t :: tx => App(t, reduce(tx))
+      }
+      reduce(t :: tx)
+  }
 
   /**
    * Term     ::= AbsOrVar { AbsOrVar }
