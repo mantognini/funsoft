@@ -35,7 +35,15 @@ object Untyped extends StandardTokenParsers {
     parentheses |
     failure("illegal start of term"))
 
-  //   ... To complete ... 
+  case class ParseException(e: String) extends Exception
+
+  def parse(input: String) = parse_impl(new lexical.Scanner(input))
+
+  private def parse_impl(tokens: lexical.Scanner) = phrase(Term)(tokens) match {
+    case Success(ast, _) => ast
+    case Failure(e, _) => throw new ParseException(e)
+    case _ => ???
+  }
 
   /** Term 't' does not match any reduction rule. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
