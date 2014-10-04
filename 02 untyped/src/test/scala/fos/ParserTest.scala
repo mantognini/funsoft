@@ -26,7 +26,12 @@ class ParserTest extends WordSpec with Matchers {
 
     correctCases.foreach {
       case (input, ast) => "procude the correct AST with input " + input in {
-        assert(Untyped.parse(input) === ast)
+        try {
+          val res = Untyped.parse(input)
+          assert(res === ast)
+        } catch {
+          case Untyped.ParseException(e) => fail(e)
+        }
       }
     }
   }
