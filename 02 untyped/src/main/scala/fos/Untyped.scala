@@ -14,8 +14,9 @@ object Untyped extends StandardTokenParsers {
 
   def variable = "(" + stringLit + ")" ^^ { Var(_) }
   def abstraction = "\\" ~> stringLit ~ ("." ~> Term) ^^ { case name ~ term => Abs(Var(name), term) }
-  def application = Term ~ rep(Term) ^^ { case t ~ ts => ??? }
   def parentheses = "(" ~> Term <~ ")"
+  def vap = variable | abstraction | parentheses
+  def application = vap ~ rep(vap) ^^ { case t ~ tx => ??? }
 
   /**
    * Term     ::= AbsOrVar { AbsOrVar }
