@@ -34,9 +34,15 @@ object Untyped extends StandardTokenParsers {
 
   case class ParseException(e: String) extends Exception
 
-  def parse(input: String) = parse_impl(new lexical.Scanner(input))
+  def parse(input: String) =
+    parse_impl(new lexical.Scanner(input))
 
-  private def parse_impl(tokens: lexical.Scanner) = phrase(Term)(tokens) match {
+  def parse(input: java.io.InputStream) =
+    parse_impl(new lexical.Scanner(StreamReader(new java.io.InputStreamReader(input))))
+
+  private def parse_impl(tokens: lexical.Scanner) = phrase(Term)(tokens)
+
+  def parseOrDie(input: String) = parse(input) match {
     case Success(ast, _) => ast
     case Failure(e, _) => throw new ParseException(e)
     case Error(e, _) => throw new ParseException(e)
@@ -84,8 +90,7 @@ object Untyped extends StandardTokenParsers {
     }
 
   def main(args: Array[String]): Unit = {
-    val tokens = new lexical.Scanner(StreamReader(new java.io.InputStreamReader(System.in)))
-    phrase(Term)(tokens) match {
+    parse(System.in) match {
       case Success(trees, _) =>
         println("normal order: ")
         for (t <- path(trees, reduceNormalOrder))
