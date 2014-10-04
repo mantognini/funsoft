@@ -26,12 +26,12 @@ class PrettyPrintTest extends FlatSpec with Matchers {
     App(App(App(Abs(x, Abs(y, App(x, y))), Abs(z, z)), f), g) -> """(\x. \y. x y) (\z. z) f g""",
     App(Abs(x, Abs(y, App(App(z, x), y))), Abs(x, x)) -> """(\x. \y. (z x) y) (\x. x)""")
 
-  // TODO Add more test
-
   tests.foreach {
     case (ast, expr) => it should "properly print " + expr in {
       ast.toString shouldEqual expr
     }
   }
+
+  // TODO test input => parse => print
 
 }
