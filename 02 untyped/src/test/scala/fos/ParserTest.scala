@@ -4,12 +4,7 @@ import org.scalatest._
 
 class ParserTest extends WordSpec with Matchers {
 
-  // A few shortcuts...
-  val f = Var("f")
-  val g = Var("g")
-  val x = Var("x")
-  val y = Var("y")
-  val z = Var("z")
+  import fos.test.helpers.Shortcuts._
 
   "The parser" should {
     val correctCases = Map[String, Term](
