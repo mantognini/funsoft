@@ -19,9 +19,9 @@ class ParserTest extends WordSpec with Matchers {
       """\y.y""" -> Abs(y, y),
       """\y.\x. x y""" -> Abs(y, Abs(x, App(x, y))),
       """\x x y z""" -> Abs(x, App(App(x, y), z)),
-      """\x x (y z)""" -> Abs(x, App(x, App(y, z))),
-      """(x)""" -> x,
-      """(x y)""" -> App(x, y) // TODO add more tests
+      """\x x (y z)""" -> Abs(x, App(x, Par(App(y, z)))),
+      """(x)""" -> Par(x),
+      """(x y)""" -> Par(App(x, y)) // TODO add more tests
       )
 
     correctCases.foreach {
