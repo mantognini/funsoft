@@ -42,7 +42,7 @@ object Untyped extends StandardTokenParsers {
   private def parse_impl(tokens: lexical.Scanner) = phrase(Term)(tokens) match {
     case Success(ast, _) => ast
     case Failure(e, _) => throw new ParseException(e)
-    case _ => ???
+    case Error(e, _) => throw new ParseException(e)
   }
 
   /** Term 't' does not match any reduction rule. */
@@ -55,7 +55,7 @@ object Untyped extends StandardTokenParsers {
    *  @return  the reduced term
    */
   def reduceNormalOrder(t: Term): Term = {
-    def reduce(t: Term): Option[Term] = None
+    def reduce(t: Term): Option[Term] = None // TODO implement me
 
     reduce(t) match {
       case Some(t) => t
