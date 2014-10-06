@@ -15,6 +15,7 @@ class ParserTest extends WordSpec with Matchers {
       """x y""" -> App(x, y),
       """\y.y""" -> Abs(y, y),
       """\y.\x. x y""" -> Abs(y, Abs(x, App(x, y))),
+      """\x. \y. x y x""" -> Abs(x, Abs(y, (App(App(x, y), x)))), // λx. (λy. ((x y) x))
       """\x. x y z""" -> Abs(x, App(App(x, y), z)),
       """\x. (x y z)""" -> Abs(x, App(App(x, y), z)),
       """\x. (x y) z""" -> Abs(x, App(App(x, y), z)),
