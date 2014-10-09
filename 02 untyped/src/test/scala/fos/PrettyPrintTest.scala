@@ -8,6 +8,7 @@ class PrettyPrintTest extends FlatSpec with Matchers {
 
   behavior of "The pretty printer"
 
+  // Test AST printing
   val tests = Map[Term, String](
     // WITHOUT any variable name substitution
     x -> """x""",
@@ -32,7 +33,5 @@ class PrettyPrintTest extends FlatSpec with Matchers {
       ast.toString shouldEqual expr
     }
   }
-
-  // TODO test input => parse => print
 
 }
