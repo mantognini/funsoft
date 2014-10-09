@@ -24,8 +24,9 @@ class ParserTest extends WordSpec with Matchers {
       """\f.f (f succ0)""" -> Abs(f, App(f, App(f, Var("succ0")))),
       """(\f. f (f (g z))) (\x. g (g (g x)))""" -> App(Abs(f, App(f, App(f, App(g, z)))), Abs(x, App(g, App(g, App(g, x))))),
       """(x)""" -> x,
-      """(x y)""" -> App(x, y) // TODO add more tests
-      )
+      """(x y)""" -> App(x, y))
+
+    // TODO add incorrect cases and catch exception
 
     correctCases.foreach {
       case (input, ast) => "procude the correct AST with input " + input in {
