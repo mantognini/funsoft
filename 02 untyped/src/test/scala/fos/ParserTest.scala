@@ -8,6 +8,7 @@ class ParserTest extends WordSpec with Matchers {
 
   "The parser" should {
     val correctCases = Map[String, Term](
+      // WITHOUT any variable name substitution
       """x""" -> x,
       """y""" -> y,
       """xya""" -> Var("xya"),
