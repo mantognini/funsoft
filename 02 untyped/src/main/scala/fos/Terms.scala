@@ -24,6 +24,7 @@ case class App(left: Term, right: Term) extends Term // t t
     def withLeftRightPar = withPar(left) + " " + withPar(right)
     def withoutPar = left + " " + right
 
+    // TODO, low-priority: possible to improve for "prettier" output?
     (left, right) match {
       case (Abs(_, _), Abs(_, _)) => withLeftRightPar
       case (Abs(_, _), _) => withLeftPar
