@@ -43,6 +43,11 @@ case class App(left: Term, right: Term) extends Term // t t
       case App(left, right) => getRightMostTermIfItIsAnAbs(right)
     }
 
+    def addParIfRightMostTermIsAnAbs(t: Term) = getRightMostTermIfItIsAnAbs(t) match {
+      case Some(lambdaRightMostTerm) => lambdaRightMostTerm.mustHaveParenthesis = true
+      case _ => {}
+    }
+
     (left, right) match {
       // (\x.x) ____
       case (Abs(_, _), App(_, _)) => withLeftRightPar
@@ -53,13 +58,13 @@ case class App(left: Term, right: Term) extends Term // t t
       case (Var(_), _) => withoutPar
 
       // x y ____
-      case (_, _) => getRightMostTermIfItIsAnAbs(left) match {
-        case Some(lambdaRightMostTerm) => {
-          // Put ()'s around this term
-          lambdaRightMostTerm.mustHaveParenthesis = true
-          withoutPar
-        }
-        case None => withoutPar
+      case (App(_, _), App(_, _)) => {
+        addParIfRightMostTermIsAnAbs(left)
+        withRightPar
+      }
+      case (_, _) => {
+        addParIfRightMostTermIsAnAbs(left)
+        withoutPar
       }
     }
   }

@@ -12,7 +12,7 @@ class PrettyPrintTest extends FlatSpec with Matchers {
 
   // Test AST printing
   termsAndStringsMap.foreach {
-    case (ast, expr) => it should "properly print " + expr in {
+    case (ast, expr) => it should "properly print " + expr + ". NB, AST is " + ast.toRawString in {
       ast.toString shouldEqual expr
     }
   }
