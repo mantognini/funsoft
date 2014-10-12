@@ -25,10 +25,9 @@ object Untyped extends StandardTokenParsers {
       case ts =>
         def reduce(ts: List[Term]): Term = ts match {
           case a :: Nil => a
-          case a :: b :: Nil => App(a, b)
-          case a :: b :: ts => App(App(a, b), reduce(ts))
+          case x :: xs => App(reduce(xs), x)
         }
-        reduce(ts)
+        reduce(ts.reverse)
     }
     | failure("illegal start of term"))
 

@@ -3,10 +3,15 @@ package fos
 import scala.util.parsing.input.Positional
 
 /** Abstract Syntax Trees for terms. */
-abstract class Term extends Positional
+abstract class Term extends Positional {
+  def toRawString = "Term"
+}
 
 case class Var(name: String) extends Term // x
-{ override def toString = name }
+{
+  override def toString = name
+  override def toRawString = "Var(" + name + ")"
+}
 
 case class Abs(arg: Var, body: Term) extends Term // \x.t
 {
@@ -15,10 +20,12 @@ case class Abs(arg: Var, body: Term) extends Term // \x.t
     case true => "(\\" + arg + ". " + body + ")"
     case _ => "\\" + arg + ". " + body
   }
+  override def toRawString = "Abs(" + arg.toRawString + ", " + body.toRawString + ")"
 }
 
 case class App(left: Term, right: Term) extends Term // t t
 {
+  override def toRawString = "App(" + left.toRawString + ", " + right.toRawString + ")"
   override def toString = {
     def withPar(t: Term) = t match {
       case Var(_) => t // ignore parentheses for simple var
