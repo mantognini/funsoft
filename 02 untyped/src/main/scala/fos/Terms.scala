@@ -9,7 +9,13 @@ case class Var(name: String) extends Term // x
 { override def toString = name }
 
 case class Abs(arg: Var, body: Term) extends Term // \x.t
-{ override def toString = "\\" + arg + ". " + body }
+{
+  var mustHaveParenthesis = false
+  override def toString = mustHaveParenthesis match {
+    case true => "(\\" + arg + ". " + body + ")"
+    case _ => "\\" + arg + ". " + body
+  }
+}
 
 case class App(left: Term, right: Term) extends Term // t t
 {
@@ -24,14 +30,30 @@ case class App(left: Term, right: Term) extends Term // t t
     def withLeftRightPar = withPar(left) + " " + withPar(right)
     def withoutPar = left + " " + right
 
-    // TODO, low-priority: possible to improve for "prettier" output?
+    def getRightMostTermIfItIsAnAbs(t: Term): Option[Abs] = t match {
+      case Var(_) => None
+      case absTerm @ Abs(_, _) => Some(absTerm)
+      case App(left, right) => getRightMostTermIfItIsAnAbs(right)
+    }
+
     (left, right) match {
-      case (Abs(_, _), Abs(_, _)) => withLeftRightPar
+      // (\x.x) ____
+      case (Abs(_, _), App(_, _)) => withLeftRightPar
       case (Abs(_, _), _) => withLeftPar
-      case (_, Abs(_, _)) => withRightPar
-      case (App(Abs(_, _), _), _) => withoutPar
-      case (App(_, _), _) => withLeftPar
-      case _ => withoutPar
+
+      // x ____
+      case (Var(_), App(_, _)) => withRightPar
+      case (Var(_), _) => withoutPar
+
+      // x y ____
+      case (_, _) => getRightMostTermIfItIsAnAbs(left) match {
+        case Some(lambdaRightMostTerm) => {
+          // Put ()'s around this term
+          lambdaRightMostTerm.mustHaveParenthesis = true
+          withoutPar
+        }
+        case None => withoutPar
+      }
     }
   }
 }
