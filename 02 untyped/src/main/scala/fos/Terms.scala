@@ -10,7 +10,7 @@ abstract class Term extends Positional {
 case class Var(name: String) extends Term // x
 {
   override def toString = name
-  override def toRawString = "Var(" + name + ")"
+  override def toRawString = name
 }
 
 case class Abs(arg: Var, body: Term) extends Term // \x.t
