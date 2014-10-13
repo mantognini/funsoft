@@ -36,15 +36,10 @@ case class App(left: Term, right: Term) extends Term // t t
 
   override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = {
     val (lpar, rpar) = (left, right) match {
-      case (l: Abs, r: Var) => (true, false)
-      case (l: Abs, r: Abs) => (true, false)
       case (l: Abs, r: App) => (true, true)
-      case (l: App, r: Var) => (false, false)
-      case (l: App, r: Abs) => (false, false)
-      case (l: App, r: App) => (false, true)
-      case (l: Var, r: Var) => (false, false)
-      case (l: Var, r: Abs) => (false, false)
-      case (l: Var, r: App) => (false, true)
+      case (l: Abs, _) => (true, false)
+      case (_, r: App) => (false, true)
+      case _ => (false, false)
     }
 
     // Corner case: t = App{ App( ? , Abs), ? } -> the Abs should be protected with par
