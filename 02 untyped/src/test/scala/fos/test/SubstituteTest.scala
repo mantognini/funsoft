@@ -38,6 +38,7 @@ class SubstituteTest extends FlatSpec with Matchers {
     """\x. (\y. x y) y""" -> """\x. x y""",
     """(\x. \y. \z. x y z)(x y z)""" -> """\y1. \z1. x y z y1 z1""",
     """(\x. \y. \z. x y z z1)(x y z)""" -> """\y1. \z2. x y z y1 z2 z1""",
+    """(\x. \y. \z. x y z z9000)(x y z)""" -> """\y1. \z9001. x y z y1 z9001 z9000""",
     """(\x. \y. \z. x y z y1)(x y z)""" -> """\y2. \z1. x y z y2 z1 y1""",
     """(\x. \y. \z. x y z y1 z1)(x y z)""" -> """\y2. \z2. x y z y2 z2 y1 z1""",
     """(\x. \y. \z. x y z y1 z2)(x y z)""" -> """\y2. \z1. x y z y2 z1 y1 z2""",
