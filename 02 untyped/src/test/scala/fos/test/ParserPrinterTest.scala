@@ -14,7 +14,7 @@ class ParserPrinterTest extends FlatSpec with Matchers {
   // Test input => parse => print
   val tests = Map[String, String](
     // WITHOUT any variable name substitution
-    // term without ()'s should no produce any ()'s .. (but hard to ensure, or?)
+    // term without ()'s should not produce any ()'s .. (but hard to ensure, or?)
     """x""" -> """x""",
     """x y""" -> """x y""",
     """\x. x""" -> """\x. x""",
@@ -26,7 +26,7 @@ class ParserPrinterTest extends FlatSpec with Matchers {
     """\x.x\y.y""" -> """\x. x \y. y""",
     """\x. \y. x y \z. z x""" -> """\x. \y. x y \z. z x""",
 
-    // terms with important ()'s that should not be removed
+    // terms with important ()'s that must not be removed
     """(\x. x) y""" -> """(\x. x) y""",
     """(\x. \y. x) y""" -> """(\x. \y. x) y""",
     """x (y z)""" -> """x (y z)""",
@@ -36,7 +36,7 @@ class ParserPrinterTest extends FlatSpec with Matchers {
     """((x y))""" -> """x y""",
     """((\x. (x))) ((y z))""" -> """(\x. x) (y z)""",
 
-    // Should not produce unuseful ()'s
+    // Should not produce useless ()'s
     """(\x. x)(\y. y)""" -> """(\x. x) \y. y""",
     """x (y)""" -> """x y""",
     """(x y) z""" -> """x y z""")

@@ -13,7 +13,7 @@ class PrinterConsistency extends FlatSpec with Matchers {
   // This test assumes the parser p ("p(String): Term") does its job correctly
   // .. no variable re-naming ..
   // It tests the consistency of the Term.toString methods. 
-  // i.e. : for all term t: p(t.toString) == t
+  // i.e. for all term t: p(t.toString) == t
   ttools.correctCases.values.toList.removeDuplicates.foreach { el =>
     it should "be consistent with " + el.toRawString in {
       try {
