@@ -4,7 +4,9 @@ import scala.util.parsing.input.Positional
 
 /** Abstract Syntax Trees for terms. */
 abstract class Term extends Positional {
-  def toRawString: String // TODO add doc. why is it needed?
+  // Print AST with all ()'s and case class names except Var
+  // e.g. Abs(Var(x), App(Var(x), Var(y))) --[ toRawString ]--> Abs(x, App(x, y))
+  def toRawString: String
 
   // Pretty printing:
   def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean = false): String // abstract
