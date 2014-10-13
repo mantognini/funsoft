@@ -2,8 +2,6 @@ package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
-import scala.collection.immutable.Set
-import scala.annotation.tailrec
 
 /**
  * This object implements a parser and evaluator for the
@@ -54,24 +52,42 @@ object Untyped extends StandardTokenParsers {
   // Alpha-conversion
   // Rename y in t
   def alpha(t: Term, y: Var): Term = {
-    val prefix = y.name
+    val oldName = y.name // "prefix"
 
     def findUsedNameWithPrefix: Set[String] = {
-      @tailrec
-      def walk(cur: Term, acc: Set[String]): Set[String] = ??? // TODO
+      def addIfPrefix(acc: Set[String], name: String): Set[String] = if (name != oldName && name.startsWith(oldName)) acc + name else acc
+
+      def walk(cur: Term, acc: Set[String]): Set[String] = cur match {
+        case Var(vn) => addIfPrefix(acc, vn)
+        case Abs(Var(vn), t1) => walk(t1, addIfPrefix(acc, vn))
+        case App(t1, t2) => walk(t2, walk(t1, acc))
+      }
 
       walk(t, Set())
     }
 
+    // if v, v1, v2, .., vi, vj (j is not necessarily i + 1), then the selected name is v{j+1}. 
     def findFirstFreeName: String = {
       val taken = findUsedNameWithPrefix
+      val indexes = taken map { _.stripPrefix(oldName).toInt }
+      val lastIndex = (indexes + 0) max
 
-      ??? // TODO
+      oldName + (lastIndex + 1)
     }
 
-    def rename(cur: Term, newName: String): Term = ??? // TODO
+    def rename(cur: Term, newName: String): Term = cur match {
+      case Var(vn) if vn == oldName => Var(newName)
+      case v @ Var(_) => v
+      case l @ Abs(Var(vn), _) if vn == oldName => l
+      case Abs(v, t1) => Abs(v, rename(t1, newName))
+      case App(t1, t2) => App(rename(t1, newName), rename(t2, newName))
+    }
 
-    rename(t, findFirstFreeName)
+    val newName = findFirstFreeName
+    t match {
+      case Abs(x, t) => Abs(Var(newName), rename(t, newName))
+      case _ => throw new RuntimeException("Unexpected input term for alpha conversion")
+    }
   }
 
   // Substitute
@@ -90,7 +106,7 @@ object Untyped extends StandardTokenParsers {
     case Abs(y, t) if /*y != x &&*/ !FV(s).contains(y) => Abs(y, substitute(t, x, s))
 
     // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∈ FV(s)
-    case Abs(y, t) /*if y != x && FV(s).contains(y)*/ => alpha(t, y)
+    case l @ Abs(y, t) /*if y != x && FV(s).contains(y)*/ => substitute(alpha(l, y), x, s)
 
     // [x → s](t1 t2) = ([x → s]t1 [x → s]t2)
     case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
