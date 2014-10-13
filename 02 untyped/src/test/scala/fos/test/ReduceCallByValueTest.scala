@@ -1,13 +1,12 @@
 package fos.test
 
 import org.scalatest._
-import fos.Term
-import fos.{ Term, App, Abs, Var }
 
+@Ignore
 class reduceCallByValueTest extends WordSpec with Matchers {
 
+  import fos.{ Untyped, Term, App, Abs, Var }
   import fos.test.helpers.Shortcuts._
-  import fos.Untyped
 
   //  \x.x ((\x.\f.(\z.z) \g.g) y) =>
   //\x.x ((\x.\f.\g.g) y) => Stuck
@@ -165,28 +164,28 @@ class reduceCallByValueTest extends WordSpec with Matchers {
     }
   }
 
-  //  "The call-by-value strategy" should {
-  //    cbvrCasesWhichTerminate foreach {
-  //      redSeq =>
-  //        redSeq match {
-  //          case Nil => {} // Discard empty test-cases
-  //          case x :: _ => {
-  //            "correcty reduce " + x in {
-  //              try {
-  //                // We must ensure that the strings in each reduc. sequence List[String]
-  //                // are formatted as they were produced by the parser
-  //                // e.g. "(x)" should become "x"
-  //                // 		"\y. (y x)" should become "\y. y x"
-  //                // 		"\y.y" should become "\y. y"
-  //                val formattedReqSeq = redSeq map { s => Untyped.parseOrDie(s).toString }
-  //                assertEq(Untyped.parseOrDie(x), formattedReqSeq)
-  //              } catch {
-  //                case Untyped.ParseException(e) => fail(e)
-  //              }
-  //            }
-  //          }
-  //        }
-  //    }
-  //  }
+  "The call-by-value strategy" should {
+    cbvrCasesWhichTerminate foreach {
+      redSeq =>
+        redSeq match {
+          case Nil => {} // Discard empty test-cases
+          case x :: _ => {
+            "correcty reduce " + x in {
+              try {
+                // We must ensure that the strings in each reduc. sequence List[String]
+                // are formatted as they were produced by the parser
+                // e.g. "(x)" should become "x"
+                // 		"\y. (y x)" should become "\y. y x"
+                // 		"\y.y" should become "\y. y"
+                val formattedReqSeq = redSeq map { s => Untyped.parseOrDie(s).toString }
+                assertEq(Untyped.parseOrDie(x), formattedReqSeq)
+              } catch {
+                case Untyped.ParseException(e) => fail(e)
+              }
+            }
+          }
+        }
+    }
+  }
 
 }
