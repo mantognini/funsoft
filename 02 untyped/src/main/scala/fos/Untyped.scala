@@ -60,7 +60,41 @@ object Untyped extends StandardTokenParsers {
    *  @return  the reduced term
    */
   def reduceNormalOrder(t: Term): Term = {
-    def reduce(t: Term): Option[Term] = None // TODO implement me
+    def reduce(t: Term): Option[Term] = t match {
+      // No reduction left to be applied
+      case Var(_) => None
+
+      //      t1 → t1p
+      // ------------------
+      //  λx. t1 → λx. t1p
+      case Abs(x, t1) => reduce(t1) match {
+        case Some(t1p) => Some(Abs(x, t1p))
+        case None => None
+      }
+
+      // Rule order: A then B then C
+      // ----------
+      //
+      //        A                        B                     C
+      //
+      //     t1 → t1p                                       t2 → t2p
+      // ---------------- && (λx. b) t2 → [x → t2] b && ----------------
+      //  t1 t2 → t1p t2                                 t1 t2 → t1 t2p
+      //
+      // Because leftmost, outermost redex is always reduced first
+      case App(t1, t2) => {
+        def ruleA = reduce(t1) map { t1p => App(t1p, t2) }
+
+        def ruleB = t1 match {
+          case Abs(x, b) => ??? // TODO
+          case _ => None
+        }
+
+        def ruleC = reduce(t2) map { t2p => App(t1, t2p) }
+
+        ruleA orElse ruleB orElse ruleC
+      }
+    }
 
     reduce(t) match {
       case Some(t) => t
