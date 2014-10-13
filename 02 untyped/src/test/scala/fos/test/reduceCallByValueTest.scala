@@ -3,20 +3,32 @@ package fos.test
 import org.scalatest._
 import fos.Term
 import fos.{ Term, App, Abs, Var }
-import java.lang.RuntimeException
 
-class ReduceNormalOrderTest extends WordSpec with Matchers {
+class reduceCallByValueTest extends WordSpec with Matchers {
 
   import fos.test.helpers.Shortcuts._
   import fos.Untyped
 
-  // nr == normal reduction
+  //  \x.x ((\x.\f.(\z.z) \g.g) y) =>
+  //\x.x ((\x.\f.\g.g) y) => Stuck
+  //
+  //(1) \x.x ((\x.\f.(\z.z) x) \y.y) =>
+  //(2) \x.x (\f.(\z.z) \y.y) =>
+  //(3) \f.(\z.z) \y.y =>
+  //(4) \f.\y.y => Stuck
+  //
+  //Following Church, a term of the form (\x.t12) t2 is called a redex
+  //
+  //only outermost redex are reduced and where a redex is reduced only
+  //when its right-hand side has already been reduced to a value
+
+  // cbvr == call by value reduction
   // A list of < sequence of reduction > which itself is represented
   // by a < list of terms > each reducing to the next term in the list.
   // Hence, last element of the list cannot be reduced
   // Note: 	We assume that the parser and prettyPrinter are correct
   // 		and we write the terms with strings for readability
-  val nrCasesWhichTerminate: List[List[String]] = List(
+  val cbvrCasesWhichTerminate: List[List[String]] = List(
     // Examples seen somewhere
     List(
       """\y.(\x.x) y""", // Statement example
@@ -140,50 +152,41 @@ class ReduceNormalOrderTest extends WordSpec with Matchers {
       """(\y.y \g.g) ((\x.x) x) y""",
       """((\x.x) x) (\g.g) y""",
       """x (\g.g) y"""),
-
+    List(),
     List())
 
-  // TODO: Are there interesting cases which do not terminate?
-
-  def normReducer(t: Term): Term = Untyped.reduceNormalOrder(t)
+  def cbvReducer(t: Term): Term = Untyped.reduceCallByValue(t)
   def assertEq(t: Term, l: List[String]): Unit = l match {
-    case x :: Nil => { // No more reductions are expected
-      try {
-        val t1 = normReducer(t)
-        assert(false, t + " should not reduce further to " + t1)
-      } catch {
-        case Untyped.NoRuleApplies(_) => assert(true, t + " is no more reduceable")
-        case e: Throwable => throw new RuntimeException("reduce with normal strategy should throw a NoRuleApplies exception instead of " + e)
-      }
-    }
+    case Nil => // No more reductions are expected
+      assert(t.toRawString === cbvReducer(t).toRawString, "term should not reduce further")
     case x :: xs => {
-      assert(t.toString === x, t.toRawString) // the reduction step is OK
-      assertEq(normReducer(t), xs) // test the following reductions
+      assert(t.toString === x) // the reduction step is OK
+      assertEq(cbvReducer(t), xs) // test the following reductions
     }
   }
 
-  "The normal-reduction strategy" should {
-    nrCasesWhichTerminate foreach {
-      redSeq =>
-        redSeq match {
-          case Nil => {} // Discard empty test-cases
-          case x :: _ => {
-            "correcty reduce " + x in {
-              try {
-                // We must ensure that the strings in each reduc. sequence List[String]
-                // are formatted as they were produced by the parser
-                // e.g. "(x)" should become "x"
-                // 		"\y. (y x)" should become "\y. y x"
-                // 		"\y.y" should become "\y. y"
-                val formattedReqSeq = redSeq map { Untyped.parseOrDie(_).toString }
-                assertEq(Untyped.parseOrDie(x), formattedReqSeq)
-              } catch {
-                case Untyped.ParseException(e) => fail(e)
-              }
-            }
-          }
-        }
-    }
-  }
+  //  "The call-by-value strategy" should {
+  //    cbvrCasesWhichTerminate foreach {
+  //      redSeq =>
+  //        redSeq match {
+  //          case Nil => {} // Discard empty test-cases
+  //          case x :: _ => {
+  //            "correcty reduce " + x in {
+  //              try {
+  //                // We must ensure that the strings in each reduc. sequence List[String]
+  //                // are formatted as they were produced by the parser
+  //                // e.g. "(x)" should become "x"
+  //                // 		"\y. (y x)" should become "\y. y x"
+  //                // 		"\y.y" should become "\y. y"
+  //                val formattedReqSeq = redSeq map { s => Untyped.parseOrDie(s).toString }
+  //                assertEq(Untyped.parseOrDie(x), formattedReqSeq)
+  //              } catch {
+  //                case Untyped.ParseException(e) => fail(e)
+  //              }
+  //            }
+  //          }
+  //        }
+  //    }
+  //  }
 
 }

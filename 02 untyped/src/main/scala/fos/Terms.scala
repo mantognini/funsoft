@@ -17,7 +17,17 @@ case class Abs(arg: Var, body: Term) extends Term // \x.t
 {
   var mustHaveParenthesis = false
   override def toString = mustHaveParenthesis match {
-    case true => "(\\" + arg + ". " + body + ")"
+    case true => {
+      // Now that we have used the "flag", we must clear it,
+      // otherwise if the term t containing this Abs() changes,
+      // and no more ()'s are required around this Abs(), toString
+      // will continue to display the ()'s
+      mustHaveParenthesis = false
+      // TODO: Still, this causes other problems since two different
+      // terms Abs(g, g) and Abs(g, g) share the same flag..
+      // but must not necessarily have ()'s..
+      "(\\" + arg + ". " + body + ")"
+    }
     case _ => "\\" + arg + ". " + body
   }
   override def toRawString = "Abs(" + arg.toRawString + ", " + body.toRawString + ")"
