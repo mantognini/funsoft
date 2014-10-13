@@ -4,7 +4,7 @@ import org.scalatest._
 import fos.Term
 import fos.{ Term, App, Abs, Var }
 
-class reduceNormalOrderTest extends WordSpec with Matchers {
+class ReduceNormalOrderTest extends WordSpec with Matchers {
 
   import fos.test.helpers.Shortcuts._
   import fos.Untyped
