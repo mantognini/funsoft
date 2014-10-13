@@ -22,13 +22,7 @@ object Untyped extends StandardTokenParsers {
     def parentheses = "(" ~> Term <~ ")"
     def vap = variable | abstraction | parentheses
 
-    def vapsReducer(ts: List[Term]) = {
-      def reduce(ts: List[Term]): Term = ts match {
-        case t :: Nil => t
-        case t :: ts => App(reduce(ts), t)
-      }
-      reduce(ts.reverse)
-    }
+    def vapsReducer(ts: List[Term]) = ts.reduceLeft { App(_, _) }
 
     rep1(vap) ^^ vapsReducer | failure("illegal start of term")
   }
