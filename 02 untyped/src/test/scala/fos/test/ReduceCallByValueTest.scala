@@ -43,10 +43,11 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
     """\y. (\x. x) y""" :: Nil,
 
     /// Non-normal forms
+    """(\x. x x) \y. y""" :: """(\y. y) \y. y""" :: """\y.y""" :: Nil,
     // from TAPL p.57
     """(\x. x) ((\x. x) (\z. (\x. x) z))""" :: """(\x. x) (\z. (\x. x) z)""" :: """\z. (\x. x) z""" :: Nil,
 
-    List())
+    Nil)
 
   def parse(input: String) = Untyped.parseOrDie(input)
 
