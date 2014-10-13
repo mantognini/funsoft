@@ -82,7 +82,7 @@ object Untyped extends StandardTokenParsers {
    */
   def path(t: Term, reduce: Term => Term): Stream[Term] =
     try {
-      var t1 = reduce(t)
+      val t1 = reduce(t)
       Stream.cons(t, path(t1, reduce))
     } catch {
       case NoRuleApplies(_) =>
