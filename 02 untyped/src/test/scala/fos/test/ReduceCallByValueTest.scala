@@ -44,6 +44,7 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
 
     /// Non-normal forms
     """(\x. x x) \y. y""" :: """(\y. y) \y. y""" :: """\y.y""" :: Nil,
+    """(\x. x z) (\y. y) (\z. z)""" :: """(\y. y z) (\z. z)""" :: """\z1. z1 z""" :: Nil, // TODO not sure about the substitution here...
     // from TAPL p.57
     """(\x. x) ((\x. x) (\z. (\x. x) z))""" :: """(\x. x) (\z. (\x. x) z)""" :: """\z. (\x. x) z""" :: Nil,
 
