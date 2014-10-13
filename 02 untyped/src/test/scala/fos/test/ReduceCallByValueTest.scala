@@ -2,8 +2,7 @@ package fos.test
 
 import org.scalatest._
 
-@Ignore
-class reduceCallByValueTest extends WordSpec with Matchers {
+class ReduceCallByValueTest extends WordSpec with Matchers {
 
   import fos.{ Untyped, Term, App, Abs, Var }
   import fos.test.helpers.Shortcuts._
