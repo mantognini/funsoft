@@ -2,10 +2,11 @@ package fos.test
 
 import org.scalatest._
 
-class ReduceCallByValueTest extends WordSpec with Matchers {
+class ReduceCallByValueTest extends FlatSpec with Matchers {
 
   import fos.{ Untyped, Term, App, Abs, Var }
   import fos.test.helpers.Shortcuts._
+  import Untyped.NoRuleApplies
 
   //  \x.x ((\x.\f.(\z.z) \g.g) y) =>
   //\x.x ((\x.\f.\g.g) y) => Stuck
@@ -153,38 +154,52 @@ class ReduceCallByValueTest extends WordSpec with Matchers {
     List(),
     List())
 
-  def cbvReducer(t: Term): Term = Untyped.reduceCallByValue(t)
-  def assertEq(t: Term, l: List[String]): Unit = l match {
-    case Nil => // No more reductions are expected
-      assert(t.toRawString === cbvReducer(t).toRawString, "term should not reduce further")
-    case x :: xs => {
-      assert(t.toString === x) // the reduction step is OK
-      assertEq(cbvReducer(t), xs) // test the following reductions
+  var testId = 0 // fix for org.scalatest.exceptions.DuplicateTestNameException
+
+  def parse(input: String) = Untyped.parseOrDie(input)
+
+  def reduceOnce(program: Term) = Untyped.reduceCallByValue(program)
+
+  def testNormal(input: String) {
+    testId = testId + 1
+    it should "not reduce <" + input + "> further; id:" + testId in {
+      a[NoRuleApplies] should be thrownBy { parse(input) }
     }
   }
 
-  "The call-by-value strategy" should {
-    cbvrCasesWhichTerminate foreach {
-      redSeq =>
-        redSeq match {
-          case Nil => {} // Discard empty test-cases
-          case x :: _ => {
-            "correcty reduce " + x in {
-              try {
-                // We must ensure that the strings in each reduc. sequence List[String]
-                // are formatted as they were produced by the parser
-                // e.g. "(x)" should become "x"
-                // 		"\y. (y x)" should become "\y. y x"
-                // 		"\y.y" should become "\y. y"
-                val formattedReqSeq = redSeq map { s => Untyped.parseOrDie(s).toString }
-                assertEq(Untyped.parseOrDie(x), formattedReqSeq)
-              } catch {
-                case Untyped.ParseException(e) => fail(e)
-              }
-            }
-          }
-        }
+  def testSteps(steps: List[String]) {
+    // reverse the order to perform the test from normal to initial form
+    val rsteps = steps.reverse
+
+    testNormal(rsteps.head)
+
+    rsteps reduceLeft { (reduced: String, initial: String) =>
+      testId = testId + 1
+      it should "reduce <" + initial + "> into <" + reduced + ">; id:" + testId in {
+        val i = reduceOnce(parse(initial)).toString
+        val r = parse(reduced).toString
+        i shouldBe r
+      }
+
+      initial // is the reduced of the next test
     }
   }
+
+  def test(steps: List[String]) {
+    steps match {
+      // skip empty
+      case Nil =>
+
+      // normal form
+      case s :: Nil => testNormal(s)
+
+      // multiple steps
+      case ss => testSteps(ss)
+    }
+  }
+
+  behavior of "The call-by-value strategy"
+
+  cbvrCasesWhichTerminate foreach test
 
 }
