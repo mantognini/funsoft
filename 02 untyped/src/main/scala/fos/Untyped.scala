@@ -2,6 +2,7 @@ package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
+import scala.collection.immutable.Set
 
 /**
  * This object implements a parser and evaluator for the
@@ -45,6 +46,13 @@ object Untyped extends StandardTokenParsers {
     case Success(ast, _) => ast
     case Failure(e, _) => throw new ParseException(e)
     case Error(e, _) => throw new ParseException(e)
+  }
+
+  // FV == Free Variable
+  def FV(t: Term): Set[Var] = t match {
+    case x @ Var(_) => Set(x)
+    case Abs(x, t1) => FV(t1) - x
+    case App(t1, t2) => FV(t1) ++ FV(t2)
   }
 
   /** Term 't' does not match any reduction rule. */
