@@ -41,8 +41,8 @@ class SubstituteTest extends FlatSpec with Matchers {
     """(\x. \y. \z. x y z z9000)(x y z)""" -> """\y1. \z9001. x y z y1 z9001 z9000""",
     """(\x. \y. \z. x y z y1)(x y z)""" -> """\y2. \z1. x y z y2 z1 y1""",
     """(\x. \y. \z. x y z y1 z1)(x y z)""" -> """\y2. \z2. x y z y2 z2 y1 z1""",
-    """(\x. \y. \z. x y z y1 z2)(x y z)""" -> """\y2. \z1. x y z y2 z1 y1 z2""",
-    """(\x. \y. \z. x y z y1 y2 y3 z1 z3)(x y z)""" -> """\y4. \z4. x y4 z2 y1 y2 y3 z1 z4""")
+    """(\x. \y. \z. x y z y1 z2)(x y z)""" -> """\y2. \z3. x y z y2 z3 y1 z2""",
+    """(\x. \y. \z. x y z y1 y2 y3 z1 z3)(x y z)""" -> """\y4. \z4. x y z y4 z4 y1 y2 y3 z1 z3""")
 
   tests.foreach {
     case (input, expected) => it should "properly reduce <" + input + "> into <" + expected + ">" in {
