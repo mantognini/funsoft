@@ -4,7 +4,7 @@ import org.scalatest._
 import fos.Term
 import fos.{ Term, App, Abs, Var }
 
-class ParserTest extends WordSpec with Matchers {
+class reduceNormalOrderTest extends WordSpec with Matchers {
 
   import fos.test.helpers.Shortcuts._
   import fos.Untyped
@@ -113,7 +113,7 @@ class ParserTest extends WordSpec with Matchers {
       // and not only to (\x.x x)
       ),
     List(
-      """(\x.x \y.y ((\f.g) \z.z)) ((\f.f) g) (\x.x x) y""",
+      """(\x.x \y.y ((\f.g) \z.z)) ((\f.f) g) ((\x.x) x) y""",
       """(\x.x \y.y g) ((\f.f) g) ((\x.x) x) y""",
       """((\f.f) g \y.y g) ((\x.x) x) y""",
       """g (\y.y g) ((\x.x) x) y""", // This time, we can do one more red. since there is still a redex
@@ -141,5 +141,39 @@ class ParserTest extends WordSpec with Matchers {
       """x (\g.g) y"""),
     List(),
     List())
+
+  def normReducer(t: Term): Term = Untyped.reduceNormalOrder(t)
+  def assertEq(t: Term, l: List[String]): Unit = l match {
+    case Nil => // No more reductions are expected
+      assert(t.toRawString === normReducer(t).toRawString, "term should not reduce further")
+    case x :: xs => {
+      assert(t.toString === x) // the reduction step is OK
+      assertEq(normReducer(t), xs) // test the following reductions
+    }
+  }
+
+  "The normal-reduction strategy" should {
+    nrCasesWhichTerminate foreach {
+      redSeq =>
+        redSeq match {
+          case Nil => {} // Discard empty test-cases
+          case x :: _ => {
+            "correcty reduce " + x in {
+              try {
+                // We must ensure that the strings in each reduc. sequence List[String]
+                // are formatted as they were produced by the parser
+                // e.g. "(x)" should become "x"
+                // 		"\y. (y x)" should become "\y. y x"
+                // 		"\y.y" should become "\y. y"
+                val formattedReqSeq = redSeq map { s => Untyped.parseOrDie(s).toString }
+                assertEq(Untyped.parseOrDie(x), formattedReqSeq)
+              } catch {
+                case Untyped.ParseException(e) => fail(e)
+              }
+            }
+          }
+        }
+    }
+  }
 
 }
