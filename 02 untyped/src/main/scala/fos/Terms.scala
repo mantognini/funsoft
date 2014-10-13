@@ -7,7 +7,7 @@ abstract class Term extends Positional {
   def toRawString: String // TODO add doc. why is it needed?
 
   // Pretty printing:
-  def prettyString(par: Boolean): String // abstract
+  def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean = false): String // abstract
   final override def toString = prettyString(false) // no parentheses by default
 }
 
@@ -15,14 +15,14 @@ case class Var(name: String) extends Term // x
 {
   override def toRawString = name
 
-  override def prettyString(par: Boolean) = name // ignore par for variable
+  override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = name // ignore par for variable
 }
 
 case class Abs(arg: Var, body: Term) extends Term // \x.t
 {
   override def toRawString = "Abs(" + arg.toRawString + ", " + body.toRawString + ")"
 
-  override def prettyString(par: Boolean) = {
+  override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = {
     def open = if (par) "(" else ""
     def close = if (par) ")" else ""
 
@@ -34,7 +34,7 @@ case class App(left: Term, right: Term) extends Term // t t
 {
   override def toRawString = "App(" + left.toRawString + ", " + right.toRawString + ")"
 
-  override def prettyString(par: Boolean) = {
+  override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = {
     val (lpar, rpar) = (left, right) match {
       case (l: Abs, r: Var) => (true, false)
       case (l: Abs, r: Abs) => (true, false)
@@ -47,9 +47,15 @@ case class App(left: Term, right: Term) extends Term // t t
       case (l: Var, r: App) => (false, true)
     }
 
+    // Corner case: t = App{ App( ? , Abs), ? } -> the Abs should be protected with par
+    val cornerCase = (left, right) match {
+      case (App(_, lr: Abs), _) => true
+      case _ => false
+    }
+
     def open = if (par) "(" else ""
     def close = if (par) ")" else ""
 
-    open + left.prettyString(lpar) + " " + right.prettyString(rpar) + close
+    open + left.prettyString(lpar, cornerCase) + " " + right.prettyString(rpar || forceRighParInInnerTerm) + close
   }
 }
