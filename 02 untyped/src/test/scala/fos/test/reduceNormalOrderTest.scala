@@ -139,8 +139,10 @@ class reduceNormalOrderTest extends WordSpec with Matchers {
       """(\y.y \g.g) ((\x.x) x) y""",
       """((\x.x) x) (\g.g) y""",
       """x (\g.g) y"""),
-    List(),
+
     List())
+
+  // TODO: Are there interesting cases which do not terminate?
 
   def normReducer(t: Term): Term = Untyped.reduceNormalOrder(t)
   def assertEq(t: Term, l: List[String]): Unit = l match {
