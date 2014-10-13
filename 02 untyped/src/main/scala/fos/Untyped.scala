@@ -12,24 +12,25 @@ object Untyped extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".")
   import lexical.Identifier
 
-  def variable = ident ^^ { Var(_) }
-  def abstraction = "\\" ~> ident ~ ("." ~> Term) ^^ { case name ~ term => Abs(Var(name), term) }
-  def parentheses = "(" ~> Term <~ ")"
-  def vap = variable | abstraction | parentheses
-
   /**
    * Term     ::= AbsOrVar { AbsOrVar }
    */
-  def Term: Parser[Term] = (
-    rep1(vap) ^^ {
-      case ts =>
-        def reduce(ts: List[Term]): Term = ts match {
-          case a :: Nil => a
-          case x :: xs => App(reduce(xs), x)
-        }
-        reduce(ts.reverse)
+  def Term: Parser[Term] = {
+    def variable = ident ^^ { Var(_) }
+    def abstraction = "\\" ~> ident ~ ("." ~> Term) ^^ { case name ~ term => Abs(Var(name), term) }
+    def parentheses = "(" ~> Term <~ ")"
+    def vap = variable | abstraction | parentheses
+
+    def vapsReducer(ts: List[Term]) = {
+      def reduce(ts: List[Term]): Term = ts match {
+        case t :: Nil => t
+        case t :: ts => App(reduce(ts), t)
+      }
+      reduce(ts.reverse)
     }
-    | failure("illegal start of term"))
+
+    rep1(vap) ^^ vapsReducer | failure("illegal start of term")
+  }
 
   case class ParseException(e: String) extends Exception
 
