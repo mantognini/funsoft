@@ -190,13 +190,18 @@ object Untyped extends StandardTokenParsers {
         case None => None
       }
 
-      // First, try to reduce the outermost
       case App(t1, t2) => {
+        // First, try to reduce the outermost
         def ruleA = t1 match {
-          case Abs(x, b) => ??? // TODO
+          case Abs(x, b) if isValue(t2) => Some(substitute(b, x, t2))
+          case _ => None
         }
 
-        ruleA
+        // TODO formalise the rule and make sure they are correct!
+        def ruleB = reduce(t1) map { App(_, t2) }
+        def ruleC = reduce(t2) map { App(t1, _) }
+
+        ruleA orElse ruleB orElse ruleC
       }
     }
 
