@@ -4,68 +4,53 @@ import scala.util.parsing.input.Positional
 
 /** Abstract Syntax Trees for terms. */
 abstract class Term extends Positional {
-  def toRawString = "Term"
+  def toRawString: String // TODO add doc. why is it needed?
+
+  // Pretty printing:
+  def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean = false): String // abstract
+  final override def toString = prettyString(false) // no parentheses by default
 }
 
 case class Var(name: String) extends Term // x
 {
-  override def toString = name
   override def toRawString = name
+
+  override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = name // ignore par for variable
 }
 
 case class Abs(arg: Var, body: Term) extends Term // \x.t
 {
-  var mustHaveParenthesis = false
-  override def toString = mustHaveParenthesis match {
-    case true => "(\\" + arg + ". " + body + ")"
-    case _ => "\\" + arg + ". " + body
-  }
   override def toRawString = "Abs(" + arg.toRawString + ", " + body.toRawString + ")"
+
+  override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = {
+    def open = if (par) "(" else ""
+    def close = if (par) ")" else ""
+
+    open + "\\" + arg + ". " + body + close
+  }
 }
 
 case class App(left: Term, right: Term) extends Term // t t
 {
   override def toRawString = "App(" + left.toRawString + ", " + right.toRawString + ")"
-  override def toString = {
-    def withPar(t: Term) = t match {
-      case Var(_) => t // ignore parentheses for simple var
-      case _ => "(" + t + ")"
+
+  override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = {
+    val (lpar, rpar) = (left, right) match {
+      case (l: Abs, r: App) => (true, true)
+      case (l: Abs, _) => (true, false)
+      case (_, r: App) => (false, true)
+      case _ => (false, false)
     }
 
-    def withLeftPar = withPar(left) + " " + right
-    def withRightPar = left + " " + withPar(right)
-    def withLeftRightPar = withPar(left) + " " + withPar(right)
-    def withoutPar = left + " " + right
-
-    def getRightMostTermIfItIsAnAbs(t: Term): Option[Abs] = t match {
-      case Var(_) => None
-      case absTerm @ Abs(_, _) => Some(absTerm)
-      case App(left, right) => getRightMostTermIfItIsAnAbs(right)
+    // Corner case: t = App{ App( ? , Abs), ? } -> the Abs should be protected with par
+    val cornerCase = (left, right) match {
+      case (App(_, lr: Abs), _) => true
+      case _ => false
     }
 
-    def addParIfRightMostTermIsAnAbs(t: Term) = getRightMostTermIfItIsAnAbs(t) match {
-      case Some(lambdaRightMostTerm) => lambdaRightMostTerm.mustHaveParenthesis = true
-      case _ => {}
-    }
+    def open = if (par) "(" else ""
+    def close = if (par) ")" else ""
 
-    (left, right) match {
-      // (\x.x) ____
-      case (Abs(_, _), App(_, _)) => withLeftRightPar
-      case (Abs(_, _), _) => withLeftPar
-
-      // x ____
-      case (Var(_), App(_, _)) => withRightPar
-      case (Var(_), _) => withoutPar
-
-      // x y ____
-      case (App(_, _), App(_, _)) => {
-        addParIfRightMostTermIsAnAbs(left)
-        withRightPar
-      }
-      case (_, _) => {
-        addParIfRightMostTermIsAnAbs(left)
-        withoutPar
-      }
-    }
+    open + left.prettyString(lpar, cornerCase) + " " + right.prettyString(rpar || forceRighParInInnerTerm) + close
   }
 }
