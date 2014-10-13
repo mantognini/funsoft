@@ -2,11 +2,11 @@ package fos.test
 
 import org.scalatest._
 
-@Ignore
-class reduceCallByValueTest extends WordSpec with Matchers {
+class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
 
   import fos.{ Untyped, Term, App, Abs, Var }
   import fos.test.helpers.Shortcuts._
+  import Untyped.NoRuleApplies
 
   //  \x.x ((\x.\f.(\z.z) \g.g) y) =>
   //\x.x ((\x.\f.\g.g) y) => Stuck
@@ -28,164 +28,80 @@ class reduceCallByValueTest extends WordSpec with Matchers {
   // Note: 	We assume that the parser and prettyPrinter are correct
   // 		and we write the terms with strings for readability
   val cbvrCasesWhichTerminate: List[List[String]] = List(
-    // Examples seen somewhere
-    List(
-      """\y.(\x.x) y""", // Statement example
-      """\y.y"""),
-    List(
-      """(\x.x) ((\x.x) (\z.(\x.x) z))""", // from TAPL p.56
-      """(\x.x) \z.(\x.x) z""",
-      """\z.(\x.x) z""",
-      """\z.z"""),
+    /// Normal forms
+    """\x. x""" :: Nil,
+    """\x. \y. y""" :: Nil,
+    """\x. \y. x y""" :: Nil,
+    """x""" :: Nil,
+    """x y""" :: Nil,
+    """x y z""" :: Nil,
+    """x y z a""" :: Nil,
+    """x y z a b""" :: Nil,
+    """x x x x x y y y z""" :: Nil,
+    """(\x. x) y""" :: Nil, // yes, y is NOT a value.
+    // Statement example
+    """\y. (\x. x) y""" :: Nil,
 
-    // without substitutions - base cases
-    List(
-      """\x.x"""),
-    List(
-      """\x.\y.y"""),
-    List(
-      """\x.\y.x y"""),
-    List(
-      """(\x.x) y""",
-      """y"""),
-    List(
-      """(\x.a b) y""",
-      """a b"""),
-    List(
-      """(\x.x x) y""",
-      """y y"""),
-    List(
-      """x y z"""),
-    List(
-      """x (\y.y) z"""), // yes, z is applied to (x (\y.y)) and not only (\y.y) -> we are stuck there
-    List(
-      """x (\y.y) \z.z"""), // same there
-    List(
-      """(\x.x x) \y.y""",
-      """(\y.y) \y.y""",
-      """\y.y"""),
-    List(
-      """(\x.x z) \y.y""",
-      """(\y.y) z""",
-      """z"""),
-    List(
-      """(\x.z x) \y.y""",
-      """z \y.y"""),
-    List(
-      """(\x.z x) \y.y \f.f""",
-      """z \y.y \f.f"""),
-    List(
-      """(\x.x z g) \y.y \f.f""",
-      """(\y.y \f.f) z g""",
-      """z (\f.f) g"""),
-    List(
-      """(\x.x) g ((\y.y) f)""", // Priority of evaluations rules for normal-reduction
-      """g ((\y.y) f)""",
-      """g f"""),
-    List(
-      """(\x.x) (\z.z) ((\y.y) f)""",
-      """(\z.z) ((\y.y) f)""",
-      """(\y.y) f""",
-      """f"""),
+    /// Non-normal forms
+    """(\x. x x) \y. y""" :: """(\y. y) \y. y""" :: """\y.y""" :: Nil,
+    """(\x. x z) (\y. y) (\z. z)""" :: """(\y. y z) (\z. z)""" :: """\z1. z1 z""" :: Nil, // TODO not sure about the substitution here...
+    // from TAPL p.57
+    """(\x. x) ((\x. x) (\z. (\x. x) z))""" :: """(\x. x) (\z. (\x. x) z)""" :: """\z. (\x. x) z""" :: Nil,
 
-    // without substitutions - trickier cases
-    List(
-      """(\x.x) (\y.y) \z.z""",
-      """(\y.y) \z.z""",
-      """\z.z"""),
-    List(
-      """(\x.(\f. f) x) (\y.y) \z.z""",
-      """(\x.x) (\y.y) \z.z""",
-      """(\y.y) \z.z""",
-      """\z.z"""),
-    List(
-      """(\x.\f.f) (\y.y) \z.z""",
-      """(\f.f) \z.z""",
-      """\z.z"""),
-    List(
-      """(\x.\f.x) (\y.y) \z.z""",
-      """(\f.\y.y) \z.z""",
-      """\y.y"""),
-    List(
-      """(\x.x \y.y ((\f.g) \z.z)) (\f.f) g""",
-      """(\x.x \y.y g) (\f.f) g""",
-      """((\f.f) \y.y g) g""",
-      """(\y.y g) g""",
-      """g g"""), // pam-padam-pa
-    List(
-      """(\x.x \y.y ((\f.g) \z.z)) ((\f.f) g)""",
-      """(\x.x \y.y g) ((\f.f) g)""",
-      """(\f.f) g \y.y g""",
-      """g \y.y g"""),
-    List(
-      """(\x.x \y.y ((\f.g) \z.z)) ((\f.f) g) (\x.x x) y""",
-      """(\x.x \y.y g) ((\f.f) g) (\x.x x) y""",
-      """((\f.f) g \y.y g) (\x.x x) y""",
-      """g (\y.y g) (\x.x x) y""" // We are stuck, because y is applied to "g (\y.y g) (\x.x x)"
-      // and not only to (\x.x x)
-      ),
-    List(
-      """(\x.x \y.y ((\f.g) \z.z)) ((\f.f) g) ((\x.x) x) y""",
-      """(\x.x \y.y g) ((\f.f) g) ((\x.x) x) y""",
-      """((\f.f) g \y.y g) ((\x.x) x) y""",
-      """g (\y.y g) ((\x.x) x) y""", // This time, we can do one more red. since there is still a redex
-      """g (\y.y g) x y"""),
-    // TODO: more tests as the one above are welcome, since these kind of cases, were normal-red won't
-    // stuck and other reduction strategies will, distinguish them
+    Nil)
 
-    List(
-      """(\x.x \y.y ((\f.f) \g.g)) ((\f.f) \y.y) (\x.x x) y""",
-      """(\x.x \y.y \g.g) ((\f.f) \y.y) (\x.x x) y""",
-      """(\f.f) (\y.y) (\y.y \g.g) (\x.x x) y""",
-      """(\y.y) (\y.y \g.g) (\x.x x) y""",
-      """(\y.y \g.g) (\x.x x) y""",
-      """(\x.x x) (\g.g) y""",
-      """(\g.g) (\g.g)  y""",
-      """(\g.g)  y""",
-      """y"""),
-    List(
-      """(\x.x \y.y ((\f.f) \g.g)) ((\f.f) \y.y) ((\x.x) x) y""",
-      """(\x.x \y.y \g.g) ((\f.f) \y.y) ((\x.x) x) y""",
-      """(\f.f) (\y.y) (\y.y \g.g) ((\x.x) x) y""",
-      """(\y.y) (\y.y \g.g) ((\x.x) x) y""",
-      """(\y.y \g.g) ((\x.x) x) y""",
-      """((\x.x) x) (\g.g) y""",
-      """x (\g.g) y"""),
-    List(),
-    List())
+  def parse(input: String) = Untyped.parseOrDie(input)
 
-  def cbvReducer(t: Term): Term = Untyped.reduceCallByValue(t)
-  def assertEq(t: Term, l: List[String]): Unit = l match {
-    case Nil => // No more reductions are expected
-      assert(t.toRawString === cbvReducer(t).toRawString, "term should not reduce further")
-    case x :: xs => {
-      assert(t.toString === x) // the reduction step is OK
-      assertEq(cbvReducer(t), xs) // test the following reductions
+  def reduceOnce(program: Term) = Untyped.reduceCallByValue(program)
+
+  def testNormal(input: String) {
+    When("the input is a normal form such as <" + input + ">")
+
+    a[NoRuleApplies] should be thrownBy {
+      val output = reduceOnce(parse(input))
+      info("an exception was expected - instead the input was reduced to " + output)
+    }
+
+    info("🍻")
+  }
+
+  def testSteps(steps: List[String]) {
+    // reverse the order to perform the test from normal to initial form
+    val rsteps = steps.reverse
+
+    testNormal(rsteps.head)
+
+    rsteps reduceLeft { (reduced: String, initial: String) =>
+      When("the input is a non-normal form such as <" + initial + "> which reduce into <" + reduced + ">")
+
+      val i = reduceOnce(parse(initial)).toString
+      val r = parse(reduced).toString
+
+      i shouldBe r
+
+      info("🍺")
+
+      initial // is the reduced of the next test
     }
   }
 
-  "The call-by-value strategy" should {
-    cbvrCasesWhichTerminate foreach {
-      redSeq =>
-        redSeq match {
-          case Nil => {} // Discard empty test-cases
-          case x :: _ => {
-            "correcty reduce " + x in {
-              try {
-                // We must ensure that the strings in each reduc. sequence List[String]
-                // are formatted as they were produced by the parser
-                // e.g. "(x)" should become "x"
-                // 		"\y. (y x)" should become "\y. y x"
-                // 		"\y.y" should become "\y. y"
-                val formattedReqSeq = redSeq map { s => Untyped.parseOrDie(s).toString }
-                assertEq(Untyped.parseOrDie(x), formattedReqSeq)
-              } catch {
-                case Untyped.ParseException(e) => fail(e)
-              }
-            }
-          }
-        }
+  def test(steps: List[String]) {
+    steps match {
+      // skip empty
+      case Nil =>
+
+      // normal form
+      case s :: Nil => testNormal(s)
+
+      // multiple steps
+      case ss => testSteps(ss)
     }
+  }
+
+  behavior of "The call-by-value strategy"
+
+  it should "properly reduce terms" in {
+    cbvrCasesWhichTerminate foreach test
   }
 
 }

@@ -165,10 +165,50 @@ object Untyped extends StandardTokenParsers {
   }
 
   /** Call by value reducer. */
-  def reduceCallByValue(t: Term): Term = t match {
-    //   ... To complete ... 
-    case _ =>
-      throw NoRuleApplies(t)
+  def reduceCallByValue(t: Term): Term = {
+    // Most languages use a call-by-value strategy, in which only outermost redexes 
+    // are reduced and where a redex is reduced only when its right-hand side has 
+    // already been reduced to a value (a function).
+
+    // The call-by-value strategy is strict, in the sense that the arguments to 
+    // functions are always evaluated, whether or not they are used by the body of 
+    // the function. In contrast, lazy strategies such a call-by-name and call-by-need 
+    // evaluate only the arguments that are actually used.
+
+    def isValue(t: Term) = t match {
+      case Abs(_, _) => true
+      case _ => false
+    }
+
+    def reduce(t: Term): Option[Term] = t match {
+      // No reduction left to be applied
+      case Var(_) => None
+
+      // Try to reduce body of abstraction
+      case Abs(x, t1) => reduce(t1) match {
+        case Some(t1p) => Some(Abs(x, t1p))
+        case None => None
+      }
+
+      case App(t1, t2) => {
+        // First, try to reduce the outermost
+        def ruleA = t1 match {
+          case Abs(x, b) if isValue(t2) => Some(substitute(b, x, t2))
+          case _ => None
+        }
+
+        // TODO formalise the rule and make sure they are correct!
+        def ruleB = reduce(t1) map { App(_, t2) }
+        def ruleC = reduce(t2) map { App(t1, _) }
+
+        ruleA orElse ruleB orElse ruleC
+      }
+    }
+
+    reduce(t) match {
+      case Some(t) => t
+      case None => throw NoRuleApplies(t)
+    }
   }
 
   /**

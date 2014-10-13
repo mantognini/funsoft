@@ -27,6 +27,7 @@ class SubstituteTest extends FlatSpec with Matchers {
     """(\x. \y. x y) a b""" -> """(\y. a y) b""",
 
     /// WITH potential variable name substitution
+    """(\x. x z) (\z. z)""" -> """\z1. z1 z""", // TODO not sure about this one...
     """(\x. x) x""" -> """x""",
     """(\x. x) (x y)""" -> """x y""",
     """(\x. \y. x y) (y z)""" -> """\y1. y z y1""",
