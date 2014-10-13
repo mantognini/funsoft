@@ -5,6 +5,7 @@ import org.scalatest._
 class PrinterConsistency extends FlatSpec with Matchers {
 
   import fos.test.helpers.Shortcuts._
+  import fos.test.helpers.ttools
 
   behavior of "Term.toString"
 
