@@ -118,6 +118,9 @@ class ParserTest extends WordSpec with Matchers {
       """((\f.f) g \y.y g) ((\x.x) x) y""",
       """g (\y.y g) ((\x.x) x) y""", // This time, we can do one more red. since there is still a redex
       """g (\y.y g) x y"""),
+    // TODO: more tests as the one above are welcome, since these kind of cases, were normal-red won't
+    // stuck and other reduction strategies will, distinguish them
+
     List(
       """(\x.x \y.y ((\f.f) \g.g)) ((\f.f) \y.y) (\x.x x) y""",
       """(\x.x \y.y \g.g) ((\f.f) \y.y) (\x.x x) y""",
@@ -128,6 +131,14 @@ class ParserTest extends WordSpec with Matchers {
       """(\g.g) (\g.g)  y""",
       """(\g.g)  y""",
       """y"""),
+    List(
+      """(\x.x \y.y ((\f.f) \g.g)) ((\f.f) \y.y) ((\x.x) x) y""",
+      """(\x.x \y.y \g.g) ((\f.f) \y.y) ((\x.x) x) y""",
+      """(\f.f) (\y.y) (\y.y \g.g) ((\x.x) x) y""",
+      """(\y.y) (\y.y \g.g) ((\x.x) x) y""",
+      """(\y.y \g.g) ((\x.x) x) y""",
+      """((\x.x) x) (\g.g) y""",
+      """x (\g.g) y"""),
     List(),
     List())
 
