@@ -14,7 +14,7 @@ class PrinterConsistency extends FlatSpec with Matchers {
   // .. no variable re-naming ..
   // It tests the consistency of the Term.toString methods. 
   // i.e. for all term t: p(t.toString) == t
-  ttools.correctCases.values.toList.removeDuplicates.foreach { el =>
+  ttools.correctCases.values.toList.distinct.foreach { el =>
     it should "be consistent with " + el.toRawString in {
       try {
         val res = Untyped.parseOrDie(el.toString)
