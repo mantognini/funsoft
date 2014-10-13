@@ -50,6 +50,28 @@ object Untyped extends StandardTokenParsers {
     case App(t1, t2) => FV(t1) ++ FV(t2)
   }
 
+  // Substitute
+  // Note: unnecessary test are left in comment for reference
+  def substitute(body: Term, x: Var, s: Term): Term = body match {
+    // [x → s]x = s
+    case y: Var if y == x => s
+
+    // [x → s]y = y                     if y ≠ x
+    case y: Var /*if y != x*/ => y
+
+    // [x → s](λy. t) = λy . t          if y = x
+    case l @ Abs(y, t) if y == x => l
+
+    // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∉ FV(s)
+    case Abs(y, t) if /*y != x &&*/ !FV(s).contains(y) => Abs(y, substitute(t, x, s))
+
+    // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∈ FV(s)
+    case Abs(y, t) /*if y != x && FV(s).contains(y)*/ => ??? // TODO use alpha-conversion
+
+    // [x → s](t1 t2) = ([x → s]t1 [x → s]t2)
+    case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
+  }
+
   /** Term 't' does not match any reduction rule. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
 
@@ -86,7 +108,7 @@ object Untyped extends StandardTokenParsers {
         def ruleA = reduce(t1) map { t1p => App(t1p, t2) }
 
         def ruleB = t1 match {
-          case Abs(x, b) => ??? // TODO
+          case Abs(x, b) => Some(substitute(b, x, t2))
           case _ => None
         }
 
