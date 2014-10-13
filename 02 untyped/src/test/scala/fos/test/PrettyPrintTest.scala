@@ -1,10 +1,11 @@
-package fos
+package fos.test
 
 import org.scalatest._
 
 class PrettyPrintTest extends FlatSpec with Matchers {
 
   import fos.test.helpers.Shortcuts._
+  import fos.test.helpers.ttools
 
   behavior of "The pretty printer"
 

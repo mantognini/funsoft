@@ -1,16 +1,13 @@
-package fos
-
-import org.scalatest.Exceptional
-import scala.collection.immutable.List
-import scala.collection.immutable.Map
+package fos.test.helpers
 
 object ttools {
 
+  import fos.{ Term, App, Abs, Var }
   import fos.test.helpers.Shortcuts._
 
-  // These expression use the less ()'s possible
+  // These expressions use as few parentheses as possible
   // Since there is no ambiguity in the grammar,
-  // we have one-to-one correspondence between AST <=> canonical Strings
+  // we have a one-to-one correspondence between AST <=> canonical Strings
   val canonicalCases = Map[String, Term](
     """x""" -> x,
     """y""" -> y,
@@ -49,7 +46,8 @@ object ttools {
       Abs(x, App(App(App(g, g), g), x))),
     """(\f. f f g z y) \x. g g g x y""" -> App(Abs(f, App(App(App(App(f, f), g), z), y)),
       Abs(x, App(App(App(App(g, g), g), x), y))))
-  // These string are given with extra ()'s, but still well formated
+
+  // Some of these strings are given with extra ()'s, but still well formatted
   val wellFormatedCases = Map[String, Term](
     """\x. (x y z)""" -> Abs(x, App(App(x, y), z)),
     """\x. (x y) z""" -> Abs(x, App(App(x, y), z)),
