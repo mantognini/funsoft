@@ -1,4 +1,4 @@
-package fos
+package fos.test
 
 import org.scalatest._
 

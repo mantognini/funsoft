@@ -1,10 +1,11 @@
-package fos
+package fos.test
 
 import org.scalatest._
 
 class ParserTest extends WordSpec with Matchers {
 
-  import test.helpers.ttools
+  import fos.test.helpers.ttools
+  import fos.Untyped
 
   "The parser" should {
     ttools.correctCases.foreach {

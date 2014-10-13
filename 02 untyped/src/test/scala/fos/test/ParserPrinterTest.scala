@@ -1,10 +1,11 @@
-package fos
+package fos.test
 
 import org.scalatest._
 
 class ParserPrinterTest extends FlatSpec with Matchers {
 
   import fos.test.helpers.Shortcuts._
+  import fos.{ Untyped, Term }
 
   behavior of "The Parser and Printer"
 
