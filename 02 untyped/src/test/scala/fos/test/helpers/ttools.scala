@@ -42,6 +42,8 @@ object ttools {
     """(\x. x) (y z)""" -> App(Abs(x, x), App(y, z)),
 
     """(\x. \y. x y) (\z. z) f g""" -> App(App(App(Abs(x, Abs(y, App(x, y))), Abs(z, z)), f), g),
+    """(\x. \y. x y) (\z. z) (\f. f) g""" -> App(App(App(Abs(x, Abs(y, App(x, y))), Abs(z, z)), Abs(f, f)), g),
+    """(\x. \y. x y) (\z. z) (\h. h) f g""" -> App(App(App(App(Abs(x, Abs(y, App(x, y))), Abs(z, z)), Abs(h, h)), f), g),
     """(\f. f f g z) \x. g g g x""" -> App(Abs(f, App(App(App(f, f), g), z)),
       Abs(x, App(App(App(g, g), g), x))),
     """(\f. f f g z y) \x. g g g x y""" -> App(Abs(f, App(App(App(App(f, f), g), z), y)),
