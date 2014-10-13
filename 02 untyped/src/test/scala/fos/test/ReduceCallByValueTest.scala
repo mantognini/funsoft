@@ -2,7 +2,7 @@ package fos.test
 
 import org.scalatest._
 
-class ReduceCallByValueTest extends FlatSpec with Matchers {
+class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
 
   import fos.{ Untyped, Term, App, Abs, Var }
   import fos.test.helpers.Shortcuts._
@@ -154,16 +154,16 @@ class ReduceCallByValueTest extends FlatSpec with Matchers {
     List(),
     List())
 
-  var testId = 0 // fix for org.scalatest.exceptions.DuplicateTestNameException
-
   def parse(input: String) = Untyped.parseOrDie(input)
 
   def reduceOnce(program: Term) = Untyped.reduceCallByValue(program)
 
   def testNormal(input: String) {
-    testId = testId + 1
-    it should "not reduce <" + input + "> further; id:" + testId in {
-      a[NoRuleApplies] should be thrownBy { parse(input) }
+    When("the input is a normal form such as <" + input + ">")
+
+    a[NoRuleApplies] should be thrownBy {
+      val output = reduceOnce(parse(input))
+      info("an exception was expected - instead the input was reduced to " + output)
     }
   }
 
@@ -174,12 +174,12 @@ class ReduceCallByValueTest extends FlatSpec with Matchers {
     testNormal(rsteps.head)
 
     rsteps reduceLeft { (reduced: String, initial: String) =>
-      testId = testId + 1
-      it should "reduce <" + initial + "> into <" + reduced + ">; id:" + testId in {
-        val i = reduceOnce(parse(initial)).toString
-        val r = parse(reduced).toString
-        i shouldBe r
-      }
+      When("the input is a non-normal form such as <" + initial + "> which reduce into <" + reduced + ">")
+
+      val i = reduceOnce(parse(initial)).toString
+      val r = parse(reduced).toString
+
+      i shouldBe r
 
       initial // is the reduced of the next test
     }
@@ -200,6 +200,8 @@ class ReduceCallByValueTest extends FlatSpec with Matchers {
 
   behavior of "The call-by-value strategy"
 
-  cbvrCasesWhichTerminate foreach test
+  it should "properly reduce terms" in {
+    cbvrCasesWhichTerminate foreach test
+  }
 
 }
