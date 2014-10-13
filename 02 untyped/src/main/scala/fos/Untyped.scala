@@ -3,6 +3,7 @@ package fos
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
 import scala.collection.immutable.Set
+import scala.annotation.tailrec
 
 /**
  * This object implements a parser and evaluator for the
@@ -50,6 +51,29 @@ object Untyped extends StandardTokenParsers {
     case App(t1, t2) => FV(t1) ++ FV(t2)
   }
 
+  // Alpha-conversion
+  // Rename y in t
+  def alpha(t: Term, y: Var): Term = {
+    val prefix = y.name
+
+    def findUsedNameWithPrefix: Set[String] = {
+      @tailrec
+      def walk(cur: Term, acc: Set[String]): Set[String] = ??? // TODO
+
+      walk(t, Set())
+    }
+
+    def findFirstFreeName: String = {
+      val taken = findUsedNameWithPrefix
+
+      ??? // TODO
+    }
+
+    def rename(cur: Term, newName: String): Term = ??? // TODO
+
+    rename(t, findFirstFreeName)
+  }
+
   // Substitute
   // Note: unnecessary test are left in comment for reference
   def substitute(body: Term, x: Var, s: Term): Term = body match {
@@ -66,7 +90,7 @@ object Untyped extends StandardTokenParsers {
     case Abs(y, t) if /*y != x &&*/ !FV(s).contains(y) => Abs(y, substitute(t, x, s))
 
     // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∈ FV(s)
-    case Abs(y, t) /*if y != x && FV(s).contains(y)*/ => ??? // TODO use alpha-conversion
+    case Abs(y, t) /*if y != x && FV(s).contains(y)*/ => alpha(t, y)
 
     // [x → s](t1 t2) = ([x → s]t1 [x → s]t2)
     case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
