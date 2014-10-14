@@ -8,14 +8,6 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
   import fos.test.helpers.Shortcuts._
   import Untyped.NoRuleApplies
 
-  //  \x.x ((\x.\f.(\z.z) \g.g) y) =>
-  //\x.x ((\x.\f.\g.g) y) => Stuck
-  //
-  //(1) \x.x ((\x.\f.(\z.z) x) \y.y) =>
-  //(2) \x.x (\f.(\z.z) \y.y) =>
-  //(3) \f.(\z.z) \y.y =>
-  //(4) \f.\y.y => Stuck
-  //
   //Following Church, a term of the form (\x.t12) t2 is called a redex
   //
   //only outermost redex are reduced and where a redex is reduced only
@@ -39,12 +31,17 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
     """x y z a b""" :: Nil,
     """x x x x x y y y z""" :: Nil,
     """(\x. x) y""" :: Nil, // yes, y is NOT a value.
+    """z (\x.x) (\y.y)""" :: Nil,
     // Statement example
     """\y. (\x. x) y""" :: Nil,
 
     /// Non-normal forms
     """(\x. x x) \y. y""" :: """(\y. y) \y. y""" :: """\y.y""" :: Nil,
-    """(\x. x z) (\y. y) (\z. z)""" :: """(\y. y z) (\z. z)""" :: """\z1. z1 z""" :: Nil, // TODO not sure about the substitution here...
+    // TODO: The following test is failing
+    """(\x. x z) (\y. y) (\z. z)""" :: """(\y. y z) (\z. z)""" :: """(\z. z) z""" :: Nil,
+    """(\x.y x) (\z.z)""" :: """y \z.z""" :: Nil,
+    """\x.x ((\x.\f.(\z.z) x) \y.y)""" :: """\x.x (\f.(\z.z) \y.y)""" :: """\f.(\z.z) \y.y""" :: """\f.\y.y""" :: Nil,
+
     // from TAPL p.57
     """(\x. x) ((\x. x) (\z. (\x. x) z))""" :: """(\x. x) (\z. (\x. x) z)""" :: """\z. (\x. x) z""" :: Nil,
 

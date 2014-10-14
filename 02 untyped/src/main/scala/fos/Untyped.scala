@@ -175,6 +175,15 @@ object Untyped extends StandardTokenParsers {
     // the function. In contrast, lazy strategies such a call-by-name and call-by-need 
     // evaluate only the arguments that are actually used.
 
+    /*
+     * 		t1 -> t1'			t2 -> t2'		
+     *   -----------------	-----------------	
+     *   t1 t2 -> t1' t2	 v1 t2 -> v1 t2'	
+     *   
+     *   and finally
+     *   
+     *   (\x.t12) v2 -> [x -> v2] t12
+     */
     def isValue(t: Term) = t match {
       case Abs(_, _) => true
       case _ => false
