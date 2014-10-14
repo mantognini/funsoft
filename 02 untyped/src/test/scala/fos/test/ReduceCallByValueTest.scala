@@ -37,6 +37,7 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
 
     /// Non-normal forms
     """(\x. x x) \y. y""" :: """(\y. y) \y. y""" :: """\y.y""" :: Nil,
+    """(\x. x z) (\y. y)""" :: """(\y. y) z""" :: Nil,
     // TODO: The following test is failing
     """(\x. x z) (\y. y) (\z. z)""" :: """(\y. y z) (\z. z)""" :: """(\z. z) z""" :: Nil,
     """(\x.y x) (\z.z)""" :: """y \z.z""" :: Nil,
@@ -63,8 +64,11 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
   }
 
   def compare(initial: String, reduced: String) {
-    val i = reduceOnce(parse(initial)).toString
-    val r = parse(reduced).toString
+    val i = reduceOnce(parse(initial)).toRawString
+    val r = parse(reduced).toRawString
+
+    info("i is " + i)
+    info("r is " + r)
 
     i shouldBe r
 
