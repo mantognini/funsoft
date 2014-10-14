@@ -182,36 +182,76 @@ object Untyped extends StandardTokenParsers {
       case _ => false
     }
 
-    def reduce(t: Term): Option[Term] = t match {
-      // No reduction left to be applied
-      case Var(_) => None
+    var tabs = 0
+    def printMsg(s: String) { /*println("\t" * tabs + s)*/ }
+    def enter { tabs = tabs + 1 }
+    def exit { tabs = tabs - 1 }
 
-      // Try to reduce body of abstraction
-      case Abs(x, t1) =>
-        reduce(t1) match {
-          case Some(t1p) => Some(Abs(x, t1p))
-          case None => None
-        }
+    def reduce(t: Term): Option[Term] = {
+      enter
+      printMsg("TERM ==> " + t)
 
-      // Rules: A then B then C
-      // -----
-      //
-      //        A                    B                       C
-      //
-      //     t1 → t1p             t2 → t2p
-      // ---------------- &&  ---------------- && (λx. b) v2 → [x → v2] b
-      //  t1 t2 → t1p t2       v1 t2 → v1 t2p
-      case App(t1, t2) =>
-        def ruleA = reduce(t1) map { App(_, t2) }
+      val r = t match {
 
-        def ruleB = if (isValue(t1)) reduce(t2) map { App(t1, _) } else None
+        // No reduction left to be applied
+        case Var(_) =>
+          printMsg("VAR -> stop")
+          None
 
-        def ruleC = t1 match {
-          case Abs(x, b) if isValue(t2) => Some(substitute(b, x, t2))
-          case _ => None
-        }
+        // Try to reduce body of abstraction
+        case Abs(x, t1) =>
+          printMsg("TERM is ABS -> stop" + ("\t" * (10 - tabs)) + "λx. b")
 
-        ruleA orElse ruleB orElse ruleC
+          None
+
+        // Rules: A then B then C
+        // -----
+        //
+        //        A                    B                       C
+        //
+        //     t1 → t1p             t2 → t2p
+        // ---------------- &&  ---------------- && (λx. b) v2 → [x → v2] b
+        //  t1 t2 → t1p t2       v1 t2 → v1 t2p
+        case App(t1, t2) =>
+          printMsg("TERM is APP" + ("\t" * (11 - tabs)) + "(t t)")
+
+          def ruleA = {
+            printMsg("+ attempt A")
+            reduce(t1) map { t1p =>
+              printMsg(" >>>> rule A applies <<<< ")
+              App(t1p, t2)
+            }
+          }
+
+          def ruleB = {
+            printMsg("+ attempt B")
+            if (isValue(t1)) reduce(t2) map { t2p =>
+              printMsg(" >>>> rule B applies <<<< ")
+              App(t1, t2p)
+            }
+            else None
+          }
+
+          def ruleC = {
+            printMsg("+ attempt C")
+            t1 match {
+              case Abs(x, b) if isValue(t2) =>
+                printMsg(" >>>> rule C applies <<<< ")
+                val sub = substitute(b, x, t2)
+                printMsg(" => sub is " + sub)
+                Some(sub)
+              case _ => None
+            }
+          }
+
+          ruleA orElse ruleB orElse ruleC orElse {
+            printMsg(" #### NO RULES APPLIES #### ")
+            None
+          }
+      }
+
+      exit
+      r
     }
 
     reduce(t) match {
