@@ -17,6 +17,9 @@ class ReduceNormalOrderTest extends WordSpec with Matchers {
   // Note: 	We assume that the parser and prettyPrinter are correct
   // 		and we write the terms with strings for readability
   val nrCasesWhichTerminate: List[List[String]] = List(
+
+    """(\x. \y. x y) (\x. y)""" :: """\y1. (\x. y) y1""" :: """\y1. y""" :: Nil,
+
     // Examples seen somewhere
     List(
       """\y.(\x.x) y""", // Statement example
