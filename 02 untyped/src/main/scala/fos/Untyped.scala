@@ -107,6 +107,8 @@ object Untyped extends StandardTokenParsers {
 
     // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∈ FV(s)
     case l @ Abs(y, t) /*if y != x && FV(s).contains(y)*/ => substitute(alpha(l, y), x, s)
+    //                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                                                   This will end up in the case just above
 
     // [x → s](t1 t2) = ([x → s]t1 [x → s]t2)
     case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
