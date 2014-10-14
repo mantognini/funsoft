@@ -52,15 +52,20 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
 
   def reduceOnce(program: Term) = Untyped.reduceCallByValue(program)
 
+  var testId = 0;
+
   def testNormal(input: String) {
-    When("the input is a normal form such as <" + input + ">")
+    testId = testId + 1
+    it should "properly stop on normal terms (id:" + testId + ")" in {
+      When("the input is a normal form such as <" + input + ">")
 
-    a[NoRuleApplies] should be thrownBy {
-      val output = reduceOnce(parse(input))
-      info("an exception was expected - instead the input was reduced to " + output)
+      a[NoRuleApplies] should be thrownBy {
+        val output = reduceOnce(parse(input))
+        info("an exception was expected - instead the input was reduced to " + output)
+      }
+
+      info("🍻")
     }
-
-    info("🍻")
   }
 
   def compare(initial: String, reduced: String) {
@@ -82,9 +87,12 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
     testNormal(rsteps.head)
 
     rsteps reduceLeft { (reduced: String, initial: String) =>
-      When("the input is a non-normal form such as <" + initial + "> which reduce into <" + reduced + ">")
+      testId = testId + 1
+      it should "properly reduce terms (id:" + testId + ")" in {
+        When("the input is a non-normal form such as <" + initial + "> which reduce into <" + reduced + ">")
 
-      compare(initial, reduced)
+        compare(initial, reduced)
+      }
 
       initial // is the reduced of the next test
     }
@@ -105,9 +113,7 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
 
   behavior of "The call-by-value strategy"
 
-  it should "properly reduce terms" in {
-    cbvrCasesWhichTerminate foreach test
-  }
+  cbvrCasesWhichTerminate foreach test
 
   it should "properly loop forever" in {
     val omega = """(\x. x x) (\x. x x)"""
