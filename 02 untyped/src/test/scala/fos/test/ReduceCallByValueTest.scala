@@ -36,13 +36,14 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
     // Statement example
     """\y. (\x. x) y""" :: Nil,
 
-    """(\x.x) ((\x.\f.(\z.z) x) \y.y)""" :: """(\x. x) (\f.(\z.z) \y.y)""" :: """\f. (\z.z) \y.y""" :: Nil,
-
     /// Non-normal forms
     """(\x. x x) \y. y""" :: """(\y. y) \y. y""" :: """\y.y""" :: Nil,
     """(\x. x z) (\y. y)""" :: """(\y. y) z""" :: Nil,
     """(\x. x z) (\y. y) (\z. z)""" :: """((\y. y) z) (\z. z)""" :: Nil,
     """(\x.y x) (\z.z)""" :: """y \z.z""" :: Nil,
+    """(\x.x) ((\x.\f.(\z.z) x) \y.y)""" :: """(\x. x) (\f.(\z.z) \y.y)""" :: """\f. (\z.z) \y.y""" :: Nil,
+    """((\x. x) (\y. y)) \z. z""" :: """(\y. y) \z. z""" :: """\z.z""" :: Nil,
+    """((\x. x) (\y. y)) ((\f. f) (\g. g))""" :: """(\y. y) ((\f. f) (\g. g))""" :: """(\y. y) (\g. g)""" :: """(\g. g)""" :: Nil,
 
     // from TAPL p.57
     """(\x. x) ((\x. x) (\z. (\x. x) z))""" :: """(\x. x) (\z. (\x. x) z)""" :: """\z. (\x. x) z""" :: Nil,
