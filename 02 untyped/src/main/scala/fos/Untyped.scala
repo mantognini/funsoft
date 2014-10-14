@@ -177,15 +177,6 @@ object Untyped extends StandardTokenParsers {
     // the function. In contrast, lazy strategies such a call-by-name and call-by-need 
     // evaluate only the arguments that are actually used.
 
-    /*
-     * 		t1 -> t1'			t2 -> t2'		
-     *   -----------------	-----------------	
-     *   t1 t2 -> t1' t2	 v1 t2 -> v1 t2'	
-     *   
-     *   and finally
-     *   
-     *   (\x.t12) v2 -> [x -> v2] t12
-     */
     def isValue(t: Term) = t match {
       case Abs(_, _) => true
       case _ => false
@@ -196,24 +187,31 @@ object Untyped extends StandardTokenParsers {
       case Var(_) => None
 
       // Try to reduce body of abstraction
-      case Abs(x, t1) => reduce(t1) match {
-        case Some(t1p) => Some(Abs(x, t1p))
-        case None => None
-      }
+      case Abs(x, t1) =>
+        reduce(t1) match {
+          case Some(t1p) => Some(Abs(x, t1p))
+          case None => None
+        }
 
-      case App(t1, t2) => {
-        // First, try to reduce the outermost
-        def ruleA = t1 match {
+      // Rules: A then B then C
+      // -----
+      //
+      //        A                    B                       C
+      //
+      //     t1 → t1p             t2 → t2p
+      // ---------------- &&  ---------------- && (λx. b) v2 → [x → v2] b
+      //  t1 t2 → t1p t2       v1 t2 → v1 t2p
+      case App(t1, t2) =>
+        def ruleA = reduce(t1) map { App(_, t2) }
+
+        def ruleB = if (isValue(t1)) reduce(t2) map { App(t1, _) } else None
+
+        def ruleC = t1 match {
           case Abs(x, b) if isValue(t2) => Some(substitute(b, x, t2))
           case _ => None
         }
 
-        // TODO formalise the rule and make sure they are correct!
-        def ruleB = reduce(t1) map { App(_, t2) }
-        def ruleC = reduce(t2) map { App(t1, _) }
-
         ruleA orElse ruleB orElse ruleC
-      }
     }
 
     reduce(t) match {
