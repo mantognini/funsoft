@@ -187,7 +187,7 @@ object Untyped extends StandardTokenParsers {
       // No reduction left to be applied
       case Var(_) => None
 
-      // Try to reduce body of abstraction
+      // Don't try to reduce body of abstraction
       case Abs(x, t1) => None
 
       // Rules: A then B then C
