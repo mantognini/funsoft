@@ -45,6 +45,10 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
     """((\x. x) (\y. y)) \z. z""" :: """(\y. y) \z. z""" :: """\z.z""" :: Nil,
     """((\x. x) (\y. y)) ((\f. f) (\g. g))""" :: """(\y. y) ((\f. f) (\g. g))""" :: """(\y. y) (\g. g)""" :: """(\g. g)""" :: Nil,
 
+    /// Assert there's no name substitution
+    """(\x. x y z) (\y. x y z)""" :: """(\y. x y z) y z""" :: Nil,
+    """(\x. \y. x y z) (\y. x y z)""" :: """\y. (\y. x y z) y z""" :: Nil,
+
     // from TAPL p.57
     """(\x. x) ((\x. x) (\z. (\x. x) z))""" :: """(\x. x) (\z. (\x. x) z)""" :: """\z. (\x. x) z""" :: Nil,
     Nil)
