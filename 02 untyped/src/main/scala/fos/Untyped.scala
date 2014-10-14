@@ -66,10 +66,16 @@ object Untyped extends StandardTokenParsers {
       walk(t, Set())
     }
 
+    def convertToInteger(str: String): Int = try {
+      str.toInt
+    } catch {
+      case e: java.lang.NumberFormatException => 0
+    }
+
     // if v, v1, v2, .., vi, vj (j is not necessarily i + 1), then the selected name is v{j+1}. 
     def findFirstFreeName: String = {
       val taken = findUsedNameWithPrefix
-      val indexes = taken map { _.stripPrefix(oldName).toInt }
+      val indexes = taken map { i => convertToInteger(i.stripPrefix(oldName)) }
       val lastIndex = (indexes + 0) max
 
       oldName + (lastIndex + 1)
