@@ -32,20 +32,20 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
     """x x x x x y y y z""" :: Nil,
     """(\x. x) y""" :: Nil, // yes, y is NOT a value.
     """z (\x.x) (\y.y)""" :: Nil,
+    """\x.x ((\x.\f.(\z.z) x) \y.y)""" :: Nil,
     // Statement example
     """\y. (\x. x) y""" :: Nil,
+
+    """(\x.x) ((\x.\f.(\z.z) x) \y.y)""" :: """(\x. x) (\f.(\z.z) \y.y)""" :: """\f. (\z.z) \y.y""" :: Nil,
 
     /// Non-normal forms
     """(\x. x x) \y. y""" :: """(\y. y) \y. y""" :: """\y.y""" :: Nil,
     """(\x. x z) (\y. y)""" :: """(\y. y) z""" :: Nil,
-    // TODO: The following test is failing
-    """(\x. x z) (\y. y) (\z. z)""" :: """(\y. y z) (\z. z)""" :: """(\z. z) z""" :: Nil,
+    """(\x. x z) (\y. y) (\z. z)""" :: """((\y. y) z) (\z. z)""" :: Nil,
     """(\x.y x) (\z.z)""" :: """y \z.z""" :: Nil,
-    """\x.x ((\x.\f.(\z.z) x) \y.y)""" :: """\x.x (\f.(\z.z) \y.y)""" :: """\f.(\z.z) \y.y""" :: """\f.\y.y""" :: Nil,
 
     // from TAPL p.57
     """(\x. x) ((\x. x) (\z. (\x. x) z))""" :: """(\x. x) (\z. (\x. x) z)""" :: """\z. (\x. x) z""" :: Nil,
-
     Nil)
 
   def parse(input: String) = Untyped.parseOrDie(input)
@@ -69,11 +69,13 @@ class ReduceCallByValueTest extends FlatSpec with Matchers with GivenWhenThen {
   }
 
   def compare(initial: String, reduced: String) {
-    val i = reduceOnce(parse(initial)).toRawString
-    val r = parse(reduced).toRawString
+    val pi = parse(initial)
+    val i = reduceOnce(pi)
+    val r = parse(reduced)
 
-    info("i is " + i)
-    info("r is " + r)
+    info("pi is " + pi)
+    info("i  is " + i)
+    info("r  is " + r)
 
     i shouldBe r
 
