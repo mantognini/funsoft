@@ -39,12 +39,11 @@ class ParserTest extends WordSpec with Matchers {
       """(x)""" -> x ::
       """(((x y)))""" -> App(x, y) ::
       id_b_s + " " + id_n_s -> App(id_b, id_n) ::
-  // TODO add pairs
-
-  // Complex trees
-  "(" + id_b_s + " " + id_n_s + """) \x: Nat. \y: Nat. \f: Nat * Nat -> Nat. f x y""" -> App(App(id_b, id_n), Abs(x, Nat, Abs(y, Nat, Abs(f, Function(Produce(Nat, Nat), Nat), App(App(f, x), y))))) ::
-    // TODO add more complex trees
-    List[(String, Term)]()
+      // TODO add pairs
+      // Complex trees
+      "(" + id_b_s + " " + id_n_s + """) \x: Nat. \y: Nat. \z: Nat * Nat -> Nat. z x y""" -> App(App(id_b, id_n), Abs(x, Nat, Abs(y, Nat, Abs(z, Function(Product(Nat, Nat), Nat), App(App(z, x), y))))) ::
+      // TODO add more complex trees
+      List[(String, Term)]()
 
   "The parser" should {
     tests foreach {
