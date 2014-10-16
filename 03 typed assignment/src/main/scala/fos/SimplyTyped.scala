@@ -64,8 +64,8 @@ object SimplyTyped extends StandardTokenParsers {
    */
   def Type: Parser[Type] = positioned(
     SimpleType ~ opt("->" ~> Type) ^^ {
-      case st ~ Some(t) => Function(st, t)
-      case st ~ None => st
+      case st ~ t => Function(st, t)
+      case st => st
       }
     | failure ("illegal start of type"))
     /**
