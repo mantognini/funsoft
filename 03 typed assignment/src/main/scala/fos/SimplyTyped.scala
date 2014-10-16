@@ -10,21 +10,20 @@ import scala.util.parsing.input._
  */
 object SimplyTyped extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".", ":", "=", "->", "{", "}", ",", "*")
-  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ",
-    "pred", "iszero", "let", "in", "fst", "snd")
+  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "in", "fst", "snd")
 
   def convertNumeric(x: Int): Term = if (x <= 0) Zero else Succ(convertNumeric(x - 1))
-  def convertLet(x: String, t: Type, t1: Term, t2: Term) = App(Abs(Var(x), t2), t1) // TODO: What to do with t ?
+  def convertLet(x: String, typ: Type, t1: Term, t2: Term) = App(Abs(Var(x), typ, t2), t1)
 
   /**
    * Term     ::= SimpleTerm { SimpleTerm }
    */
   def Term: Parser[Term] = positioned(
-    rep1(SimpleTerm) ^^ { case termList => termList.reduceLeft { App(_, _) } }
-    | failure ("illegal start of term"))
+    rep1(SimpleTerm) ^^ { case ts => ts.reduceLeft { App(_, _) } }
+      | failure("illegal start of term"))
 
   /**
-   * SimpleTerm ::= "true"
+   * SimpleTerm ::=  "true"
    *               | "false"
    *               | number
    *               | "succ" Term
@@ -48,15 +47,15 @@ object SimplyTyped extends StandardTokenParsers {
       | "iszero" ~> Term ^^ { case e => IsZero(e) }
       | ("if" ~> Term) ~ ("then" ~> Term) ~ ("else" ~> Term) ^^ { case cond ~ zen ~ elze => If(cond, zen, elze) }
       | ident ^^ { Var(_) }
-      | "\\" ~> ident ~ (":" ~> Type) ~ ("." ~> Term) ^^ { case name ~ t ~ term => Abs(Var(name), term) /* TODO: What to do with t? */ }
+      | "\\" ~> ident ~ (":" ~> Type) ~ ("." ~> Term) ^^ { case x ~ typ ~ body => Abs(Var(x), typ, body) }
       | "(" ~> Term <~ ")"
       | ("let" ~> ident) ~ (":" ~> Type) ~ ("=" ~> Term) ~ ("in" ~> Term) ^^ {
         // let x: T = t1 in t2		=>		(\x:T.t2) t1
-        case x ~ T ~ t1 ~ t2 => convertLet(x, T, t1, t2)
+        case x ~ typ ~ t1 ~ t2 => convertLet(x, typ, t1, t2)
       }
       | ("{" ~> Term <~ ",") ~ (Term <~ "}") ^^ { case p1 ~ p2 => Pair(p1, p2) }
-      | "fst" ~> Term ^^ { case p => Fst(p) }
-      | "snd" ~> Term ^^ { case p => snd(p) }
+      | "fst" ~> Term ^^ { case p => First(p) }
+      | "snd" ~> Term ^^ { case p => Second(p) }
       | failure("illegal start of simple term"))
 
   /**
@@ -64,23 +63,23 @@ object SimplyTyped extends StandardTokenParsers {
    */
   def Type: Parser[Type] = positioned(
     SimpleType ~ opt("->" ~> Type) ^^ {
-      case st ~ t => Function(st, t)
-      case st => st
-      }
-    | failure ("illegal start of type"))
-    /**
-     * SimpleType	::=   "Bool"
-     * 					| "Nat"
-     *      			| "(" Type ")"
-     *         			| T "*" T
-     */
+      case st ~ None => st
+      case st ~ Some(t) => Function(st, t)
+    }
+      | failure("illegal start of type"))
+  /**
+   * SimpleType	::=
+   *              "Bool"
+   * 			| "Nat"
+   *      		| "(" Type ")"
+   *         	| T "*" T
+   */
   def SimpleType: Parser[Type] = positioned(
     "Bool" ^^^ Bool
-    | "Nat" ^^^ Nat
-    | "(" ~> Type <~ ")"
-    | Type ~ ("*" ~> Type) ^^ { case t1 ~ t2 => Composition(t1, t2) }
-    | failure ("illegal start of type"))
-      )
+      | "Nat" ^^^ Nat
+      | "(" ~> Type <~ ")"
+      | Type ~ ("*" ~> Type) ^^ { case t1 ~ t2 => Product(t1, t2) }
+      | failure("illegal start of type"))
 
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
@@ -121,8 +120,7 @@ object SimplyTyped extends StandardTokenParsers {
    *  @return    the computed type
    */
   def typeof(ctx: Context, t: Term): Type = t match {
-    case True | False =>
-      TypeBool
+    case True | False => Bool
     //   ... To complete ... 
   }
 
@@ -146,7 +144,7 @@ object SimplyTyped extends StandardTokenParsers {
    */
   def path(t: Term, reduce: Term => Term): Stream[Term] =
     try {
-      var t1 = reduce(t)
+      val t1 = reduce(t)
       Stream.cons(t, path(t1, reduce))
     } catch {
       case NoRuleApplies(_) =>
