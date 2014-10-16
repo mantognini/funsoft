@@ -14,13 +14,13 @@ object SimplyTyped extends StandardTokenParsers {
     "pred", "iszero", "let", "in", "fst", "snd")
 
   def convertNumeric(x: Int): Term = if (x <= 0) Zero else Succ(convertNumeric(x - 1))
-  def convertLet(x: String, T: Type, t1: Term, t2: Term) = App(Abs(Var(x), t2), t1) // TODO: What to do with T ?
+  def convertLet(x: String, t: Type, t1: Term, t2: Term) = App(Abs(Var(x), t2), t1) // TODO: What to do with t ?
 
   /**
    * Term     ::= SimpleTerm { SimpleTerm }
    */
   def Term: Parser[Term] = positioned(
-    //   ... To complete ... 
+    rep1(SimpleTerm) ^^ { case termList => termList.reduceLeft { App(_, _) } }
     | failure ("illegal start of term"))
 
   /**
@@ -48,13 +48,13 @@ object SimplyTyped extends StandardTokenParsers {
       | "iszero" ~> Term ^^ { case e => IsZero(e) }
       | ("if" ~> Term) ~ ("then" ~> Term) ~ ("else" ~> Term) ^^ { case cond ~ zen ~ elze => If(cond, zen, elze) }
       | ident ^^ { Var(_) }
-      | "\\" ~> ident ~ (":" ~> Type) ~ ("." ~> Term) ^^ { case name ~ T ~ term => Abs(Var(name), term) /* TODO: What to do with T? */ }
+      | "\\" ~> ident ~ (":" ~> Type) ~ ("." ~> Term) ^^ { case name ~ t ~ term => Abs(Var(name), term) /* TODO: What to do with t? */ }
       | "(" ~> Term <~ ")"
       | ("let" ~> ident) ~ (":" ~> Type) ~ ("=" ~> Term) ~ ("in" ~> Term) ^^ {
         // let x: T = t1 in t2		=>		(\x:T.t2) t1
-        case x ~ T ~ t1 ~ t2 => convertLet(x, T, t1, t2) // TODO
+        case x ~ T ~ t1 ~ t2 => convertLet(x, T, t1, t2)
       }
-      | ("{" ~> Term <~ ",") ~ (Term <~ "}") ^^ { case p1 ~ p2 => Pairr(p1, p2) }
+      | ("{" ~> Term <~ ",") ~ (Term <~ "}") ^^ { case p1 ~ p2 => Pair(p1, p2) }
       | "fst" ~> Term ^^ { case p => Fst(p) }
       | "snd" ~> Term ^^ { case p => snd(p) }
       | failure("illegal start of simple term"))
@@ -63,10 +63,24 @@ object SimplyTyped extends StandardTokenParsers {
    * Type       ::= SimpleType [ "->" Type ]
    */
   def Type: Parser[Type] = positioned(
-    //   ... To complete ... 
+    SimpleType ~ opt("->" ~> Type) ^^ {
+      case st ~ Some(t) => Function(st, t)
+      case st ~ None => st
+      }
     | failure ("illegal start of type"))
-
-  //   ... To complete ... 
+    /**
+     * SimpleType	::=   "Bool"
+     * 					| "Nat"
+     *      			| "(" Type ")"
+     *         			| T "*" T
+     */
+  def SimpleType: Parser[Type] = positioned(
+    "Bool" ^^^ Bool
+    | "Nat" ^^^ Nat
+    | "(" ~> Type <~ ")"
+    | Type ~ ("*" ~> Type) ^^ { case t1 ~ t2 => Composition(t1, t2) }
+    | failure ("illegal start of type"))
+      )
 
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
