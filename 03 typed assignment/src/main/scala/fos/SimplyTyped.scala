@@ -113,6 +113,17 @@ object SimplyTyped extends StandardTokenParsers {
   }
 
   /**
+   * Parser a given input
+   */
+  def parse(input: String) =
+    parse_impl(new lexical.Scanner(input))
+
+  def parse(input: java.io.InputStream) =
+    parse_impl(new lexical.Scanner(StreamReader(new java.io.InputStreamReader(input))))
+
+  private def parse_impl(tokens: lexical.Scanner) = phrase(Term)(tokens)
+
+  /**
    * Returns a stream of terms, each being one step of reduction.
    *
    *  @param t      the initial term
@@ -128,19 +139,17 @@ object SimplyTyped extends StandardTokenParsers {
         Stream.cons(t, Stream.empty)
     }
 
-  def main(args: Array[String]): Unit = {
-    val tokens = new lexical.Scanner(StreamReader(new java.io.InputStreamReader(System.in)))
-    phrase(Term)(tokens) match {
-      case Success(trees, _) =>
-        try {
-          println("typed: " + typeof(Nil, trees))
-          for (t <- path(trees, reduce))
-            println(t)
-        } catch {
-          case tperror => println(tperror.toString)
-        }
-      case e =>
-        println(e)
-    }
+  def main(args: Array[String]): Unit = parse(System.in) match {
+    case Success(trees, _) =>
+      try {
+        println("typed: " + typeof(Nil, trees))
+        for (t <- path(trees, reduce))
+          println(t)
+      } catch {
+        case tperror => println(tperror.toString)
+      }
+    case e =>
+      println(e)
   }
+
 }
