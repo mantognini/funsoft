@@ -37,8 +37,20 @@ class ParserTest extends WordSpec with Matchers {
       // Identity Functions
       id_b_s -> id_b ::
       id_n_s -> id_n ::
-      """\x: Bool -> Bool. x""" -> Abs(x, Function(Bool, Bool), x) ::
-      """\x: Bool * Bool. x""" -> Abs(x, Product(Bool, Bool), x) ::
+      // Function types
+      """\x: Bool -> Nat. x""" -> Abs(x, Function(Bool, Nat), x) ::
+      """\x: Bool -> Nat -> Bool. x""" -> Abs(x, Function(Bool, Function(Nat, Bool)), x) ::
+      """\x: (Bool -> Nat) -> Bool. x""" -> Abs(x, Function(Function(Bool, Nat), Bool), x) ::
+      """\x: (Bool -> Nat) -> (Nat -> Bool). x""" -> Abs(x, Function(Function(Bool, Nat), Function(Nat, Bool)), x) ::
+      // Product types
+      """\x: Bool * Nat. x""" -> Abs(x, Product(Bool, Nat), x) ::
+      """\x: Bool * Bool * Nat. x""" -> Abs(x, Product(Bool, Product(Bool, Nat)), x) ::
+      """\x: (Bool * Nat) * Bool. x""" -> Abs(x, Product(Product(Bool, Nat), Bool), x) ::
+      """\x: (Bool * Nat) * (Nat * Bool). x""" -> Abs(x, Product(Product(Bool, Nat), Product(Nat, Bool)), x) ::
+      // Mix Function and Product with correct precedence
+      """\x: Nat * Nat -> Bool. x""" -> Abs(x, Function(Product(Nat, Nat), Bool), x) ::
+      """\x: Nat * Nat -> Bool * Bool. x""" -> Abs(x, Function(Product(Nat, Nat), Product(Bool, Bool)), x) ::
+      """\x: Bool -> Nat * Nat -> Bool * Bool. x""" -> Abs(x, Function(Bool, Function(Product(Nat, Nat), Product(Bool, Bool))), x) ::
       // Applications
       """x y""" -> App(x, y) ::
       """(x)""" -> x ::
