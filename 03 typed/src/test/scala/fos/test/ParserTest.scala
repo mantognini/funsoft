@@ -52,7 +52,7 @@ class ParserTest extends WordSpec with Matchers {
           val res = parseOrDie(input)
           assert(res === ast)
         } catch {
-          case e /*SimplyTyped.ParseException(e)*/ => fail(e)
+          case ParseException(e) => fail(e)
         }
       }
     }
