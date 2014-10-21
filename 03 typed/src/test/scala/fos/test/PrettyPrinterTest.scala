@@ -8,12 +8,12 @@ class PrettyPrintTest extends FlatSpec with Matchers {
 
   behavior of "The pretty printer"
 
-  val termsToString = ttools.canonicalCases map { _.swap }
-
-  termsToString.foreach {
-    case (ast, expr) => ignore should "properly print " + expr /*+ ". NB, AST is " + ast.toRawString*/ in {
-      ast.toString shouldEqual expr
-    }
-  }
+  //  val termsToString = ttools.canonicalCases map { _.swap }
+  //
+  //  termsToString.foreach {
+  //    case (ast, expr) => ignore should "properly print " + expr /*+ ". NB, AST is " + ast.toRawString*/ in {
+  //      ast.toString shouldEqual expr
+  //    }
+  //  }
 
 }
