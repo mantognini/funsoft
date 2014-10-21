@@ -11,13 +11,15 @@ class ParserTest extends WordSpec with Matchers {
   val id_n_s = """\x: Nat . x"""
 
   val tests = /* Input -> Term */
-    // Simple trees
+    // Boolean
     """true""" -> True ::
       """false""" -> False ::
+      // If statements
       """if true then true else true """ -> If(True, True, True) ::
       """if false then true else true """ -> If(False, True, True) ::
       """if true then false else true """ -> If(True, False, True) ::
       """if true then true else false """ -> If(True, True, False) ::
+      // Numbers
       """0""" -> Zero ::
       """1""" -> Succ(Zero) ::
       """2""" -> Succ(Succ(Zero)) ::
@@ -26,15 +28,18 @@ class ParserTest extends WordSpec with Matchers {
       """pred 1""" -> Pred(Succ(Zero)) ::
       """succ 0""" -> Succ(Zero) ::
       """succ 1""" -> Succ(Succ(Zero)) ::
+      // Variables
       """x""" -> x ::
       """y""" -> y ::
       """xy""" -> Var("xy") ::
       // """a$1""" -> Var("a$1") :: // This is in fact rejected by StandardTokenParsers.ident
       """alpha123""" -> Var("alpha123") ::
+      // Identity Functions
       id_b_s -> id_b ::
       id_n_s -> id_n ::
       """\x: Bool -> Bool. x""" -> Abs(x, Function(Bool, Bool), x) ::
       """\x: Bool * Bool. x""" -> Abs(x, Product(Bool, Bool), x) ::
+      // Applications
       """x y""" -> App(x, y) ::
       """(x)""" -> x ::
       """(((x y)))""" -> App(x, y) ::
