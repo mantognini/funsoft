@@ -4,7 +4,7 @@ import org.scalatest._
 
 class ParserTest extends WordSpec with Matchers {
 
-  import fos.{ SimplyTyped, Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Bool, Nat, Function, Product }
+  import fos.{ SimplyTyped, Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second, Bool, Nat, Function, Product }
   import fos.test.helpers.Helper._
 
   val id_b_s = """\x: Bool. x"""
@@ -60,6 +60,12 @@ class ParserTest extends WordSpec with Matchers {
       """{ x, y }""" -> p_xy ::
       "{ " + id_b_s + ", " + id_n_s + " }" -> p_id_bn ::
       """{ { a, b }, { x, y } }""" -> Pair(p_ab, p_xy) ::
+      """fst { x, y }""" -> First(p_xy) ::
+      """snd { x, y }""" -> Second(p_xy) ::
+      """fst fst { { a, b }, { x, y } }""" -> First(First(Pair(p_ab, p_xy))) ::
+      """fst snd { { a, b }, { x, y } }""" -> First(Second(Pair(p_ab, p_xy))) ::
+      """snd fst { { a, b }, { x, y } }""" -> Second(First(Pair(p_ab, p_xy))) ::
+      """snd snd { { a, b }, { x, y } }""" -> Second(Second(Pair(p_ab, p_xy))) ::
       // Complex trees
       "(" + id_b_s + " " + id_n_s + """) \x: Nat. \y: Nat. \z: Nat * Nat -> Nat. z x y""" -> App(App(id_b, id_n), Abs(x, Nat, Abs(y, Nat, Abs(z, Function(Product(Nat, Nat), Nat), App(App(z, x), y))))) ::
       // TODO add more complex trees
