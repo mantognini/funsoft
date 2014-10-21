@@ -29,7 +29,7 @@ class ParserTest extends WordSpec with Matchers {
       """x""" -> x ::
       """y""" -> y ::
       """xy""" -> Var("xy") ::
-      """a$1""" -> Var("a$1") ::
+      // """a$1""" -> Var("a$1") :: // This is in fact rejected by StandardTokenParsers.ident
       """alpha123""" -> Var("alpha123") ::
       id_b_s -> id_b ::
       id_n_s -> id_n ::
