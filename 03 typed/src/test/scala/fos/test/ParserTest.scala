@@ -56,6 +56,11 @@ class ParserTest extends WordSpec with Matchers {
       """(x)""" -> x ::
       """(((x y)))""" -> App(x, y) ::
       id_b_s + " " + id_n_s -> App(id_b, id_n) ::
+      // Let
+      """let x: Nat = 0 in x""" -> App(Abs(x, Nat, x), Zero) ::
+      """let id: Nat -> Nat = \x: Nat. x in id 0""" -> App(Abs(Var("id"), Function(Nat, Nat), App(Var("id"), Zero)), Abs(x, Nat, x)) ::
+      """let x: Nat = 0 in let y: Nat = 1 in x y""" -> App(Abs(x, Nat, App(Abs(y, Nat, App(x, y)), Succ(Zero))), Zero) ::
+      """let z: Nat = 0 in let id: Nat -> Nat = \x: Nat. x in id z""" -> App(Abs(z, Nat, App(Abs(Var("id"), Function(Nat, Nat), App(Var("id"), z)), Abs(x, Nat, x))), Zero) ::
       // Pairs
       """{ x, y }""" -> p_xy ::
       "{ " + id_b_s + ", " + id_n_s + " }" -> p_id_bn ::
