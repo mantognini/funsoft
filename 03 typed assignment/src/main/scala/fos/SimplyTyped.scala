@@ -2,6 +2,7 @@ package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
+import scala.collection.mutable.HashMap
 
 /**
  * This object implements a parser and evaluator for the
@@ -119,9 +120,28 @@ object SimplyTyped extends StandardTokenParsers {
    *  @param t   the given term
    *  @return    the computed type
    */
+  // TODO: Is there any simpler version?
+  def typeofVar(ctx: Context, x: String): Option[Type] = ctx match {
+    case (s, t) :: xs if s == x => Some(t)
+    case (s, t) :: xs => typeofVar(xs, x)
+    case _ => None
+  }
+  // TODO are the rules ordered corretly?
+  // TODO test this
   def typeof(ctx: Context, t: Term): Type = t match {
     case True | False => Bool
-    //   ... To complete ... 
+    case Zero => Nat
+    case Pred(x) if typeof(ctx, x) == Nat => Nat
+    case Succ(x) if typeof(ctx, x) == Nat => Nat
+    case IsZero(x) if typeof(ctx, x) == Nat => Bool
+    case If(t1, t2, t3) if typeof(ctx, t1) == Bool && typeof(ctx, t2) == typeof(ctx, t3) => typeof(ctx, t3)
+    case Var(x) if !typeofVar(ctx, x).isEmpty => typeofVar(ctx, x).getOrElse(??? /* TODO, error, or any other scala tricks with the if? */ )
+    case Abs(x, typ, body) => ??? // TODO
+    case App(t1, t2) => ??? // TODO
+
+    // TODO: Add rules in Fig. 5
+
+    case _ => ??? // TODO: Stuck? What to return? Error?
   }
 
   /**
