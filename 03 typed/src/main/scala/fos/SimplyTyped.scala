@@ -12,7 +12,10 @@ object SimplyTyped extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".", ":", "=", "->", "{", "}", ",", "*")
   lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "in", "fst", "snd")
 
-  def convertNumeric(x: Int): Term = if (x <= 0) Zero else Succ(convertNumeric(x - 1))
+  // 0 => 0, n => Succ(n-1)
+  def convertNumeric(n: Int): Term = if (n <= 0) Zero else Succ(convertNumeric(n - 1))
+
+  // let x: T = t1 in t2        =>      (\x:T.t2) t1
   def convertLet(x: String, typ: Type, t1: Term, t2: Term) = App(Abs(Var(x), typ, t2), t1)
 
   /**
@@ -49,10 +52,7 @@ object SimplyTyped extends StandardTokenParsers {
       | ident ^^ { Var(_) }
       | "\\" ~> ident ~ (":" ~> Type) ~ ("." ~> Term) ^^ { case x ~ typ ~ body => Abs(Var(x), typ, body) }
       | "(" ~> Term <~ ")"
-      | ("let" ~> ident) ~ (":" ~> Type) ~ ("=" ~> Term) ~ ("in" ~> Term) ^^ {
-        // let x: T = t1 in t2		=>		(\x:T.t2) t1
-        case x ~ typ ~ t1 ~ t2 => convertLet(x, typ, t1, t2)
-      }
+      | ("let" ~> ident) ~ (":" ~> Type) ~ ("=" ~> Term) ~ ("in" ~> Term) ^^ { case x ~ typ ~ t1 ~ t2 => convertLet(x, typ, t1, t2) }
       | ("{" ~> Term <~ ",") ~ (Term <~ "}") ^^ { case p1 ~ p2 => Pair(p1, p2) }
       | "fst" ~> Term ^^ { case p => First(p) }
       | "snd" ~> Term ^^ { case p => Second(p) }
