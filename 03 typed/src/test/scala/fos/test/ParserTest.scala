@@ -88,6 +88,8 @@ class ParserTest extends WordSpec with Matchers {
       """Nat -> Nat""" -> Function(Nat, Nat) ::
       """Nat -> Bool""" -> Function(Nat, Bool) ::
       """Bool -> Nat -> Bool""" -> Function(Bool, Function(Nat, Bool)) ::
+      """Bool -> Nat -> Bool -> Nat""" -> Function(Bool, Function(Nat, Function(Bool, Nat))) ::
+      """(Bool -> Nat) * (Nat -> Bool) -> Bool -> Nat""" -> Function(Product(Function(Bool, Nat), Function(Nat, Bool)), Function(Bool, Nat)) ::
       """(Bool -> Nat) -> Bool""" -> Function(Function(Bool, Nat), Bool) ::
       """Nat * Nat""" -> Product(Nat, Nat) ::
       """Bool * Nat""" -> Product(Bool, Nat) ::
