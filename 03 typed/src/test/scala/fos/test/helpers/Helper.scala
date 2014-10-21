@@ -30,4 +30,10 @@ object Helper {
   import fos.{ Abs, Bool, Nat }
   val id_b = Abs(x, Bool, x)
   val id_n = Abs(x, Nat, x)
+
+  // Define a few pairs
+  import fos.{ Pair }
+  val p_ab = Pair(a, b)
+  val p_xy = Pair(x, y)
+  val p_id_bn = Pair(id_b, id_n)
 }
