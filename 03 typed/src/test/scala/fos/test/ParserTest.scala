@@ -80,17 +80,28 @@ class ParserTest extends WordSpec with Matchers {
       // TODO add more complex trees
       List[(String, Term)]()
 
-  "The parser" should {
+  val typeTests = /* Input -> Type */
+    """Nat""" -> Nat ::
+      Nil
+
+  def processTests(msgPrefix: String, tests: List[(String, Term)], parser: String => Term) {
     tests foreach {
-      case (input, ast) => "procude the correct AST with input " + input in {
+      case (input, ast) => msgPrefix + input in {
         try {
-          val res = parseOrDie(input)
+          val res = parser(input)
           assert(res === ast)
         } catch {
           case ParseException(e) => fail(e)
         }
       }
     }
+  }
+
+  def typeParser(input: String): SimplyTyped.ParseResult[Term] = SimplyTyped.phrase(SimplyTyped.Type)(new SimplyTyped.lexical.Scanner(input))
+
+  "The parser" should {
+    processTests("procude the correct AST with input ", tests, input => parseOrDie(input))
+    processTests("procude the correst AST for Types with input ", typeTests, input => parseOrDie(input)(typeParser))
   }
 
 }
