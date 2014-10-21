@@ -59,27 +59,25 @@ object SimplyTyped extends StandardTokenParsers {
       | failure("illegal start of simple term"))
 
   /**
-   * Type       ::= SimpleType [ "->" Type ]
+   * Type ::= Tp [ -> Type ]    // function
+   *
+   * Tp   ::= Type * Type       // product
+   *        | ( Type )          // parentheses
+   *        | Bool              // boolean
+   *        | Nat               // natural number
+   *
+   * Note: -> and * are right associative
+   * Note: * has a higher precedence than ->
    */
-  def Type: Parser[Type] = positioned(
-    SimpleType ~ opt("->" ~> Type) ^^ {
-      case st ~ None => st
-      case st ~ Some(t) => Function(st, t)
-    }
-      | failure("illegal start of type"))
-  /**
-   * SimpleType	::=
-   *              "Bool"
-   * 			| "Nat"
-   *      		| "(" Type ")"
-   *         	| T "*" T
-   */
-  def SimpleType: Parser[Type] = positioned(
-    "Bool" ^^^ Bool
-      | "Nat" ^^^ Nat
-      | "(" ~> Type <~ ")"
-      | Type ~ ("*" ~> Type) ^^ { case t1 ~ t2 => Product(t1, t2) }
-      | failure("illegal start of type"))
+  def Type: Parser[Type] = {
+    def function = rep1sep(product, "->") ^^ { _.reduceRight { Function(_, _) } }
+    def product = rep1sep(parentheses | boolean | natural, "*") ^^ { _.reduceRight { Product(_, _) } }
+    def parentheses = "(" ~> Type <~ ")"
+    def boolean = "Bool" ^^^ Bool
+    def natural = "Nat" ^^^ Nat
+
+    positioned(function)
+  }
 
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
