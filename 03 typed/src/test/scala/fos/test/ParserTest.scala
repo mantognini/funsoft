@@ -56,7 +56,10 @@ class ParserTest extends WordSpec with Matchers {
       """(x)""" -> x ::
       """(((x y)))""" -> App(x, y) ::
       id_b_s + " " + id_n_s -> App(id_b, id_n) ::
-      // TODO add pairs
+      // Pairs
+      """{ x, y }""" -> p_xy ::
+      "{ " + id_b_s + ", " + id_n_s + " }" -> p_id_bn ::
+      """{ { a, b }, { x, y } }""" -> Pair(p_ab, p_xy) ::
       // Complex trees
       "(" + id_b_s + " " + id_n_s + """) \x: Nat. \y: Nat. \z: Nat * Nat -> Nat. z x y""" -> App(App(id_b, id_n), Abs(x, Nat, Abs(y, Nat, Abs(z, Function(Product(Nat, Nat), Nat), App(App(z, x), y))))) ::
       // TODO add more complex trees
