@@ -7,8 +7,8 @@ class ParserTest extends WordSpec with Matchers {
   import fos.{ SimplyTyped, Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second, Bool, Nat, Function, Product }
   import fos.test.helpers.Helper._
 
-  val id_b_s = """\x: Bool. x"""
-  val id_n_s = """\x: Nat . x"""
+  val id_b_s = """(\x: Bool. x)"""
+  val id_n_s = """(\x: Nat. x)"""
 
   val tests = /* Input -> Term */
     // Boolean
@@ -76,9 +76,9 @@ class ParserTest extends WordSpec with Matchers {
       """snd fst { { a, b }, { x, y } }""" -> Second(First(Pair(p_ab, p_xy))) ::
       """snd snd { { a, b }, { x, y } }""" -> Second(Second(Pair(p_ab, p_xy))) ::
       // Complex trees
+      "(" + id_b_s + " " + id_n_s + ") x" -> App(App(id_b, id_n), x) ::
       "(" + id_b_s + " " + id_n_s + """) \x: Nat. \y: Nat. \z: Nat * Nat -> Nat. z x y""" -> App(App(id_b, id_n), Abs(x, Nat, Abs(y, Nat, Abs(z, Function(Product(Nat, Nat), Nat), App(App(z, x), y))))) ::
-      // TODO add more complex trees
-      List[(String, Term)]()
+      Nil
 
   val typeTests = /* Input -> Type */
     """Nat""" -> Nat ::
@@ -88,6 +88,8 @@ class ParserTest extends WordSpec with Matchers {
       """Nat -> Nat""" -> Function(Nat, Nat) ::
       """Nat -> Bool""" -> Function(Nat, Bool) ::
       """Bool -> Nat -> Bool""" -> Function(Bool, Function(Nat, Bool)) ::
+      """Bool -> Nat -> Bool -> Nat""" -> Function(Bool, Function(Nat, Function(Bool, Nat))) ::
+      """(Bool -> Nat) * (Nat -> Bool) -> Bool -> Nat""" -> Function(Product(Function(Bool, Nat), Function(Nat, Bool)), Function(Bool, Nat)) ::
       """(Bool -> Nat) -> Bool""" -> Function(Function(Bool, Nat), Bool) ::
       """Nat * Nat""" -> Product(Nat, Nat) ::
       """Bool * Nat""" -> Product(Bool, Nat) ::
@@ -96,7 +98,7 @@ class ParserTest extends WordSpec with Matchers {
       """Nat * Nat -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
       """(Nat * Nat) -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
       """Nat * (Nat -> Bool)""" -> Product(Nat, Function(Nat, Bool)) ::
-      """Nat * Bool -> Bool -> Nat""" -> Function(Product(Nat, Bool), Product(Bool, Nat)) ::
+      """Nat * Bool -> Bool * Nat""" -> Function(Product(Nat, Bool), Product(Bool, Nat)) ::
       Nil
 
   def processTests(msgPrefix: String, tests: List[(String, Term)], parser: String => Term) {
