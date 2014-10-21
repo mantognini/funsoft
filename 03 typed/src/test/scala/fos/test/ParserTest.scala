@@ -82,6 +82,21 @@ class ParserTest extends WordSpec with Matchers {
 
   val typeTests = /* Input -> Type */
     """Nat""" -> Nat ::
+      """((Nat))""" -> Nat ::
+      """Bool""" -> Bool ::
+      """(Bool)""" -> Bool ::
+      """Nat -> Nat""" -> Function(Nat, Nat) ::
+      """Nat -> Bool""" -> Function(Nat, Bool) ::
+      """Bool -> Nat -> Bool""" -> Function(Bool, Function(Nat, Bool)) ::
+      """(Bool -> Nat) -> Bool""" -> Function(Function(Bool, Nat), Bool) ::
+      """Nat * Nat""" -> Product(Nat, Nat) ::
+      """Bool * Nat""" -> Product(Bool, Nat) ::
+      """Nat * Bool * Nat""" -> Product(Nat, Product(Bool, Nat)) ::
+      """(Nat * Bool) * Nat""" -> Product(Product(Nat, Bool), Nat) ::
+      """Nat * Nat -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
+      """(Nat * Nat) -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
+      """Nat * (Nat -> Bool)""" -> Product(Nat, Function(Nat, Bool)) ::
+      """Nat * Bool -> Bool -> Nat""" -> Function(Product(Nat, Bool), Product(Bool, Nat)) ::
       Nil
 
   def processTests(msgPrefix: String, tests: List[(String, Term)], parser: String => Term) {
