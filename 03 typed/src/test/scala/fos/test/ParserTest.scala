@@ -80,17 +80,43 @@ class ParserTest extends WordSpec with Matchers {
       // TODO add more complex trees
       List[(String, Term)]()
 
-  "The parser" should {
+  val typeTests = /* Input -> Type */
+    """Nat""" -> Nat ::
+      """((Nat))""" -> Nat ::
+      """Bool""" -> Bool ::
+      """(Bool)""" -> Bool ::
+      """Nat -> Nat""" -> Function(Nat, Nat) ::
+      """Nat -> Bool""" -> Function(Nat, Bool) ::
+      """Bool -> Nat -> Bool""" -> Function(Bool, Function(Nat, Bool)) ::
+      """(Bool -> Nat) -> Bool""" -> Function(Function(Bool, Nat), Bool) ::
+      """Nat * Nat""" -> Product(Nat, Nat) ::
+      """Bool * Nat""" -> Product(Bool, Nat) ::
+      """Nat * Bool * Nat""" -> Product(Nat, Product(Bool, Nat)) ::
+      """(Nat * Bool) * Nat""" -> Product(Product(Nat, Bool), Nat) ::
+      """Nat * Nat -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
+      """(Nat * Nat) -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
+      """Nat * (Nat -> Bool)""" -> Product(Nat, Function(Nat, Bool)) ::
+      """Nat * Bool -> Bool -> Nat""" -> Function(Product(Nat, Bool), Product(Bool, Nat)) ::
+      Nil
+
+  def processTests(msgPrefix: String, tests: List[(String, Term)], parser: String => Term) {
     tests foreach {
-      case (input, ast) => "procude the correct AST with input " + input in {
+      case (input, ast) => msgPrefix + input in {
         try {
-          val res = parseOrDie(input)
+          val res = parser(input)
           assert(res === ast)
         } catch {
           case ParseException(e) => fail(e)
         }
       }
     }
+  }
+
+  def typeParser(input: String): SimplyTyped.ParseResult[Term] = SimplyTyped.phrase(SimplyTyped.Type)(new SimplyTyped.lexical.Scanner(input))
+
+  "The parser" should {
+    processTests("procude the correct AST with input ", tests, input => parseOrDie(input))
+    processTests("procude the correst AST for Types with input ", typeTests, input => parseOrDie(input)(typeParser))
   }
 
 }

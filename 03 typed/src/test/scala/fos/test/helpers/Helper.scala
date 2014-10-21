@@ -6,9 +6,10 @@ object Helper {
   import SimplyTyped.{ Success, Failure, Error }
 
   case class ParseException(e: String) extends Exception
-  def error(msg: String, next: SimplyTyped.Input) { throw new ParseException(msg + "\n" + next.pos.longString) }
+  def error(msg: String, next: SimplyTyped.Input): Nothing = { throw new ParseException(msg + "\n" + next.pos.longString) }
 
-  def parseOrDie(input: String) = SimplyTyped.parse(input) match {
+  implicit val termParser: String => SimplyTyped.ParseResult[Term] = SimplyTyped.parse
+  def parseOrDie(input: String)(implicit parser: String => SimplyTyped.ParseResult[Term]): Term = parser(input) match {
     case Success(ast, _) => ast
     case Failure(msg, next) => error(msg, next)
     case Error(msg, next) => error(msg, next)
