@@ -6,11 +6,12 @@ object Helper {
   import SimplyTyped.{ Success, Failure, Error }
 
   case class ParseException(e: String) extends Exception
+  def error(msg: String, next: SimplyTyped.Input) { throw new ParseException(msg + "\n" + next.pos.longString) }
 
   def parseOrDie(input: String) = SimplyTyped.parse(input) match {
     case Success(ast, _) => ast
-    case Failure(e, _) => throw new ParseException(e)
-    case Error(e, _) => throw new ParseException(e)
+    case Failure(msg, next) => error(msg, next)
+    case Error(msg, next) => error(msg, next)
   }
 
   // Define a few vars
