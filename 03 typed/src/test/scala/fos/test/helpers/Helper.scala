@@ -23,6 +23,8 @@ object Helper {
   val y = Var("y")
   val z = Var("z")
 
+  val t = Var("t")
+
   val f = Var("f")
   val g = Var("g")
 
