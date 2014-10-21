@@ -3,6 +3,7 @@ package fos
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
 import scala.collection.mutable.HashMap
+import scala.collection.parallel.Find
 
 /**
  * This object implements a parser and evaluator for the
@@ -120,14 +121,11 @@ object SimplyTyped extends StandardTokenParsers {
    *  @param t   the given term
    *  @return    the computed type
    */
-  // TODO: Is there any simpler version?
-  def typeofVar(ctx: Context, x: String): Option[Type] = ctx match {
-    case (s, t) :: xs if s == x => Some(t)
-    case (s, t) :: xs => typeofVar(xs, x)
-    case _ => None
-  }
+  def typeofVar(ctx: Context, x: String): Option[Type] =
+    ctx.find(p => p._1 == x) map { _._2 }
   // TODO are the rules ordered corretly?
   // TODO test this
+  // TODO: Check if the error msgs are the one expected by assistants
   def typeof(ctx: Context, t: Term): Type = t match {
     case True | False => Bool
     case Zero => Nat
@@ -135,9 +133,15 @@ object SimplyTyped extends StandardTokenParsers {
     case Succ(x) if typeof(ctx, x) == Nat => Nat
     case IsZero(x) if typeof(ctx, x) == Nat => Bool
     case If(t1, t2, t3) if typeof(ctx, t1) == Bool && typeof(ctx, t2) == typeof(ctx, t3) => typeof(ctx, t3)
-    case Var(x) if !typeofVar(ctx, x).isEmpty => typeofVar(ctx, x).getOrElse(??? /* TODO, error, or any other scala tricks with the if? */ )
-    case Abs(x, typ, body) => ??? // TODO
-    case App(t1, t2) => ??? // TODO
+    case Var(x) => typeofVar(ctx, x).getOrElse(throw new TypeError(t.pos, "Type of var " + x + " not found"))
+    case Abs(x, typ, body) => Function(typ, typeof((x.name, typ) :: ctx, body))
+    case App(t1, t2) => typeof(ctx, t1) match {
+      case Function(typ11, typ12) => typeof(ctx, t2) match {
+        case typ11 => typ12
+        case tWeird => throw new TypeError(t.pos, "Term " + t2 + " should be of type " + typ11 + ", but is " + tWeird)
+      }
+      case tWeird => throw new TypeError(t.pos, "Term " + t1 + " should be a of type Function, but is " + tWeird)
+    }
 
     // TODO: Add rules in Fig. 5
 
