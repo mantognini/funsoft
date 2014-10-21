@@ -2,8 +2,6 @@ package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
-import scala.collection.mutable.HashMap
-import scala.collection.parallel.Find
 
 /**
  * This object implements a parser and evaluator for the
