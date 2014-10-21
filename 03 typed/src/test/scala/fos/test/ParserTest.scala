@@ -96,7 +96,7 @@ class ParserTest extends WordSpec with Matchers {
       """Nat * Nat -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
       """(Nat * Nat) -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
       """Nat * (Nat -> Bool)""" -> Product(Nat, Function(Nat, Bool)) ::
-      """Nat * Bool -> Bool -> Nat""" -> Function(Product(Nat, Bool), Product(Bool, Nat)) ::
+      """Nat * Bool -> Bool * Nat""" -> Function(Product(Nat, Bool), Product(Bool, Nat)) ::
       Nil
 
   def processTests(msgPrefix: String, tests: List[(String, Term)], parser: String => Term) {
