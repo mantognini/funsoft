@@ -28,6 +28,10 @@ class ParserTest extends WordSpec with Matchers {
       """pred 1""" -> Pred(Succ(Zero)) ::
       """succ 0""" -> Succ(Zero) ::
       """succ 1""" -> Succ(Succ(Zero)) ::
+      // Test Zero
+      """iszero 0""" -> IsZero(Zero) ::
+      """iszero x""" -> IsZero(x) ::
+      """iszero 1""" -> IsZero(Succ(Zero)) ::
       // Variables
       """x""" -> x ::
       """y""" -> y ::
