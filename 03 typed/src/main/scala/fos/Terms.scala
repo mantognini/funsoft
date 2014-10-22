@@ -64,12 +64,12 @@ case class App(t1: Term, t2: Term) extends Term {
 }
 
 case class Succ(t: Term) extends Term {
-  def numStringWhenPossible(t: Term): String = SimplyTyped.isNumericVal(t) match {
-    case true => SimplyTyped.convertToNum(t).toString
-    case _ => "succ(" + t.toRawString + ")"
+  def numStringWhenPossible(succ: Succ): String = SimplyTyped.isNumericVal(t) match {
+    case true => SimplyTyped.convertToNum(succ).toString
+    case _ => "succ(" + succ.t.toRawString + ")"
   }
-  override def toRawString = numStringWhenPossible(Succ(t))
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = numStringWhenPossible(Succ(t))
+  override def toRawString = numStringWhenPossible(this)
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = numStringWhenPossible(this)
 }
 
 case class Pred(t: Term) extends Term {
