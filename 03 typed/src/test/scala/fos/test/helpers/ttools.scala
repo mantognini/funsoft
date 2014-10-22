@@ -1,7 +1,5 @@
 package fos.test.helpers
 
-import fos.If
-
 object ttools {
 
   import fos.{ SimplyTyped, Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Bool, Nat, Function, Product }
