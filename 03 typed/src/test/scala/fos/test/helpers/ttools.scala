@@ -30,15 +30,11 @@ object ttools {
     """x y z (f g x)""" -> App(App(App(x, y), z), App(App(f, g), x)),
     """x y z f (g x)""" -> App(App(App(App(x, y), z), f), App(g, x)),
     """x y z f (x y z f)""" -> App(App(App(App(x, y), z), f),
-      App(App(App(x, y), z), f)),
-
-    "" -> ???)
+      App(App(App(x, y), z), f)))
 
   val prettyPrintCases = Map[String, Term](
     """pred(Zero)""" -> Pred(Zero),
     """pred(pred(Zero))""" -> Pred(Pred(Zero)),
-    """pred(succ(Zero))""" -> Pred(Succ(Zero)),
-
-    "" -> ???)
+    """pred(succ(Zero))""" -> Pred(Succ(Zero)))
 
 }
