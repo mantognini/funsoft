@@ -66,39 +66,39 @@ case class App(t1: Term, t2: Term) extends Term {
 case class Succ(t: Term) extends Term {
   def numStringWhenPossible(t: Term): String = SimplyTyped.isNumericVal(t) match {
     case true => SimplyTyped.convertToNum(t).toString
-    case _ => "Succ(" + t.toRawString + ")"
+    case _ => "succ(" + t.toRawString + ")"
   }
   override def toRawString = numStringWhenPossible(Succ(t))
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = numStringWhenPossible(Succ(t))
 }
 
 case class Pred(t: Term) extends Term {
-  override def toRawString = "Pred(" + t.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "Pred(" + t + ")"
+  override def toRawString = "pred(" + t.toRawString + ")"
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "pred(" + t + ")"
 }
 
 case class IsZero(t: Term) extends Term {
-  override def toRawString = "IsZero(" + t.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "IsZero(" + t + ")"
+  override def toRawString = "iszero(" + t.toRawString + ")"
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "iszero(" + t + ")"
 }
 
 case class If(cond: Term, zen: Term, elze: Term) extends Term {
-  override def toRawString = "If(" + cond.toRawString + ", " + zen.toRawString + ", " + elze.toRawString + ")"
+  override def toRawString = "if(" + cond.toRawString + ", " + zen.toRawString + ", " + elze.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "if " + cond + " then " + zen + " else " + elze
 }
 
 case class Pair(fst: Term, snd: Term) extends Term {
-  override def toRawString = "Pair(" + fst.toRawString + ", " + snd.toRawString + ")"
+  override def toRawString = "pair(" + fst.toRawString + ", " + snd.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "{" + fst + "," + snd + "}"
 }
 
 case class First(p: Term) extends Term {
-  override def toRawString = "Fst(" + p.toRawString + ")"
+  override def toRawString = "fst(" + p.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "fst(" + p + ")"
 }
 
 case class Second(p: Term) extends Term {
-  override def toRawString = "Snd(" + p.toRawString + ")"
+  override def toRawString = "snd(" + p.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "snd(" + p + ")"
 }
 
