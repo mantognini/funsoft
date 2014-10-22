@@ -4,6 +4,7 @@ import scala.util.parsing.input.Positional
 
 /** Abstract Syntax Trees for terms. */
 abstract class Term extends Positional {
+  // A trivial printer, for pretty-printer debugging
   def toRawString: String
   def prettyString( /* TODO ARG */ ): String
   final override def toString = prettyString
