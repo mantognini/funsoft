@@ -36,7 +36,7 @@ case class Abs(x: Var, typ: Type, body: Term) extends Term {
     def open = if (par) "(" else ""
     def close = if (par) ")" else ""
 
-    open + "\\" + x + ":" + typ + ". " + body + close
+    open + "\\" + x + ":" + typ + "." + body + close
   }
 }
 
@@ -68,8 +68,8 @@ case class Succ(t: Term) extends Term {
     case true => SimplyTyped.convertToNum(t).toString
     case _ => "Succ(" + t.toRawString + ")"
   }
-  override def toRawString = numStringWhenPossible(t)
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = numStringWhenPossible(t)
+  override def toRawString = numStringWhenPossible(Succ(t))
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = numStringWhenPossible(Succ(t))
 }
 
 case class Pred(t: Term) extends Term {
