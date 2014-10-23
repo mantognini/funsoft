@@ -89,7 +89,7 @@ object SimplyTyped extends StandardTokenParsers {
   }
 
   /** The context is a list of variable names paired with their type. */
-  type Context = List[(String, Type)]
+  type Context = Map[String, Type]
 
   /** Is the given term a numeric value? */
   def isNumericVal(t: Term): Boolean = t match {
@@ -123,31 +123,51 @@ object SimplyTyped extends StandardTokenParsers {
    *  @param t   the given term
    *  @return    the computed type
    */
-  def typeofVar(ctx: Context, x: String): Option[Type] =
-    ctx.find(p => p._1 == x) map { _._2 }
-  // TODO are the rules ordered corretly?
-  // TODO test this
-  // TODO: Check if the error msgs are the one expected by assistants
-  def typeof(ctx: Context, t: Term): Type = t match {
-    case True | False => Bool
-    case Zero => Nat
-    case Pred(x) if typeof(ctx, x) == Nat => Nat
-    case Succ(x) if typeof(ctx, x) == Nat => Nat
-    case IsZero(x) if typeof(ctx, x) == Nat => Bool
-    case If(t1, t2, t3) if typeof(ctx, t1) == Bool && typeof(ctx, t2) == typeof(ctx, t3) => typeof(ctx, t3)
-    case Var(x) => typeofVar(ctx, x).getOrElse(throw new TypeError(t.pos, "Type of var " + x + " not found"))
-    case Abs(x, typ, body) => Function(typ, typeof((x.name, typ) :: ctx, body))
-    case App(t1, t2) => typeof(ctx, t1) match {
-      case Function(typ11, typ12) => typeof(ctx, t2) match {
-        case typ11 => typ12
-        case tWeird => throw new TypeError(t.pos, "Term " + t2 + " should be of type " + typ11 + ", but is " + tWeird)
+  def typeof(t: Term)(implicit ctx: Context): Type = {
+    def typeofVar(x: Var) = ctx.getOrElse(x.name, throw new TypeError(t.pos, "unknown var " + x.name))
+
+    t match {
+      case True | False => Bool
+
+      case Zero => Nat
+
+      case Pred(t) if typeof(t) == Nat => Nat
+
+      case Succ(t) if typeof(t) == Nat => Nat
+
+      case IsZero(t) if typeof(t) == Nat => Bool
+
+      case If(t1, t2, t3) if typeof(t1) == Bool && typeof(t2) == typeof(t3) => typeof(t3)
+
+      case x: Var => typeofVar(x)
+
+      // TODO test that «\x: Bool. \x: Nat. (\y: Bool. 0) x» fails
+      // TODO test that «\x: Bool. \x: Nat. (\y: Nat . 0) x» passes
+      case Abs(x, typ, body) => Function(typ, typeof(body)(ctx + ((x.name, typ))))
+
+      case App(t1, t2) => typeof(t1) match {
+        case Function(typ11, typ12) =>
+          val typ22 = typeof(t2)
+          if (typ22 == typ11) typ12
+          else throw TypeError(t.pos, "Term " + t2 + " should be of type " + typ11 + ", but is " + typ22)
+
+        case typError => throw TypeError(t.pos, "Term " + t1 + " should be of type Function, but is " + typError)
       }
-      case tWeird => throw new TypeError(t.pos, "Term " + t1 + " should be a of type Function, but is " + tWeird)
+
+      case Pair(t1, t2) => Product(typeof(t1), typeof(t2))
+
+      case First(t) => typeof(t) match {
+        case Product(typ1, _) => typ1
+        case typError => throw TypeError(t.pos, "Term " + t + " should be of type Product, but is " + typError)
+      }
+
+      case Second(t) => typeof(t) match {
+        case Product(_, typ2) => typ2
+        case typError => throw TypeError(t.pos, "Term " + t + " should be of type Product, but is " + typError)
+      }
+
+      case _ => throw TypeError(t.pos, "No type checking rules apply to " + t)
     }
-
-    // TODO: Add rules in Fig. 5
-
-    case _ => ??? // TODO: Stuck? What to return? Error?
   }
 
   /**
@@ -180,7 +200,7 @@ object SimplyTyped extends StandardTokenParsers {
   def main(args: Array[String]): Unit = parse(System.in) match {
     case Success(trees, _) =>
       try {
-        println("typed: " + typeof(Nil, trees))
+        println("typed: " + typeof(trees)(Nil))
         for (t <- path(trees, reduce))
           println(t)
       } catch {
