@@ -94,14 +94,14 @@ case class App(t1: Term, t2: Term) extends Term {
 }
 
 case class Succ(t: Term) extends Term {
-  // TODO: Use "this", and move to prettyprint
-  def numStringWhenPossible(succ: Succ): String = SimplyTyped.isNumericVal(t) match {
-    case true => SimplyTyped.convertToNum(succ).toString
-    case _ => "succ " + succ.t.toRawString
+  override def toRawString = "succ(" + t.toRawString + ")"
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = {
+    if (SimplyTyped.isNumericVal(this)) {
+      SimplyTyped.convertToNum(this).toString
+    } else {
+      "succ " + t
+    }
   }
-  // TODO: toRawString don't need pretty convert
-  override def toRawString = numStringWhenPossible(this)
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = numStringWhenPossible(this)
 }
 
 case class Pred(t: Term) extends Term {
