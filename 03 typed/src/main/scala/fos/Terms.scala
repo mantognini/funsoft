@@ -66,20 +66,20 @@ case class App(t1: Term, t2: Term) extends Term {
 case class Succ(t: Term) extends Term {
   def numStringWhenPossible(succ: Succ): String = SimplyTyped.isNumericVal(t) match {
     case true => SimplyTyped.convertToNum(succ).toString
-    case _ => "succ(" + succ.t.toRawString + ")"
+    case _ => "succ " + succ.t.toRawString
   }
   override def toRawString = numStringWhenPossible(this)
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = numStringWhenPossible(this)
 }
 
 case class Pred(t: Term) extends Term {
-  override def toRawString = "pred(" + t.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "pred(" + t + ")"
+  override def toRawString = "pred " + t.toRawString
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "pred " + t
 }
 
 case class IsZero(t: Term) extends Term {
-  override def toRawString = "iszero(" + t.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "iszero(" + t + ")"
+  override def toRawString = "iszero " + t.toRawString
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "iszero " + t
 }
 
 case class If(cond: Term, zen: Term, elze: Term) extends Term {

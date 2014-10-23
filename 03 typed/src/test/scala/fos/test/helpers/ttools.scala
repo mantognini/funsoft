@@ -33,10 +33,10 @@ object ttools {
 
     """\x:Bool.t""" -> Abs(x, Bool, t),
     """\x:Bool->Nat.t""" -> Abs(x, Function(Bool, Nat), t),
-    """\y:Nat->Nat.succ(y) y""" -> Abs(y, Function(Nat, Nat), App(Succ(y), y)),
-    """\y:Nat->Nat.succ(y) y z""" -> Abs(y, Function(Nat, Nat), App(App(Succ(y), y), z)),
-    """(\y:Nat->Nat.succ(y)) y""" -> App(Abs(y, Function(Nat, Nat), Succ(y)), y),
-    """(\y:Nat.succ(y)) ((\x:Bool.1) true)""" -> App(Abs(y, Nat, Succ(y)), App(Abs(x, Bool, Succ(Zero)), True)),
+    """\y:Nat->Nat.succ y y""" -> Abs(y, Function(Nat, Nat), App(Succ(y), y)),
+    """\y:Nat->Nat.succ y y z""" -> Abs(y, Function(Nat, Nat), App(App(Succ(y), y), z)),
+    """(\y:Nat->Nat.succ y) y""" -> App(Abs(y, Function(Nat, Nat), Succ(y)), y),
+    """(\y:Nat.succ y) ((\x:Bool.1) true)""" -> App(Abs(y, Nat, Succ(y)), App(Abs(x, Bool, Succ(Zero)), True)),
     """\x:Nat.x \y:Bool.y""" -> Abs(x, Nat, App(x, Abs(y, Bool, y))) //
     //
     //
