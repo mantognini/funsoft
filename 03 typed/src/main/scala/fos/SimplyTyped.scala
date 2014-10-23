@@ -123,7 +123,8 @@ object SimplyTyped extends StandardTokenParsers {
    *  @param t   the given term
    *  @return    the computed type
    */
-  def typeof(t: Term)(implicit ctx: Context): Type = {
+  def typeof(t: Term)(implicit ctx: Context = Map()): Type = {
+    // TODO test me!
     def typeofVar(x: Var) = ctx.getOrElse(x.name, throw new TypeError(t.pos, "unknown var " + x.name))
 
     t match {
@@ -141,8 +142,8 @@ object SimplyTyped extends StandardTokenParsers {
 
       case x: Var => typeofVar(x)
 
-      // TODO test that «\x: Bool. \x: Nat. (\y: Bool. 0) x» fails
-      // TODO test that «\x: Bool. \x: Nat. (\y: Nat . 0) x» passes
+      // This «\x: Bool. \x: Nat. (\y: Bool. 0) x» should fail
+      // This «\x: Bool. \x: Nat. (\y: Nat . 0) x» should pass
       case Abs(x, typ, body) => Function(typ, typeof(body)(ctx + ((x.name, typ))))
 
       case App(t1, t2) => typeof(t1) match {
@@ -200,7 +201,7 @@ object SimplyTyped extends StandardTokenParsers {
   def main(args: Array[String]): Unit = parse(System.in) match {
     case Success(trees, _) =>
       try {
-        println("typed: " + typeof(trees)(Nil))
+        println("typed: " + typeof(trees))
         for (t <- path(trees, reduce))
           println(t)
       } catch {
