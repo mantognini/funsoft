@@ -33,12 +33,12 @@ object ttools {
 
     """if a then if x then y else z else c""" -> If(a, If(x, y, z), c),
     """if if a then b else c then if x then y else y else x""" -> If(If(a, b, c), If(x, y, y), x),
-    """pred succ pred x y""" -> App(Pred(Succ(Pred(x))), y),
+    """pred succ pred x y""" -> Pred(Succ(Pred(App(x, y)))),
 
     """\x:Bool.t""" -> Abs(x, Bool, t),
     """\x:Bool->Nat.t""" -> Abs(x, Function(Bool, Nat), t),
-    """\y:Nat->Nat.succ y y""" -> Abs(y, Function(Nat, Nat), App(Succ(y), y)),
-    """\y:Nat->Nat.succ y y z""" -> Abs(y, Function(Nat, Nat), App(App(Succ(y), y), z)),
+    """\y:Nat->Nat.succ y y""" -> Abs(y, Function(Nat, Nat), Succ(App(y, y))),
+    """\y:Nat->Nat.succ y y z""" -> Abs(y, Function(Nat, Nat), Succ(App(App(y, y), z))),
     """(\y:Nat->Nat.succ y) y""" -> App(Abs(y, Function(Nat, Nat), Succ(y)), y),
     """(\y:Nat.succ y) ((\x:Bool.1) true)""" -> App(Abs(y, Nat, Succ(y)), App(Abs(x, Bool, Succ(Zero)), True)),
     """\x:Nat.x \y:Bool.y""" -> Abs(x, Nat, App(x, Abs(y, Bool, y))) //
