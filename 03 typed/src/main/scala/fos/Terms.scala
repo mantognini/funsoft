@@ -9,6 +9,13 @@ abstract class Term extends Positional {
   // The pretty printer, contains some logic, hence not trivial
   def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false): String
   final override def toString = prettyString()
+
+  // TODO: make par implicit parameter??
+  final def surroundWithPar(par: Boolean, msg: String): String = {
+    def open = if (par) "(" else ""
+    def close = if (par) ")" else ""
+    open + msg + close
+  }
 }
 
 case object True extends Term {
@@ -32,12 +39,8 @@ case class Var(name: String) extends Term {
 
 case class Abs(x: Var, typ: Type, body: Term) extends Term {
   override def toRawString = "Abs(" + x.toRawString + ":" + typ.toRawString + ", " + body.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = {
-    def open = if (par) "(" else ""
-    def close = if (par) ")" else ""
-
-    open + "\\" + x + ":" + typ + "." + body + close
-  }
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, "\\" + x + ":" + typ + "." + body)
 }
 
 case class App(t1: Term, t2: Term) extends Term {
@@ -86,37 +89,29 @@ case class App(t1: Term, t2: Term) extends Term {
       case _ => false
     }
 
-    def open = if (par) "(" else ""
-    def close = if (par) ")" else ""
-
-    open + t1.prettyString(lpar, cornerCase) + " " + t2.prettyString(rpar || forceRighParInInnerTerm) + close
+    surroundWithPar(par, t1.prettyString(lpar, cornerCase) + " " + t2.prettyString(rpar || forceRighParInInnerTerm))
   }
 }
 
 case class Succ(t: Term) extends Term {
   override def toRawString = "succ(" + t.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = {
-    if (SimplyTyped.isNumericVal(this)) {
-      SimplyTyped.convertToNum(this).toString
-    } else {
-      "succ " + t
-    }
-  }
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    if (SimplyTyped.isNumericVal(this)) SimplyTyped.convertToNum(this).toString else surroundWithPar(par, "succ " + t)
 }
 
 case class Pred(t: Term) extends Term {
   override def toRawString = "pred " + t.toRawString
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "pred " + t
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "pred " + t)
 }
 
 case class IsZero(t: Term) extends Term {
   override def toRawString = "iszero " + t.toRawString
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "iszero " + t
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "iszero " + t)
 }
 
 case class If(cond: Term, zen: Term, elze: Term) extends Term {
   override def toRawString = "if(" + cond.toRawString + ", " + zen.toRawString + ", " + elze.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "if " + cond + " then " + zen + " else " + elze
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "if " + cond + " then " + zen + " else " + elze)
 }
 
 case class Pair(fst: Term, snd: Term) extends Term {
@@ -126,12 +121,12 @@ case class Pair(fst: Term, snd: Term) extends Term {
 
 case class First(p: Term) extends Term {
   override def toRawString = "fst(" + p.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "fst(" + p + ")"
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "fst " + p)
 }
 
 case class Second(p: Term) extends Term {
   override def toRawString = "snd(" + p.toRawString + ")"
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "snd(" + p + ")"
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "snd " + p)
 }
 
 /** Abstract Syntax Trees for types. */
