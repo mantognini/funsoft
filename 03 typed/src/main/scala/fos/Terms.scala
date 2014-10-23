@@ -42,17 +42,47 @@ case class Abs(x: Var, typ: Type, body: Term) extends Term {
 
 case class App(t1: Term, t2: Term) extends Term {
   override def toRawString = "App(" + t1.toRawString + ", " + t2.toRawString + ")"
+
+  // examples of right-most syntax components:
+  // if t then t		-->	t		-->	true
+  // fst t				--> t		-->	true
+  // fst(t)				--> ")"		-->	false
+  // ..
+  def isRightMostSyntaxComponentATerm(t: Term): Boolean = t match {
+    case If(_, _, t) => true
+    case Pred(t) => true
+    case Succ(t) => true
+    case IsZero(t) => true
+    case Abs(_, _, t) => true
+    case App(_, t) => true
+    case First(t) => true
+    case Second(t) => true
+    case _ => false
+  }
   override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = {
+    // All rules stated before the APP_RULE (in the grammar) and terminating with
+    // a term, may "eat" the following terms. Example (Pred terminates with a term):
+    // App(Pred(x), s)	-->	(pred x) s
+    // .. but
+    // pred x s			-->	Pred(App(x,s)) .. pred is "eating" s
+    //
+    // Also, APP_RULE is left-associative, we must be careful to put the ()'s
+    // when needed. Example:
+    // a b c			--> App(App(a,b),c) .. don't put ()'s when not needed
+    // .. but
+    // a (b c)			--> App(a, App(b,c)) .. put when needed
     val (lpar, rpar) = (t1, t2) match {
-      case (l: Abs, r: App) => (true, true)
-      case (l: Abs, _) => (true, false)
+      case (l, r: App) if isRightMostSyntaxComponentATerm(l) => (true, true)
+      case (l, _) if isRightMostSyntaxComponentATerm(l) => (true, false)
       case (_, r: App) => (false, true)
       case _ => (false, false)
     }
 
-    // Corner case: t = App{ App( ? , Abs), ? } -> the Abs should be protected with par
+    // If isRightMostSyntaxComponentATerm(t) then t is a << FT >>
+    // Corner case: t = App{ App( ? , FT), ? } -> the FT should be protected with ()'s
+    // .. or it will "eat" the next terms..
     val cornerCase = (t1, t2) match {
-      case (App(_, lr: Abs), _) => true
+      case (App(_, lr), _) if isRightMostSyntaxComponentATerm(lr) => true
       case _ => false
     }
 
