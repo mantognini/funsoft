@@ -46,46 +46,58 @@ case class Abs(x: Var, typ: Type, body: Term) extends Term {
 case class App(t1: Term, t2: Term) extends Term {
   override def toRawString = "App(" + t1.toRawString + ", " + t2.toRawString + ")"
 
-  // examples of right-most syntax components:
+  // Examples where we test if the right-most syntax components is a term:
   // if t then t		-->	t		-->	true
   // fst t				--> t		-->	true
   // fst(t)				--> ")"		-->	false
   // ..
-  def isRightMostSyntaxComponentATerm(t: Term): Boolean = t match {
+  // If term t has a term in its right-most syntax component
+  // 		example: fst t, Abs t, pred t,
+  //		but not: numericLit, "false", "true", x (the variable)
+  // and is, in the grammar definition (Fig.1), stated before the APP_RULE,
+  // then we call it a << FT >> "Finish with a Term (and is before APP_RULE)"
+  //.. why do we care?
+  // 
+  // Because all rules stated before the APP_RULE (in the grammar) and terminating with
+  // a term, may "eat" the following terms. Example ("pred t" terminates with a term):
+  // App(Pred(x), s)	-->	(pred x) s
+  // .. but
+  // pred x s			-->	Pred(App(x,s)) .. pred is "eating" s
+  // ..
+  // .. note that if "pred t" would have been after APP_RULE, then APP_RULE
+  // would have been applied before it .. and we would have had
+  // pred x s			--> App(Pred(x), s)
+  //
+  // Hence, we should be careful with FT terms and put parenthis around them
+  // whenever needed
+  def isFT(t: Term): Boolean = t match {
     case If(_, _, t) => true
     case Pred(t) => true
     case Succ(t) => true
     case IsZero(t) => true
     case Abs(_, _, t) => true
-    case App(_, t) => true
     case First(t) => true
     case Second(t) => true
     case _ => false
   }
+
   override def prettyString(par: Boolean, forceRighParInInnerTerm: Boolean) = {
-    // All rules stated before the APP_RULE (in the grammar) and terminating with
-    // a term, may "eat" the following terms. Example (Pred terminates with a term):
-    // App(Pred(x), s)	-->	(pred x) s
-    // .. but
-    // pred x s			-->	Pred(App(x,s)) .. pred is "eating" s
-    //
-    // Also, APP_RULE is left-associative, we must be careful to put the ()'s
+    // APP_RULE is left-associative, we must be careful to put the ()'s
     // when needed. Example:
     // a b c			--> App(App(a,b),c) .. don't put ()'s when not needed
     // .. but
     // a (b c)			--> App(a, App(b,c)) .. put when needed
     val (lpar, rpar) = (t1, t2) match {
-      case (l, r: App) if isRightMostSyntaxComponentATerm(l) => (true, true)
-      case (l, _) if isRightMostSyntaxComponentATerm(l) => (true, false)
+      case (l, r: App) if isFT(l) => (true, true)
+      case (l, _) if isFT(l) => (true, false)
       case (_, r: App) => (false, true)
       case _ => (false, false)
     }
 
-    // If isRightMostSyntaxComponentATerm(t) then t is a << FT >>
     // Corner case: t = App{ App( ? , FT), ? } -> the FT should be protected with ()'s
     // .. or it will "eat" the next terms..
     val cornerCase = (t1, t2) match {
-      case (App(_, lr), _) if isRightMostSyntaxComponentATerm(lr) => true
+      case (App(_, lr), _) if isFT(lr) => true
       case _ => false
     }
 
