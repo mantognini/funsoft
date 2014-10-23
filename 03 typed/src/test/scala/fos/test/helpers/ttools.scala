@@ -31,6 +31,10 @@ object ttools {
     """x y z f (x y z f)""" -> App(App(App(App(x, y), z), f),
       App(App(App(x, y), z), f)),
 
+    """if a then if x then y else z else c""" -> If(a, If(x, y, z), c),
+    """if if a then b else c then if x then y else y else x""" -> If(If(a, b, c), If(x, y, y), x),
+    """pred succ pred x y""" -> App(Pred(Succ(Pred(x))), y),
+
     """\x:Bool.t""" -> Abs(x, Bool, t),
     """\x:Bool->Nat.t""" -> Abs(x, Function(Bool, Nat), t),
     """\y:Nat->Nat.succ y y""" -> Abs(y, Function(Nat, Nat), App(Succ(y), y)),

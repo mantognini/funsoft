@@ -64,10 +64,12 @@ case class App(t1: Term, t2: Term) extends Term {
 }
 
 case class Succ(t: Term) extends Term {
+  // TODO: Use "this", and move to prettyprint
   def numStringWhenPossible(succ: Succ): String = SimplyTyped.isNumericVal(t) match {
     case true => SimplyTyped.convertToNum(succ).toString
     case _ => "succ " + succ.t.toRawString
   }
+  // TODO: toRawString don't need pretty convert
   override def toRawString = numStringWhenPossible(this)
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = numStringWhenPossible(this)
 }
@@ -117,6 +119,7 @@ case object Nat extends Type {
 
 case class Function(i: Type, o: Type) extends Type {
   override def toRawString = "[" + i.toRawString + "->" + o.toRawString + "]"
+  // TODO, if (A -> B) -> C, put parenthesis!
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = i + "->" + o
 }
 
