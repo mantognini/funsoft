@@ -124,7 +124,6 @@ object SimplyTyped extends StandardTokenParsers {
    *  @return    the computed type
    */
   def typeof(t: Term)(implicit ctx: Context = Map()): Type = {
-    // TODO test me!
     def typeofVar(x: Var) = ctx.getOrElse(x.name, throw new TypeError(t.pos, "unknown var " + x.name))
 
     t match {
@@ -205,7 +204,7 @@ object SimplyTyped extends StandardTokenParsers {
         for (t <- path(trees, reduce))
           println(t)
       } catch {
-        case tperror => println(tperror.toString)
+        case tperror: Throwable => println(tperror.toString)
       }
     case e =>
       println(e)
