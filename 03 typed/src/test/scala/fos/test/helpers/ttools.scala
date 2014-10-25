@@ -1,7 +1,5 @@
 package fos.test.helpers
 
-import fos.Pair
-
 object ttools {
 
   import fos.{ SimplyTyped, Term, True, False, Zero, If, Pair, First, Second, Succ, Pred, IsZero, Var, Abs, App, Bool, Nat, Function, Product }
@@ -44,21 +42,27 @@ object ttools {
     """(\y:Nat->Nat.succ y) y""" -> App(Abs(y, Function(Nat, Nat), Succ(y)), y),
     """(\y:Nat.succ y) ((\x:Bool.1) true)""" -> App(Abs(y, Nat, Succ(y)), App(Abs(x, Bool, one), True)),
     """\x:Nat.x \y:Bool.y""" -> Abs(x, Nat, App(x, Abs(y, Bool, y))),
-    
+
     """iszero 0""" -> IsZero(Zero),
     """iszero \x:Nat.x""" -> IsZero(Abs(x, Nat, x)),
     """succ \x:Nat.iszero \y:Bool.y""" -> Succ(Abs(x, Nat, IsZero(Abs(y, Bool, y)))),
     """(succ \x:Nat.x) y""" -> App(Succ(Abs(x, Nat, x)), y),
     """succ pred x""" -> Succ(Pred(x)),
-    
+
     """if succ x then pred y else iszero 0""" -> If(Succ(x), Pred(y), IsZero(Zero)),
-    
-    """fst {x,y}""" -> First(Pair(x,y)),
-   
-    """{x,y}""" -> Pair(x,y),
-    """{{a,b},{x,y}}""" -> Pair(Pair(a,b),Pair(x,y)),
+
+    """fst {x,y}""" -> First(Pair(x, y)),
+    """snd {x,y}""" -> Second(Pair(x, y)),
+
+    """pred x y fst a b""" -> Pred(App(App(x, y), First(App(a, b)))),
+
+    """(fst {snd {2,3},\x:Bool.fst {x,x}}) a""" -> App(First(Pair(Second(Pair(two, three)), Abs(x, Bool, First(Pair(x, x))))), a),
+    """fst {snd {2,3},\x:Bool.fst {x,x}} a""" -> First(App(Pair(Second(Pair(two, three)), Abs(x, Bool, First(Pair(x, x)))), a)),
+
+    """{x,y}""" -> Pair(x, y),
+    """{{a,b},{x,y}}""" -> Pair(Pair(a, b), Pair(x, y)),
     """{\x:Nat.x,\y:Bool.y}""" -> Pair(Abs(x, Nat, x), Abs(y, Bool, y)),
-    """{\x:Nat.iszero x,\x:Bool.if x then 0 else 1}""" -> Pair(Abs(x, Nat, IsZero(x)), Abs(x, Bool, If(x, Zero, one)))//
+    """{\x:Nat.iszero x,\x:Bool.if x then 0 else 1}""" -> Pair(Abs(x, Nat, IsZero(x)), Abs(x, Bool, If(x, Zero, one))) //
     //
     //
     )
