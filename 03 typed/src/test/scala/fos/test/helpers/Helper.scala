@@ -4,6 +4,7 @@ object Helper {
 
   import fos.{ SimplyTyped, Term }
   import SimplyTyped.{ Success, Failure, Error }
+  import org.scalatest.Assertions
 
   case class ParseException(e: String) extends Exception
   def error(msg: String, next: SimplyTyped.Input): Nothing = { throw new ParseException(msg + "\n" + next.pos.longString) }
@@ -14,6 +15,19 @@ object Helper {
     case Failure(msg, next) => error(msg, next)
     case Error(msg, next) => error(msg, next)
   }
+
+  def tryComputeOrFail[E, R](fun: => R)(implicit manifest: Manifest[E]): R =
+    try {
+      fun
+    } catch {
+      case e: E => Assertions.fail(e)
+    }
+
+  def tryOrFail[E](fun: => Unit)(implicit manifest: Manifest[E]): Unit =
+    tryComputeOrFail[E, Unit](fun)
+
+  def parseOrFail(input: String)(implicit parser: String => SimplyTyped.ParseResult[Term]): Term =
+    tryComputeOrFail[ParseException, Term] { parseOrDie(input)(parser) }
 
   // Define a few vars
   import fos.{ Var }
