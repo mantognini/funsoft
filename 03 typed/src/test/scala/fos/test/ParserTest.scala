@@ -113,12 +113,8 @@ class ParserTest extends WordSpec with Matchers {
   def processTests(msgPrefix: String, tests: List[(String, Term)], parser: String => Term) {
     tests foreach {
       case (input, ast) => msgPrefix + input in {
-        try {
-          val res = parser(input)
-          assert(res === ast)
-        } catch {
-          case ParseException(e) => fail(e)
-        }
+        val res = parser(input)
+        assert(res === ast)
       }
     }
   }
@@ -126,8 +122,8 @@ class ParserTest extends WordSpec with Matchers {
   def typeParser(input: String): SimplyTyped.ParseResult[Term] = SimplyTyped.phrase(SimplyTyped.Type)(new SimplyTyped.lexical.Scanner(input))
 
   "The parser" should {
-    processTests("procude the correct AST with input ", tests, input => parseOrDie(input))
-    processTests("procude the correst AST for Types with input ", typeTests, input => parseOrDie(input)(typeParser))
+    processTests("procude the correct AST with input ", tests, input => parseOrFail(input))
+    processTests("procude the correst AST for Types with input ", typeTests, input => parseOrFail(input)(typeParser))
   }
 
 }
