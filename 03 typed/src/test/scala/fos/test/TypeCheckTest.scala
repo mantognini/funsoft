@@ -13,6 +13,13 @@ class TypeCheckTest extends WordSpec with Matchers {
   val negatives =
     "x" ::
       "x y" ::
+      "pred false" ::
+      "succ false" ::
+      "iszero false" ::
+      "if 0 then 0 else 0" ::
+      "if true then true else 0" ::
+      """\x: Bool. y""" ::
+      """(\x: Bool. x) 0""" ::
       Nil
 
   // List of test that should pass
@@ -34,7 +41,7 @@ class TypeCheckTest extends WordSpec with Matchers {
       Nil
 
   def testNegative(input: String) {
-    s"fire an exception for untyped input: $input" in {
+    s"fire an exception for input that doesn't type check: $input" in {
       val tree = parseOrFail(input)
       a[TypeError] should be thrownBy {
         SimplyTyped.typeof(tree)
