@@ -20,6 +20,8 @@ class TypeCheckTest extends WordSpec with Matchers {
       "if true then true else 0" ::
       """\x: Bool. y""" ::
       """(\x: Bool. x) 0""" ::
+      "fst 0" ::
+      "snd 0" ::
       Nil
 
   // List of test that should pass
