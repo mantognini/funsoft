@@ -38,6 +38,13 @@ class TypeCheckTest extends WordSpec with Matchers {
       """\x: Bool. x""" -> Function(Bool, Bool) :: // This tests x:T ∈ Γ
       """(\x: Bool. x) true""" -> Bool ::
       """(\x: Bool -> Bool. x true) (\x: Bool. x)""" -> Bool ::
+      "{ true, true }" -> Product(Bool, Bool) ::
+      "{ 0, true }" -> Product(Nat, Bool) ::
+      "fst { 0, true }" -> Nat ::
+      "snd { 0, true }" -> Bool ::
+      """{ \x: Nat. iszero x, \x: Bool. if x then 0 else 1 }""" -> Product(Function(Nat, Bool), Function(Bool, Nat)) ::
+      """fst fst { { 0, true }, { \x: Nat. iszero x, \x: Bool. if x then 0 else 1 } }""" -> Nat ::
+      """(snd snd { { 0, true }, { \x: Nat. iszero x, \x: Bool. if x then 0 else 1 } }) true""" -> Nat ::
       Nil
 
   def testNegative(input: String) {
