@@ -1,6 +1,7 @@
 package fos.test
 
 import org.scalatest._
+import fos.{ Type, Bool, Nat, Function, Product }
 
 class PrettyPrintTest extends FlatSpec with Matchers {
 
@@ -16,4 +17,12 @@ class PrettyPrintTest extends FlatSpec with Matchers {
     }
   }
 
+  val typeExpressions = Map[Type, String](
+    Bool -> "Bool",
+    Nat -> "Nat",
+    Function(Nat, Nat) -> "Nat->Nat",
+    Product(Bool, Nat) -> "Bool*Nat")
+
+  // TODO: Test right-assoc' of Product and Function
+  // TODO: Implement these type tests
 }
