@@ -16,11 +16,18 @@ object Helper {
     case Error(msg, next) => error(msg, next)
   }
 
-  def parseOrFail(input: String)(implicit parser: String => SimplyTyped.ParseResult[Term]) = try {
-    parseOrDie(input)(parser)
-  } catch {
-    case ParseException(e) => Assertions.fail(e)
-  }
+  def tryComputeOrFail[E, R](fun: => R)(implicit manifest: Manifest[E]): R =
+    try {
+      fun
+    } catch {
+      case e: E => Assertions.fail(e)
+    }
+
+  def tryOrFail[E](fun: => Unit)(implicit manifest: Manifest[E]): Unit =
+    tryComputeOrFail[E, Unit](fun)
+
+  def parseOrFail(input: String)(implicit parser: String => SimplyTyped.ParseResult[Term]): Term =
+    tryComputeOrFail[ParseException, Term] { parseOrDie(input)(parser) }
 
   // Define a few vars
   import fos.{ Var }
