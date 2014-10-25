@@ -204,7 +204,7 @@ object SimplyTyped extends StandardTokenParsers {
         for (t <- path(trees, reduce))
           println(t)
       } catch {
-        case tperror: Throwable => println(tperror.toString)
+        case tperror: TypeError => println(tperror.toString)
       }
     case e =>
       println(e)
