@@ -21,8 +21,31 @@ class PrettyPrintTest extends FlatSpec with Matchers {
     Bool -> "Bool",
     Nat -> "Nat",
     Function(Nat, Nat) -> "Nat->Nat",
-    Product(Bool, Nat) -> "Bool*Nat")
+    Product(Bool, Nat) -> "Bool*Nat",
 
-  // TODO: Test right-assoc' of Product and Function
+    // Function is right associative
+    Function(Nat, Function(Nat, Nat)) -> "Nat->Nat->Nat",
+    Function(Function(Nat, Nat), Nat) -> "(Nat->Nat)->Nat",
+
+    Function(Nat, Function(Bool, Function(Nat, Bool))) -> "Nat->Bool->Nat->Bool",
+    Function(Function(Function(Nat, Bool), Nat), Bool) -> "((Nat->Bool)->Nat)->Bool",
+
+    Function(Nat, Function(Function(Bool, Nat), Bool)) -> "Nat->(Bool->Nat)->Bool",
+    Function(Function(Nat, Function(Bool, Nat)), Bool) -> "(Nat->Bool->Nat)->Bool",
+    Function(Function(Nat, Bool), Function(Nat, Bool)) -> "(Nat->Bool)->Nat->Bool",
+
+    // Product is right associative
+    Product(Nat, Product(Nat, Nat)) -> "Nat*Nat*Nat",
+    Product(Product(Nat, Nat), Nat) -> "(Nat*Nat)*Nat",
+
+    Product(Nat, Function(Bool, Function(Nat, Bool))) -> "Nat*Bool*Nat*Bool",
+    Product(Product(Product(Nat, Bool), Nat), Bool) -> "((Nat*Bool)*Nat)*Bool",
+
+    Product(Nat, Product(Product(Bool, Nat), Bool)) -> "Nat*(Bool*Nat)*Bool",
+    Product(Product(Nat, Product(Bool, Nat)), Bool) -> "(Nat*Bool*Nat)*Bool",
+    Product(Product(Nat, Bool), Product(Nat, Bool)) -> "(Nat*Bool)*Nat*Bool" // Product takes precedence over Function
+    // TODO: Write some examples
+    )
+
   // TODO: Implement these type tests
 }
