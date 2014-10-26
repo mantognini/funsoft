@@ -67,9 +67,45 @@ object ttools {
     //
     )
 
-  val prettyPrintCases = Map[String, Term](
-    """pred(Zero)""" -> Pred(Zero),
-    """pred(pred(Zero))""" -> Pred(Pred(Zero)),
-    """pred(succ(Zero))""" -> Pred(Succ(Zero)))
+  val typeCanonicalCases = Map[Term, String](
+    Bool -> "Bool",
+    Nat -> "Nat",
+    Function(Nat, Nat) -> "Nat->Nat",
+    Product(Bool, Nat) -> "Bool*Nat",
 
+    // Function is right associative
+    Function(Nat, Function(Nat, Nat)) -> "Nat->Nat->Nat",
+    Function(Function(Nat, Nat), Nat) -> "(Nat->Nat)->Nat",
+
+    Function(Nat, Function(Bool, Function(Nat, Bool))) -> "Nat->Bool->Nat->Bool",
+    Function(Function(Function(Nat, Bool), Nat), Bool) -> "((Nat->Bool)->Nat)->Bool",
+
+    Function(Nat, Function(Function(Bool, Nat), Bool)) -> "Nat->(Bool->Nat)->Bool",
+    Function(Function(Nat, Function(Bool, Nat)), Bool) -> "(Nat->Bool->Nat)->Bool",
+    Function(Function(Nat, Bool), Function(Nat, Bool)) -> "(Nat->Bool)->Nat->Bool",
+
+    // Product is right associative
+    Product(Nat, Product(Nat, Nat)) -> "Nat*Nat*Nat",
+    Product(Product(Nat, Nat), Nat) -> "(Nat*Nat)*Nat",
+
+    Product(Nat, Function(Bool, Function(Nat, Bool))) -> "Nat*Bool*Nat*Bool",
+    Product(Product(Product(Nat, Bool), Nat), Bool) -> "((Nat*Bool)*Nat)*Bool",
+
+    Product(Nat, Product(Product(Bool, Nat), Bool)) -> "Nat*(Bool*Nat)*Bool",
+    Product(Product(Nat, Product(Bool, Nat)), Bool) -> "(Nat*Bool*Nat)*Bool",
+    Product(Product(Nat, Bool), Product(Nat, Bool)) -> "(Nat*Bool)*Nat*Bool",
+
+    // Product takes precedence over Function
+    Function(Product(Nat, Nat), Bool) -> "Nat*Nat->Bool",
+    Function(Nat, Product(Nat, Bool)) -> "Nat->Nat*Bool",
+    Function(Nat, Function(Product(Bool, Bool), Nat)) -> "Nat->Bool*Bool->Nat",
+    Function(Product(Function(Nat, Bool), Bool), Nat) -> "(Nat->Bool)*Bool->Nat",
+    Function(Function(Product(Bool, Bool), Nat), Nat) -> "(Bool*Bool->Nat)->Nat",
+    Function(Function(Bool, Product(Bool, Product(Nat, Nat))), Bool) -> "Bool->Bool*Nat*Nat->Bool",
+    Product(Function(Bool, Bool), Product(Nat, Function(Nat, Bool))) -> "(Bool->Bool)*Nat*(Nat->Bool)",
+    Function(Product(Function(Bool, Bool), Product(Nat, Nat)), Bool) -> "(Bool->Bool)*Nat*Nat->Bool")
+
+  def getListFrom(m: Map[Term, String]): List[(String, Term)] = m.foldLeft(List[(String, Term)]()) {
+    case (tail, (key, value)) => (value -> key) :: tail
+  }
 }
