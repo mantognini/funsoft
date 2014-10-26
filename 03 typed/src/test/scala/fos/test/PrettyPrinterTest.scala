@@ -17,6 +17,12 @@ class PrettyPrintTest extends FlatSpec with Matchers {
     }
   }
 
+  ttools.typeCanonicalCases.foreach {
+    case (ast, expr) => it should "properly print " + expr + ". NB, AST is " + toRawString(ast) in {
+      ast.toString shouldEqual expr
+    }
+  }
+
   // TODO: Implement these type tests using cases in ttools.typeCanonicalCases
   // TODO: Implement Helper for toRawString
   def toRawString(t: Term): String = t match {
