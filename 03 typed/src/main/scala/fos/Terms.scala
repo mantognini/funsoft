@@ -4,13 +4,9 @@ import scala.util.parsing.input.Positional
 
 /** Abstract Syntax Trees for terms. */
 abstract class Term extends Positional {
-  // A trivial printer, for the pretty-printer debugging process
-  def toRawString: String
-  // The pretty printer, contains some logic, hence not trivial
   def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false): String
   final override def toString = prettyString()
 
-  // TODO: make par implicit parameter??
   final def surroundWithPar(par: Boolean, msg: String): String = {
     def open = if (par) "(" else ""
     def close = if (par) ")" else ""
@@ -19,33 +15,26 @@ abstract class Term extends Positional {
 }
 
 case object True extends Term {
-  override def toRawString = "true"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "true"
 }
 
 case object False extends Term {
-  override def toRawString = "false"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "false"
 }
 case object Zero extends Term {
-  override def toRawString = "0"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "0"
 }
 
 case class Var(name: String) extends Term {
-  override def toRawString = name
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = name
 }
 
 case class Abs(x: Var, typ: Type, body: Term) extends Term {
-  override def toRawString = "Abs(" + x.toRawString + ":" + typ.toRawString + ", " + body.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
     surroundWithPar(par, "\\" + x + ":" + typ + "." + body)
 }
 
 case class App(t1: Term, t2: Term) extends Term {
-  override def toRawString = "App(" + t1.toRawString + ", " + t2.toRawString + ")"
-
   // Examples where we test if the right-most syntax components is a term:
   // if t then t		-->	t		-->	true
   // fst t				--> t		-->	true
@@ -106,38 +95,31 @@ case class App(t1: Term, t2: Term) extends Term {
 }
 
 case class Succ(t: Term) extends Term {
-  override def toRawString = "succ(" + t.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
     if (SimplyTyped.isNumericVal(this)) SimplyTyped.convertToNum(this).toString else surroundWithPar(par, "succ " + t)
 }
 
 case class Pred(t: Term) extends Term {
-  override def toRawString = "pred " + t.toRawString
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "pred " + t)
 }
 
 case class IsZero(t: Term) extends Term {
-  override def toRawString = "iszero " + t.toRawString
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "iszero " + t)
 }
 
 case class If(cond: Term, zen: Term, elze: Term) extends Term {
-  override def toRawString = "if(" + cond.toRawString + ", " + zen.toRawString + ", " + elze.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "if " + cond + " then " + zen + " else " + elze)
 }
 
 case class Pair(fst: Term, snd: Term) extends Term {
-  override def toRawString = "pair(" + fst.toRawString + ", " + snd.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "{" + fst + "," + snd + "}"
 }
 
 case class First(p: Term) extends Term {
-  override def toRawString = "fst(" + p.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "fst " + p)
 }
 
 case class Second(p: Term) extends Term {
-  override def toRawString = "snd(" + p.toRawString + ")"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "snd " + p)
 }
 
@@ -145,23 +127,19 @@ case class Second(p: Term) extends Term {
 abstract class Type extends Term
 
 case object Bool extends Type {
-  override def toRawString = "Bool"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "Bool"
 }
 
 case object Nat extends Type {
-  override def toRawString = "Nat"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "Nat"
 }
 
 case class Function(i: Type, o: Type) extends Type {
-  override def toRawString = "[" + i.toRawString + "->" + o.toRawString + "]"
   // TODO, if (A -> B) -> C, put parenthesis!
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = i + "->" + o
 }
 
 case class Product(fst: Type, snd: Type) extends Type {
-  override def toRawString = "[" + fst.toRawString + "*" + snd.toRawString + "]"
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = fst + "*" + snd
 }
 

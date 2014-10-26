@@ -12,6 +12,8 @@ class ParserTest extends WordSpec with Matchers {
   val id_b_s = """(\x: Bool. x)"""
   val id_n_s = """(\x: Nat. x)"""
 
+  def mapToList(m: Map[Term, String]): List[(String, fos.Term)] = m map { _.swap } toList
+
   val tests = /* Input -> Term */
     // Boolean
     """true""" -> True ::
@@ -89,7 +91,7 @@ class ParserTest extends WordSpec with Matchers {
       // Complex trees
       "(" + id_b_s + " " + id_n_s + ") x" -> App(App(id_b, id_n), x) ::
       "(" + id_b_s + " " + id_n_s + """) \x: Nat. \y: Nat. \z: Nat * Nat -> Nat. z x y""" -> App(App(id_b, id_n), Abs(x, Nat, Abs(y, Nat, Abs(z, Function(Product(Nat, Nat), Nat), App(App(z, x), y))))) ::
-      ttools.getListFrom(ttools.canonicalCases map { _.swap })
+      (ttools.canonicalCases toList)
 
   val typeTests = /* Input -> Type */
     """Nat""" -> Nat ::
@@ -110,7 +112,7 @@ class ParserTest extends WordSpec with Matchers {
       """(Nat * Nat) -> Bool""" -> Function(Product(Nat, Nat), Bool) ::
       """Nat * (Nat -> Bool)""" -> Product(Nat, Function(Nat, Bool)) ::
       """Nat * Bool -> Bool * Nat""" -> Function(Product(Nat, Bool), Product(Bool, Nat)) ::
-      ttools.getListFrom(ttools.typeCanonicalCases)
+      mapToList(ttools.typeCanonicalCases)
 
   def processTests(msgPrefix: String, tests: List[(String, Term)], parser: String => Term) {
     tests foreach {

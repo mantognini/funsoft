@@ -105,7 +105,4 @@ object ttools {
     Product(Function(Bool, Bool), Product(Nat, Function(Nat, Bool))) -> "(Bool->Bool)*Nat*(Nat->Bool)",
     Function(Product(Function(Bool, Bool), Product(Nat, Nat)), Bool) -> "(Bool->Bool)*Nat*Nat->Bool")
 
-  def getListFrom(m: Map[Term, String]): List[(String, Term)] = m.foldLeft(List[(String, Term)]()) {
-    case (tail, (key, value)) => (value -> key) :: tail
-  }
 }
