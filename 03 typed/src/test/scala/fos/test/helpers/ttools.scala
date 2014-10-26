@@ -88,7 +88,7 @@ object ttools {
     Product(Nat, Product(Nat, Nat)) -> "Nat*Nat*Nat",
     Product(Product(Nat, Nat), Nat) -> "(Nat*Nat)*Nat",
 
-    Product(Nat, Function(Bool, Function(Nat, Bool))) -> "Nat*Bool*Nat*Bool",
+    Product(Nat, Product(Bool, Product(Nat, Bool))) -> "Nat*Bool*Nat*Bool",
     Product(Product(Product(Nat, Bool), Nat), Bool) -> "((Nat*Bool)*Nat)*Bool",
 
     Product(Nat, Product(Product(Bool, Nat), Bool)) -> "Nat*(Bool*Nat)*Bool",
@@ -101,7 +101,7 @@ object ttools {
     Function(Nat, Function(Product(Bool, Bool), Nat)) -> "Nat->Bool*Bool->Nat",
     Function(Product(Function(Nat, Bool), Bool), Nat) -> "(Nat->Bool)*Bool->Nat",
     Function(Function(Product(Bool, Bool), Nat), Nat) -> "(Bool*Bool->Nat)->Nat",
-    Function(Function(Bool, Product(Bool, Product(Nat, Nat))), Bool) -> "Bool->Bool*Nat*Nat->Bool",
+    Function(Bool, Function(Product(Bool, Product(Nat, Nat)), Bool)) -> "Bool->Bool*Nat*Nat->Bool",
     Product(Function(Bool, Bool), Product(Nat, Function(Nat, Bool))) -> "(Bool->Bool)*Nat*(Nat->Bool)",
     Function(Product(Function(Bool, Bool), Product(Nat, Nat)), Bool) -> "(Bool->Bool)*Nat*Nat->Bool")
 
