@@ -165,6 +165,30 @@ object SimplyTyped extends StandardTokenParsers {
     case App(t1, t2) => FV(t1) ++ FV(t2)
   }
 
+  /** Substitution **/
+  // TODO: Create tests for substitutions
+  def substitute(body: Term, x: Var, s: Term): Term = body match {
+    // [x → s]x = s
+    case y: Var if y == x => s
+
+    // [x → s]y = y                     if y ≠ x
+    case y: Var /*if y != x*/ => y
+
+    // [x → s](λy. t) = λy . t          if y = x
+    case l @ Abs(y, _, t) if y == x => l
+
+    // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∉ FV(s)
+    case Abs(y, typ, t) if /*y != x &&*/ !FV(s).contains(y) => Abs(y, typ, substitute(t, x, s))
+
+    // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∈ FV(s)
+    case l @ Abs(y, _, t) /*if y != x && FV(s).contains(y)*/ => substitute(alpha(l, y), x, s)
+    //                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //                                                   This will end up in the case just above
+
+    // [x → s](t1 t2) = ([x → s]t1 [x → s]t2)
+    case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
+  }
+
   /** Call by value reducer. */
   def reduce(t: Term): Term = t match {
     //   ... To complete ... 
