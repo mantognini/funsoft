@@ -195,6 +195,7 @@ object SimplyTyped extends StandardTokenParsers {
 
   /** Call by value reducer. */
   def reduce(t: Term): Term = t match {
+    // Computation
     case If(True, t1, t2) => t1
     case If(False, t1, t2) => t2
     case IsZero(Zero) => True
@@ -202,16 +203,16 @@ object SimplyTyped extends StandardTokenParsers {
     case Pred(Zero) => Zero
     case Pred(Succ(nv)) if isNumericVal(nv) => nv
     case App(Value(Abs(x, typ, body)), Value(v2)) => substitute(body, x, v2)
+    case First(Pair(Value(v1), Value(v2))) => v1
+    case Second(Pair(Value(v1), Value(v2))) => v2
 
+    // Congruence
     case If(t1, t2, t3) => If(reduce(t1), t2, t3)
     case IsZero(t) => IsZero(reduce(t))
     case Pred(t) => Pred(reduce(t))
     case Succ(t) => Succ(reduce(t))
     case App(Value(v1), t2) => App(v1, reduce(t2))
     case App(t1, t2) => App(reduce(t1), t2)
-
-    case First(Pair(Value(v1), Value(v2))) => v1
-    case Second(Pair(Value(v1), Value(v2))) => v2
     case First(t) => First(reduce(t))
     case Second(t) => Second(reduce(t))
     case Pair(Value(v1), t2) => Pair(v1, reduce(t2))
