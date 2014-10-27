@@ -197,23 +197,11 @@ object SimplyTyped extends StandardTokenParsers {
     case IsZero(Succ(nv)) if isNumericVal(nv) => False
     case Pred(Zero) => Zero
     case Pred(Succ(nv)) if isNumericVal(nv) => nv
-    case First(Pair(v1, v2)) if isValue(v1) && isValue(v2) => v1
-    case Second(Pair(v1, v2)) if isValue(v1) && isValue(v2) => v2
 
     case If(t1, t2, t3) => If(reduce(t1), t2, t3)
     case IsZero(t) => IsZero(reduce(t))
     case Pred(t) => Pred(reduce(t))
     case Succ(t) => Succ(reduce(t))
-    case First(t) => First(reduce(t))
-    case Second(t) => Second(reduce(t))
-    case Pair(t1, t2) => try {
-      Pair(reduce(t1), t2)
-    } catch {
-      case NoRuleApplies(_) => t match {
-        case Pair(v1, t2) if isValue(v1) => Pair(v1, reduce(t2))
-        case _ => throw NoRuleApplies(t)
-      }
-    }
 
     /**
      * call-by-value order - p.72 TAPL, last sentence before 5.3.6
@@ -237,6 +225,7 @@ object SimplyTyped extends StandardTokenParsers {
       }
     }
 
+    // TODO: include rules for pairs
     case _ =>
       throw NoRuleApplies(t)
   }
@@ -254,51 +243,45 @@ object SimplyTyped extends StandardTokenParsers {
    *  @param t   the given term
    *  @return    the computed type
    */
-  def typeof(t: Term)(implicit ctx: Context = Map()): Type = {
-    def typeofVar(x: Var) = ctx.getOrElse(x.name, throw new TypeError(t.pos, "unknown var " + x.name))
+  def typeof(t: Term)(implicit ctx: Context = Map()): Type = t match {
+    case True | False => Bool
 
-    t match {
-      case True | False => Bool
+    case Zero => Nat
 
-      case Zero => Nat
+    case Pred(t) if typeof(t) == Nat => Nat
 
-      case Pred(t) if typeof(t) == Nat => Nat
+    case Succ(t) if typeof(t) == Nat => Nat
 
-      case Succ(t) if typeof(t) == Nat => Nat
+    case IsZero(t) if typeof(t) == Nat => Bool
 
-      case IsZero(t) if typeof(t) == Nat => Bool
+    case If(t1, t2, t3) if typeof(t1) == Bool && typeof(t2) == typeof(t3) => typeof(t3)
 
-      case If(t1, t2, t3) if typeof(t1) == Bool && typeof(t2) == typeof(t3) => typeof(t3)
+    case Var(name) => ctx.getOrElse(name, throw new TypeError(t.pos, "unknown var " + name))
 
-      case x: Var => typeofVar(x)
+    case Abs(x, typ, body) => Function(typ, typeof(body)(ctx + ((x.name, typ))))
 
-      // This «\x: Bool. \x: Nat. (\y: Bool. 0) x» should fail
-      // This «\x: Bool. \x: Nat. (\y: Nat . 0) x» should pass
-      case Abs(x, typ, body) => Function(typ, typeof(body)(ctx + ((x.name, typ))))
+    case App(t1, t2) => typeof(t1) match {
+      case Function(typ11, typ12) =>
+        val typ22 = typeof(t2)
+        if (typ22 == typ11) typ12
+        else throw TypeError(t.pos, "Term " + t2 + " should be of type " + typ11 + ", but is " + typ22)
 
-      case App(t1, t2) => typeof(t1) match {
-        case Function(typ11, typ12) =>
-          val typ22 = typeof(t2)
-          if (typ22 == typ11) typ12
-          else throw TypeError(t.pos, "Term " + t2 + " should be of type " + typ11 + ", but is " + typ22)
-
-        case typError => throw TypeError(t.pos, "Term " + t1 + " should be of type Function, but is " + typError)
-      }
-
-      case Pair(t1, t2) => Product(typeof(t1), typeof(t2))
-
-      case First(t) => typeof(t) match {
-        case Product(typ1, _) => typ1
-        case typError => throw TypeError(t.pos, "Term " + t + " should be of type Product, but is " + typError)
-      }
-
-      case Second(t) => typeof(t) match {
-        case Product(_, typ2) => typ2
-        case typError => throw TypeError(t.pos, "Term " + t + " should be of type Product, but is " + typError)
-      }
-
-      case _ => throw TypeError(t.pos, "No type checking rules apply to " + t)
+      case typError => throw TypeError(t.pos, "Term " + t1 + " should be of type Function, but is " + typError)
     }
+
+    case Pair(t1, t2) => Product(typeof(t1), typeof(t2))
+
+    case First(t) => typeof(t) match {
+      case Product(typ1, _) => typ1
+      case typError => throw TypeError(t.pos, "Term " + t + " should be of type Product, but is " + typError)
+    }
+
+    case Second(t) => typeof(t) match {
+      case Product(_, typ2) => typ2
+      case typError => throw TypeError(t.pos, "Term " + t + " should be of type Product, but is " + typError)
+    }
+
+    case _ => throw TypeError(t.pos, "No type checking rules apply to " + t)
   }
 
   /**
