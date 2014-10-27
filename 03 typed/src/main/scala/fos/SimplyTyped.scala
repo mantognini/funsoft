@@ -97,6 +97,11 @@ object SimplyTyped extends StandardTokenParsers {
     case Succ(t) if isNumericVal(t) => true
     case _ => false
   }
+
+  object NumericValue {
+    def unapply(t: Term) = if (isNumericVal(t)) Some(t) else None
+  }
+
   def convertToNum(nv: Term): Int = nv match {
     case Zero => 0
     case Succ(x) => convertToNum(x) + 1
@@ -106,9 +111,9 @@ object SimplyTyped extends StandardTokenParsers {
   /** Is the given term a value? */
   def isValue(t: Term): Boolean = t match {
     case True | False => true
-    case nv if isNumericVal(nv) => true
+    case NumericValue(_) => true
     case Abs(_, _, _) => true
-    case Pair(v1, v2) if isValue(v1) && isValue(v2) => true
+    case Pair(Value(_), Value(_)) => true
     case _ => false
   }
 
@@ -201,9 +206,9 @@ object SimplyTyped extends StandardTokenParsers {
     case If(True, t1, t2) => t1
     case If(False, t1, t2) => t2
     case IsZero(Zero) => True
-    case IsZero(Succ(nv)) if isNumericVal(nv) => False
+    case IsZero(Succ(NumericValue(nv))) => False
     case Pred(Zero) => Zero
-    case Pred(Succ(nv)) if isNumericVal(nv) => nv
+    case Pred(Succ(NumericValue(nv))) => nv
     case App(Abs(x, typ, body), Value(v2)) => substitute(body, x, v2)
     case First(Pair(Value(v1), Value(v2))) => v1
     case Second(Pair(Value(v1), Value(v2))) => v2
