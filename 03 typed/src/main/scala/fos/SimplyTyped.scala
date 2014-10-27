@@ -112,6 +112,52 @@ object SimplyTyped extends StandardTokenParsers {
     case _ => false
   }
 
+  /** Alpha-conversion **/
+  def alpha(t: Term, y: Var): Term = {
+    val oldName = y.name // "prefix"
+
+    def findUsedNameWithPrefix: Set[String] = {
+      def addIfPrefix(acc: Set[String], name: String): Set[String] = if (name != oldName && name.startsWith(oldName)) acc + name else acc
+
+      def walk(cur: Term, acc: Set[String]): Set[String] = cur match {
+        case Var(vn) => addIfPrefix(acc, vn)
+        case Abs(Var(vn), _, t1) => walk(t1, addIfPrefix(acc, vn))
+        case App(t1, t2) => walk(t2, walk(t1, acc))
+      }
+
+      walk(t, Set())
+    }
+
+    def convertToInteger(str: String): Int = try {
+      str.toInt
+    } catch {
+      case e: java.lang.NumberFormatException => 0
+    }
+
+    // if v, v1, v2, .., vi, vj (j is not necessarily i + 1), then the selected name is v{j+1}. 
+    def findFirstFreeName: String = {
+      val taken = findUsedNameWithPrefix
+      val indexes = taken map { i => convertToInteger(i.stripPrefix(oldName)) }
+      val lastIndex = (indexes + 0) max
+
+      oldName + (lastIndex + 1)
+    }
+
+    def rename(cur: Term, newName: String): Term = cur match {
+      case Var(vn) if vn == oldName => Var(newName)
+      case v @ Var(_) => v
+      case l @ Abs(Var(vn), _, _) if vn == oldName => l
+      case Abs(v, typ, t1) => Abs(v, typ, rename(t1, newName))
+      case App(t1, t2) => App(rename(t1, newName), rename(t2, newName))
+    }
+
+    val newName = findFirstFreeName
+    t match {
+      case Abs(x, typ, t) => Abs(Var(newName), typ, rename(t, newName))
+      case _ => throw new RuntimeException("Unexpected input term for alpha conversion")
+    }
+  }
+
   /** Call by value reducer. */
   def reduce(t: Term): Term = t match {
     //   ... To complete ... 
