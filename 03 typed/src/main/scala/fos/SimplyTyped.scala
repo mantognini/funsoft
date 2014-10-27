@@ -191,7 +191,16 @@ object SimplyTyped extends StandardTokenParsers {
 
   /** Call by value reducer. */
   def reduce(t: Term): Term = t match {
-    //   ... To complete ... 
+    // Computations rules from Fig.2
+    case If(True, t1, t2) => t1
+    case If(False, t1, t2) => t2
+    case IsZero(Zero) => True
+    case IsZero(Succ(nv)) if isNumericVal(nv) => False
+    case Pred(Zero) => Zero
+    case Pred(Succ(nv)) if isNumericVal(nv) => nv
+    case App(Abs(x, typ, body), v2) if isNumericVal(v2) => substitute(body, x, v2)
+
+    // TODO: write the other red. rules
     case _ =>
       throw NoRuleApplies(t)
   }
