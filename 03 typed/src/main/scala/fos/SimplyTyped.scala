@@ -202,7 +202,7 @@ object SimplyTyped extends StandardTokenParsers {
     case IsZero(Succ(nv)) if isNumericVal(nv) => False
     case Pred(Zero) => Zero
     case Pred(Succ(nv)) if isNumericVal(nv) => nv
-    case App(Value(Abs(x, typ, body)), Value(v2)) => substitute(body, x, v2)
+    case App(Abs(x, typ, body), Value(v2)) => substitute(body, x, v2)
     case First(Pair(Value(v1), Value(v2))) => v1
     case Second(Pair(Value(v1), Value(v2))) => v2
 
