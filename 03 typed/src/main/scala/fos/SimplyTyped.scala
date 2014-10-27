@@ -121,83 +121,40 @@ object SimplyTyped extends StandardTokenParsers {
     def unapply(t: Term) = if (isValue(t)) Some(t) else None
   }
 
-  /** Alpha-conversion **/
-  def alpha(t: Term, y: Var): Term = {
-    val oldName = y.name // "prefix"
-
-    def findUsedNameWithPrefix: Set[String] = {
-      def addIfPrefix(acc: Set[String], name: String): Set[String] = if (name != oldName && name.startsWith(oldName)) acc + name else acc
-
-      def walk(cur: Term, acc: Set[String]): Set[String] = cur match {
-        case Var(vn) => addIfPrefix(acc, vn)
-        case Abs(Var(vn), _, t1) => walk(t1, addIfPrefix(acc, vn))
-        case App(t1, t2) => walk(t2, walk(t1, acc))
-      }
-
-      walk(t, Set())
-    }
-
-    def convertToInteger(str: String): Int = try {
-      str.toInt
-    } catch {
-      case e: java.lang.NumberFormatException => 0
-    }
-
-    // if v, v1, v2, .., vi, vj (j is not necessarily i + 1), then the selected name is v{j+1}. 
-    def findFirstFreeName: String = {
-      val taken = findUsedNameWithPrefix
-      val indexes = taken map { i => convertToInteger(i.stripPrefix(oldName)) }
-      val lastIndex = (indexes + 0) max
-
-      oldName + (lastIndex + 1)
-    }
-
-    def rename(cur: Term, newName: String): Term = cur match {
-      case Var(vn) if vn == oldName => Var(newName)
-      case v @ Var(_) => v
-      case l @ Abs(Var(vn), _, _) if vn == oldName => l
-      case Abs(v, typ, t1) => Abs(v, typ, rename(t1, newName))
-      case App(t1, t2) => App(rename(t1, newName), rename(t2, newName))
-    }
-
-    val newName = findFirstFreeName
-    t match {
-      case Abs(x, typ, t) => Abs(Var(newName), typ, rename(t, newName))
-      case _ => throw new RuntimeException("Unexpected input term for alpha conversion")
-    }
-  }
-
-  /** Free Variable **/
-  def FV(t: Term): Set[Var] = t match {
-    case x @ Var(_) => Set(x)
-    case Abs(x, _, t1) => FV(t1) - x
-    case App(t1, t2) => FV(t1) ++ FV(t2)
-  }
-
-  /** Substitution **/
+  /**
+   * Substitution rules:
+   *
+   * [x → s]true                    = true
+   * [x → s]false                   = false
+   * [x → s]if t1 then t2 else t3   = if [x → s]t1 then [x → s]t2 else [x → s]t3
+   * [x → s]pred t                  = pred [x → s]t
+   * [x → s]succ t                  = succ [x → s]t
+   * [x → s]iszero t                = iszero [x → s]t
+   * [x → s]y                       = s                                             if y = x
+   * [x → s]y                       = y                                             if y ≠ x
+   * [x → s](λy. t)                 = λy. t                                         if y = x
+   * [x → s](λy. t)                 = λy. [x → s]t                                  if y ≠ x
+   * [x → s](t1 t2)                 = [x → s]t1 [x → s]t2
+   * [x → s]{t1, t2}                = {[x → s]t1, [x → s]t2}
+   * [x → s]fst t                   = fst [x → s]t
+   * [x → s]snd t                   = snd [x → s]t
+   */
   // TODO: Create tests for substitutions
   def substitute(body: Term, x: Var, s: Term): Term = body match {
-    // [x → s]x = s
+    case True => True
+    case False => False
+    case If(t1, t2, t3) => If(substitute(t1, x, s), substitute(t2, x, s), substitute(t3, x, s))
+    case Pred(t) => Pred(substitute(t, x, s))
+    case Succ(t) => Succ(substitute(t, x, s))
+    case IsZero(t) => IsZero(substitute(t, x, s))
     case y: Var if y == x => s
-
-    // [x → s]y = y                     if y ≠ x
-    case y: Var /*if y != x*/ => y
-
-    // [x → s](λy. t) = λy . t          if y = x
-    case l @ Abs(y, _, t) if y == x => l
-
-    // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∉ FV(s)
-    case Abs(y, typ, t) if /*y != x &&*/ !FV(s).contains(y) => Abs(y, typ, substitute(t, x, s))
-
-    // [x → s](λy. t) = λy . [x → s]t   if y ≠ x and y ∈ FV(s)
-    case l @ Abs(y, _, t) /*if y != x && FV(s).contains(y)*/ => substitute(alpha(l, y), x, s)
-    //                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    //                                                   This will end up in the case just above
-
-    // [x → s](t1 t2) = ([x → s]t1 [x → s]t2)
+    case y: Var if y != x => y
+    case l @ Abs(y, _, _) if y == x => l
+    case Abs(y, typ, t) if y != x => Abs(y, typ, substitute(t, x, s))
     case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
-
-    case _ => ???
+    case Pair(t1, t2) => Pair(substitute(t1, x, s), substitute(t2, x, s))
+    case First(t) => First(substitute(t, x, s))
+    case Second(t) => Second(substitute(t, x, s))
   }
 
   /** Call by value reducer. */
