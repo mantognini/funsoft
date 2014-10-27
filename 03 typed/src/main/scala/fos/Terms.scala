@@ -10,7 +10,7 @@ abstract class Term extends Positional {
   final def surroundWithPar(par: Boolean, msg: String): String = {
     def open = if (par) "(" else ""
     def close = if (par) ")" else ""
-    open + msg + close
+    s"$open$msg$close"
   }
 }
 
@@ -31,7 +31,7 @@ case class Var(name: String) extends Term {
 
 case class Abs(x: Var, typ: Type, body: Term) extends Term {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
-    surroundWithPar(par, "\\" + x + ":" + typ + "." + body)
+    surroundWithPar(par, s"\\$x:$typ.$body")
 }
 
 case class App(t1: Term, t2: Term) extends Term {
@@ -89,38 +89,47 @@ case class App(t1: Term, t2: Term) extends Term {
       case (App(_, lr), _) if isFT(lr) => true
       case _ => false
     }
+    val t1Prettyfied = t1.prettyString(lpar, cornerCase)
+    val t2Prettyfied = t2.prettyString(rpar || forceRighParInInnerTerm)
 
-    surroundWithPar(par, t1.prettyString(lpar, cornerCase) + " " + t2.prettyString(rpar || forceRighParInInnerTerm))
+    surroundWithPar(par, s"$t1Prettyfied $t2Prettyfied")
   }
 }
 
 case class Succ(t: Term) extends Term {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
-    if (SimplyTyped.isNumericVal(this)) SimplyTyped.convertToNum(this).toString else surroundWithPar(par, "succ " + t)
+    if (SimplyTyped.isNumericVal(this)) SimplyTyped.convertToNum(this).toString
+    else surroundWithPar(par, s"succ $t")
 }
 
 case class Pred(t: Term) extends Term {
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "pred " + t)
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"pred $t")
 }
 
 case class IsZero(t: Term) extends Term {
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "iszero " + t)
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"iszero $t")
 }
 
 case class If(cond: Term, zen: Term, elze: Term) extends Term {
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "if " + cond + " then " + zen + " else " + elze)
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"if $cond then $zen else $elze")
 }
 
 case class Pair(fst: Term, snd: Term) extends Term {
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "{" + fst + "," + snd + "}"
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    s"{$fst,$snd}"
 }
 
 case class First(p: Term) extends Term {
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "fst " + p)
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"fst $p")
 }
 
 case class Second(p: Term) extends Term {
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = surroundWithPar(par, "snd " + p)
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"snd $p")
 }
 
 /** Abstract Syntax Trees for types. */
