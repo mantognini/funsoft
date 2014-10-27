@@ -26,8 +26,8 @@ class PrettyPrintTest extends FlatSpec with Matchers {
   def toRawString(t: Term): String = t match {
     case Product(fst, snd) => "[" + toRawString(fst) + "*" + toRawString(snd) + "]"
     case Function(i, o) => "[" + toRawString(i) + "->" + toRawString(o) + "]"
-    case Nat => "Nat"
-    case Bool => "Bool"
+    case Nat() => "Nat"
+    case Bool() => "Bool"
     case Second(p) => "snd(" + toRawString(p) + ")"
     case First(p) => "fst(" + toRawString(p) + ")"
     case Pair(fst, snd) => "pair(" + toRawString(fst) + ", " + toRawString(snd) + ")"
@@ -38,8 +38,8 @@ class PrettyPrintTest extends FlatSpec with Matchers {
     case App(t1, t2) => "App(" + toRawString(t1) + ", " + toRawString(t2) + ")"
     case Abs(x, typ, body) => "Abs(" + toRawString(x) + ":" + toRawString(typ) + ", " + toRawString(body) + ")"
     case Var(name) => name
-    case Zero => "0"
-    case False => "false"
-    case True => "true"
+    case Zero() => "0"
+    case False() => "false"
+    case True() => "true"
   }
 }

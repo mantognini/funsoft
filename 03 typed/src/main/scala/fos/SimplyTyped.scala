@@ -13,7 +13,7 @@ object SimplyTyped extends StandardTokenParsers {
   lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "in", "fst", "snd")
 
   // 0 => 0, n => Succ(n-1)
-  def convertNumeric(n: Int): Term = if (n <= 0) Zero else Succ(convertNumeric(n - 1))
+  def convertNumeric(n: Int): Term = if (n <= 0) Zero() else Succ(convertNumeric(n - 1))
 
   // let x: T = t1 in t2        =>      (\x:T.t2) t1
   def convertLet(x: String, typ: Type, t1: Term, t2: Term) = App(Abs(Var(x), typ, t2), t1)
@@ -42,8 +42,8 @@ object SimplyTyped extends StandardTokenParsers {
    *               | "snd" Term
    */
   def SimpleTerm: Parser[Term] = positioned(
-    "true" ^^^ True
-      | "false" ^^^ False
+    "true" ^^^ True()
+      | "false" ^^^ False()
       | numericLit ^^ { case chars => convertNumeric(chars.toInt) }
       | "succ" ~> Term ^^ { case e => Succ(e) }
       | "pred" ~> Term ^^ { case e => Pred(e) }
@@ -73,8 +73,8 @@ object SimplyTyped extends StandardTokenParsers {
     def function = rep1sep(product, "->") ^^ { _.reduceRight { Function(_, _) } }
     def product = rep1sep(parentheses | boolean | natural, "*") ^^ { _.reduceRight { Product(_, _) } }
     def parentheses = "(" ~> Type <~ ")"
-    def boolean = "Bool" ^^^ Bool
-    def natural = "Nat" ^^^ Nat
+    def boolean = "Bool" ^^^ Bool()
+    def natural = "Nat" ^^^ Nat()
 
     positioned(function)
   }
@@ -93,7 +93,7 @@ object SimplyTyped extends StandardTokenParsers {
 
   /** Is the given term a numeric value? */
   def isNumericVal(t: Term): Boolean = t match {
-    case Zero => true
+    case Zero() => true
     case Succ(t) if isNumericVal(t) => true
     case _ => false
   }
@@ -103,14 +103,15 @@ object SimplyTyped extends StandardTokenParsers {
   }
 
   def convertToNum(nv: Term): Int = nv match {
-    case Zero => 0
+    case Zero() => 0
     case Succ(x) => convertToNum(x) + 1
     case _ => throw new Exception("convertToNum expect to see only numerical val")
   }
 
   /** Is the given term a value? */
   def isValue(t: Term): Boolean = t match {
-    case True | False => true
+    case True() => true
+    case False() => true
     case NumericValue(_) => true
     case Abs(_, _, _) => true
     case Pair(Value(_), Value(_)) => true
@@ -141,8 +142,8 @@ object SimplyTyped extends StandardTokenParsers {
    */
   // TODO: Create tests for substitutions
   def substitute(body: Term, x: Var, s: Term): Term = body match {
-    case True => True
-    case False => False
+    case True() => True()
+    case False() => False()
     case If(t1, t2, t3) => If(substitute(t1, x, s), substitute(t2, x, s), substitute(t3, x, s))
     case Pred(t) => Pred(substitute(t, x, s))
     case Succ(t) => Succ(substitute(t, x, s))
@@ -160,11 +161,11 @@ object SimplyTyped extends StandardTokenParsers {
   /** Call by value reducer. */
   def reduce(t: Term): Term = t match {
     // Computation
-    case If(True, t1, t2) => t1
-    case If(False, t1, t2) => t2
-    case IsZero(Zero) => True
-    case IsZero(Succ(NumericValue(nv))) => False
-    case Pred(Zero) => Zero
+    case If(True(), t1, t2) => t1
+    case If(False(), t1, t2) => t2
+    case IsZero(Zero()) => True()
+    case IsZero(Succ(NumericValue(nv))) => False()
+    case Pred(Zero()) => Zero()
     case Pred(Succ(NumericValue(nv))) => nv
     case App(Abs(x, typ, body), Value(v2)) => substitute(body, x, v2)
     case First(Pair(Value(v1), Value(v2))) => v1
@@ -187,7 +188,8 @@ object SimplyTyped extends StandardTokenParsers {
 
   /** Define what is a non-composed type **/
   def isNotComposedType(t: Type): Boolean = t match {
-    case Bool | Nat => true
+    case Bool() => true
+    case Nat() => true
     case _ => false
   }
 
@@ -199,17 +201,19 @@ object SimplyTyped extends StandardTokenParsers {
    *  @return    the computed type
    */
   def typeof(t: Term)(implicit ctx: Context = Map()): Type = t match {
-    case True | False => Bool
+    case True() => Bool()
 
-    case Zero => Nat
+    case False() => Bool()
 
-    case Pred(t) if typeof(t) == Nat => Nat
+    case Zero() => Nat()
 
-    case Succ(t) if typeof(t) == Nat => Nat
+    case Pred(t) if typeof(t) == Nat() => Nat()
 
-    case IsZero(t) if typeof(t) == Nat => Bool
+    case Succ(t) if typeof(t) == Nat() => Nat()
 
-    case If(t1, t2, t3) if typeof(t1) == Bool && typeof(t2) == typeof(t3) => typeof(t3)
+    case IsZero(t) if typeof(t) == Nat() => Bool()
+
+    case If(t1, t2, t3) if typeof(t1) == Bool() && typeof(t2) == typeof(t3) => typeof(t3)
 
     case Var(name) => ctx.getOrElse(name, throw new TypeError(t.pos, "unknown var " + name))
 
