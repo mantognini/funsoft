@@ -201,11 +201,14 @@ object SimplyTyped extends StandardTokenParsers {
     case IsZero(Succ(nv)) if isNumericVal(nv) => False
     case Pred(Zero) => Zero
     case Pred(Succ(nv)) if isNumericVal(nv) => nv
+    case App(Value(Abs(x, typ, body)), Value(v2)) => substitute(body, x, v2)
 
     case If(t1, t2, t3) => If(reduce(t1), t2, t3)
     case IsZero(t) => IsZero(reduce(t))
     case Pred(t) => Pred(reduce(t))
     case Succ(t) => Succ(reduce(t))
+    case App(Value(v1), t2) => App(v1, reduce(t2))
+    case App(t1, t2) => App(reduce(t1), t2)
 
     case First(Pair(Value(v1), Value(v2))) => v1
     case Second(Pair(Value(v1), Value(v2))) => v2
@@ -214,30 +217,7 @@ object SimplyTyped extends StandardTokenParsers {
     case Pair(Value(v1), t2) => Pair(v1, reduce(t2))
     case Pair(t1, t2) => Pair(reduce(t1), t2)
 
-    /**
-     * call-by-value order - p.72 TAPL, last sentence before 5.3.6
-     *  t1 t2:
-     *  	We first use E-App1 to reduce t1 to a value, then E-App2
-     *   	to reduce t2 to a value, finally, we perform the application
-     */
-    case App(t1, t2) => try {
-      App(reduce(t1), t2)
-    } catch {
-      case NoRuleApplies(_) => t match {
-        case App(v1, t2) if isValue(v1) => try {
-          App(v1, reduce(t2))
-        } catch {
-          case NoRuleApplies(_) => t match {
-            case App(Abs(x, typ, body), v2) if isValue(v2) => substitute(body, x, v2)
-            case _ => throw NoRuleApplies(t)
-          }
-        }
-        case _ => throw NoRuleApplies(t)
-      }
-    }
-
-    case _ =>
-      throw NoRuleApplies(t)
+    case _ => throw NoRuleApplies(t)
   }
 
   /** Define what is a non-composed type **/
