@@ -112,6 +112,10 @@ object SimplyTyped extends StandardTokenParsers {
     case _ => false
   }
 
+  object Value {
+    def unapply(t: Term) = if (isValue(t)) Some(t) else None
+  }
+
   /** Alpha-conversion **/
   def alpha(t: Term, y: Var): Term = {
     val oldName = y.name // "prefix"
@@ -197,23 +201,18 @@ object SimplyTyped extends StandardTokenParsers {
     case IsZero(Succ(nv)) if isNumericVal(nv) => False
     case Pred(Zero) => Zero
     case Pred(Succ(nv)) if isNumericVal(nv) => nv
-    case First(Pair(v1, v2)) if isValue(v1) && isValue(v2) => v1
-    case Second(Pair(v1, v2)) if isValue(v1) && isValue(v2) => v2
 
     case If(t1, t2, t3) => If(reduce(t1), t2, t3)
     case IsZero(t) => IsZero(reduce(t))
     case Pred(t) => Pred(reduce(t))
     case Succ(t) => Succ(reduce(t))
+
+    case First(Pair(Value(v1), Value(v2))) => v1
+    case Second(Pair(Value(v1), Value(v2))) => v2
     case First(t) => First(reduce(t))
     case Second(t) => Second(reduce(t))
-    case Pair(t1, t2) => try {
-      Pair(reduce(t1), t2)
-    } catch {
-      case NoRuleApplies(_) => t match {
-        case Pair(v1, t2) if isValue(v1) => Pair(v1, reduce(t2))
-        case _ => throw NoRuleApplies(t)
-      }
-    }
+    case Pair(Value(v1), t2) => Pair(v1, reduce(t2))
+    case Pair(t1, t2) => Pair(reduce(t1), t2)
 
     /**
      * call-by-value order - p.72 TAPL, last sentence before 5.3.6
