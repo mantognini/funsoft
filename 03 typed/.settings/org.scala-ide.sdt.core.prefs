@@ -3,3 +3,4 @@
 deprecation=true
 unchecked=true
 scala.compiler.useProjectSettings=true
+scala.compiler.additionalParams=-feature

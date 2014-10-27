@@ -42,17 +42,17 @@ object Helper {
 
   val f = Var("f")
   val g = Var("g")
-  
+
   // Define few numbers
-  import fos.{Succ, Zero}
-  val one = Succ(Zero)
-  val two = Succ(Succ(Zero))
-  val three = Succ(Succ(Succ(Zero)))
+  import fos.{ Succ, Zero }
+  val one = Succ(Zero())
+  val two = Succ(Succ(Zero()))
+  val three = Succ(Succ(Succ(Zero())))
 
   // Define a few functions
   import fos.{ Abs, Bool, Nat }
-  val id_b = Abs(x, Bool, x)
-  val id_n = Abs(x, Nat, x)
+  val id_b = Abs(x, Bool(), x)
+  val id_n = Abs(x, Nat(), x)
 
   // Define a few pairs
   import fos.{ Pair }

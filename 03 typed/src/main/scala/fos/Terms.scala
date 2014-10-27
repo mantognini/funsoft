@@ -14,14 +14,14 @@ abstract class Term extends Positional {
   }
 }
 
-case object True extends Term {
+case class True() extends Term {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "true"
 }
 
-case object False extends Term {
+case class False() extends Term {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "false"
 }
-case object Zero extends Term {
+case class Zero() extends Term {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "0"
 }
 
@@ -135,11 +135,11 @@ case class Second(p: Term) extends Term {
 /** Abstract Syntax Trees for types. */
 abstract class Type extends Term
 
-case object Bool extends Type {
+case class Bool() extends Type {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "Bool"
 }
 
-case object Nat extends Type {
+case class Nat() extends Type {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "Nat"
 }
 
