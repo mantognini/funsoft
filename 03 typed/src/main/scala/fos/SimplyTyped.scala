@@ -97,6 +97,11 @@ object SimplyTyped extends StandardTokenParsers {
     case Succ(t) if isNumericVal(t) => true
     case _ => false
   }
+
+  object NumericValue {
+    def unapply(t: Term) = if (isNumericVal(t)) Some(t) else None
+  }
+
   def convertToNum(nv: Term): Int = nv match {
     case Zero => 0
     case Succ(x) => convertToNum(x) + 1
@@ -106,10 +111,14 @@ object SimplyTyped extends StandardTokenParsers {
   /** Is the given term a value? */
   def isValue(t: Term): Boolean = t match {
     case True | False => true
-    case nv if isNumericVal(nv) => true
+    case NumericValue(_) => true
     case Abs(_, _, _) => true
-    case Pair(v1, v2) if isValue(v1) && isValue(v2) => true
+    case Pair(Value(_), Value(_)) => true
     case _ => false
+  }
+
+  object Value {
+    def unapply(t: Term) = if (isValue(t)) Some(t) else None
   }
 
   /** Alpha-conversion **/
@@ -187,58 +196,36 @@ object SimplyTyped extends StandardTokenParsers {
 
     // [x → s](t1 t2) = ([x → s]t1 [x → s]t2)
     case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
+
+    case _ => ???
   }
 
   /** Call by value reducer. */
   def reduce(t: Term): Term = t match {
+    // Computation
     case If(True, t1, t2) => t1
     case If(False, t1, t2) => t2
     case IsZero(Zero) => True
-    case IsZero(Succ(nv)) if isNumericVal(nv) => False
+    case IsZero(Succ(NumericValue(nv))) => False
     case Pred(Zero) => Zero
-    case Pred(Succ(nv)) if isNumericVal(nv) => nv
-    case First(Pair(v1, v2)) if isValue(v1) && isValue(v2) => v1
-    case Second(Pair(v1, v2)) if isValue(v1) && isValue(v2) => v2
+    case Pred(Succ(NumericValue(nv))) => nv
+    case App(Abs(x, typ, body), Value(v2)) => substitute(body, x, v2)
+    case First(Pair(Value(v1), Value(v2))) => v1
+    case Second(Pair(Value(v1), Value(v2))) => v2
 
+    // Congruence
     case If(t1, t2, t3) => If(reduce(t1), t2, t3)
     case IsZero(t) => IsZero(reduce(t))
     case Pred(t) => Pred(reduce(t))
     case Succ(t) => Succ(reduce(t))
+    case App(Value(v1), t2) => App(v1, reduce(t2))
+    case App(t1, t2) => App(reduce(t1), t2)
     case First(t) => First(reduce(t))
     case Second(t) => Second(reduce(t))
-    case Pair(t1, t2) => try {
-      Pair(reduce(t1), t2)
-    } catch {
-      case NoRuleApplies(_) => t match {
-        case Pair(v1, t2) if isValue(v1) => Pair(v1, reduce(t2))
-        case _ => throw NoRuleApplies(t)
-      }
-    }
+    case Pair(Value(v1), t2) => Pair(v1, reduce(t2))
+    case Pair(t1, t2) => Pair(reduce(t1), t2)
 
-    /**
-     * call-by-value order - p.72 TAPL, last sentence before 5.3.6
-     *  t1 t2:
-     *  	We first use E-App1 to reduce t1 to a value, then E-App2
-     *   	to reduce t2 to a value, finally, we perform the application
-     */
-    case App(t1, t2) => try {
-      App(reduce(t1), t2)
-    } catch {
-      case NoRuleApplies(_) => t match {
-        case App(v1, t2) if isValue(v1) => try {
-          App(v1, reduce(t2))
-        } catch {
-          case NoRuleApplies(_) => t match {
-            case App(Abs(x, typ, body), v2) if isValue(v2) => substitute(body, x, v2)
-            case _ => throw NoRuleApplies(t)
-          }
-        }
-        case _ => throw NoRuleApplies(t)
-      }
-    }
-
-    case _ =>
-      throw NoRuleApplies(t)
+    case _ => throw NoRuleApplies(t)
   }
 
   /** Define what is a non-composed type **/
