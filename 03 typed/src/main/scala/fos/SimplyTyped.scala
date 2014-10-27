@@ -116,6 +116,12 @@ object SimplyTyped extends StandardTokenParsers {
       throw NoRuleApplies(t)
   }
 
+  /** Define what is a non-composed type **/
+  def isNotComposedType(t: Type): Boolean = t match {
+    case Bool | Nat => true
+    case _ => false
+  }
+
   /**
    * Returns the type of the given term <code>t</code>.
    *

@@ -23,8 +23,6 @@ class PrettyPrintTest extends FlatSpec with Matchers {
     }
   }
 
-  // TODO: Implement these type tests using cases in ttools.typeCanonicalCases
-  // TODO: Implement Helper for toRawString
   def toRawString(t: Term): String = t match {
     case Product(fst, snd) => "[" + toRawString(fst) + "*" + toRawString(snd) + "]"
     case Function(i, o) => "[" + toRawString(i) + "->" + toRawString(o) + "]"

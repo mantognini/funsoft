@@ -133,12 +133,7 @@ case class Second(p: Term) extends Term {
 }
 
 /** Abstract Syntax Trees for types. */
-abstract class Type extends Term {
-  def isTerminal(t: Type): Boolean = t match {
-    case Bool | Nat => true
-    case _ => false
-  }
-}
+abstract class Type extends Term
 
 case object Bool extends Type {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = "Bool"
@@ -151,16 +146,16 @@ case object Nat extends Type {
 case class Function(i: Type, o: Type) extends Type {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = (i, o) match {
     case (Product(_, _), _) => s"$i->$o"
-    case (t1, _) if !isTerminal(t1) => s"($i)->$o"
+    case (t1, _) if !SimplyTyped.isNotComposedType(t1) => s"($i)->$o"
     case _ => s"$i->$o"
   }
 }
 
 case class Product(fst: Type, snd: Type) extends Type {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = (fst, snd) match {
-    case (t1, Function(_, _)) if !isTerminal(t1) => s"($fst)*($snd)"
+    case (t1, Function(_, _)) if !SimplyTyped.isNotComposedType(t1) => s"($fst)*($snd)"
     case (_, Function(_, _)) => s"$fst*($snd)"
-    case (t1, _) if !isTerminal(t1) => s"($fst)*$snd"
+    case (t1, _) if !SimplyTyped.isNotComposedType(t1) => s"($fst)*$snd"
     case _ => s"$fst*$snd"
   }
 }
