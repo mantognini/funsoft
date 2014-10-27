@@ -158,6 +158,13 @@ object SimplyTyped extends StandardTokenParsers {
     }
   }
 
+  /** Free Variable **/
+  def FV(t: Term): Set[Var] = t match {
+    case x @ Var(_) => Set(x)
+    case Abs(x, _, t1) => FV(t1) - x
+    case App(t1, t2) => FV(t1) ++ FV(t2)
+  }
+
   /** Call by value reducer. */
   def reduce(t: Term): Term = t match {
     //   ... To complete ... 
