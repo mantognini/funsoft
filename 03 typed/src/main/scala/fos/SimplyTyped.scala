@@ -191,6 +191,8 @@ object SimplyTyped extends StandardTokenParsers {
 
     // [x → s](t1 t2) = ([x → s]t1 [x → s]t2)
     case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
+
+    case _ => ???
   }
 
   /** Call by value reducer. */
