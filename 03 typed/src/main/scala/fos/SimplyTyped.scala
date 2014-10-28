@@ -102,12 +102,6 @@ object SimplyTyped extends StandardTokenParsers {
     def unapply(t: Term) = if (isNumericVal(t)) Some(t) else None
   }
 
-  def convertToNum(nv: Term): Int = nv match {
-    case Zero() => 0
-    case Succ(x) => convertToNum(x) + 1
-    case _ => throw new Exception("convertToNum expect to see only numerical val")
-  }
-
   /** Is the given term a value? */
   def isValue(t: Term): Boolean = t match {
     case True() => true

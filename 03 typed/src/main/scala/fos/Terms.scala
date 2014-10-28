@@ -98,8 +98,7 @@ case class App(t1: Term, t2: Term) extends Term {
 
 case class Succ(t: Term) extends Term {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
-    if (SimplyTyped.isNumericVal(this)) SimplyTyped.convertToNum(this).toString
-    else surroundWithPar(par, s"succ $t")
+    surroundWithPar(par, s"succ $t")
 }
 
 case class Pred(t: Term) extends Term {

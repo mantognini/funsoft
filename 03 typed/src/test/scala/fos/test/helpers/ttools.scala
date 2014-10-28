@@ -13,8 +13,8 @@ object ttools {
     """true""" -> True(),
     """if a then b else c""" -> If(a, b, c),
     """0""" -> Zero(),
-    """2""" -> two,
-    """3""" -> three,
+    """succ succ 0""" -> two,
+    """succ succ succ 0""" -> three,
     """x""" -> x,
     """y""" -> y,
     """xya""" -> Var("xya"),
@@ -40,7 +40,7 @@ object ttools {
     """\y:Nat->Nat.succ y y""" -> Abs(y, Function(Nat(), Nat()), Succ(App(y, y))),
     """\y:Nat->Nat.succ y y z""" -> Abs(y, Function(Nat(), Nat()), Succ(App(App(y, y), z))),
     """(\y:Nat->Nat.succ y) y""" -> App(Abs(y, Function(Nat(), Nat()), Succ(y)), y),
-    """(\y:Nat.succ y) ((\x:Bool.1) true)""" -> App(Abs(y, Nat(), Succ(y)), App(Abs(x, Bool(), one), True())),
+    """(\y:Nat.succ y) ((\x:Bool.succ 0) true)""" -> App(Abs(y, Nat(), Succ(y)), App(Abs(x, Bool(), one), True())),
     """\x:Nat.x \y:Bool.y""" -> Abs(x, Nat(), App(x, Abs(y, Bool(), y))),
 
     """iszero 0""" -> IsZero(Zero()),
@@ -56,16 +56,13 @@ object ttools {
 
     """pred x y fst a b""" -> Pred(App(App(x, y), First(App(a, b)))),
 
-    """(fst {snd {2,3},\x:Bool.fst {x,x}}) a""" -> App(First(Pair(Second(Pair(two, three)), Abs(x, Bool(), First(Pair(x, x))))), a),
-    """fst {snd {2,3},\x:Bool.fst {x,x}} a""" -> First(App(Pair(Second(Pair(two, three)), Abs(x, Bool(), First(Pair(x, x)))), a)),
+    """(fst {snd {succ succ 0,succ succ succ 0},\x:Bool.fst {x,x}}) a""" -> App(First(Pair(Second(Pair(two, three)), Abs(x, Bool(), First(Pair(x, x))))), a),
+    """fst {snd {succ succ 0,succ succ succ 0},\x:Bool.fst {x,x}} a""" -> First(App(Pair(Second(Pair(two, three)), Abs(x, Bool(), First(Pair(x, x)))), a)),
 
     """{x,y}""" -> Pair(x, y),
     """{{a,b},{x,y}}""" -> Pair(Pair(a, b), Pair(x, y)),
     """{\x:Nat.x,\y:Bool.y}""" -> Pair(Abs(x, Nat(), x), Abs(y, Bool(), y)),
-    """{\x:Nat.iszero x,\x:Bool.if x then 0 else 1}""" -> Pair(Abs(x, Nat(), IsZero(x)), Abs(x, Bool(), If(x, Zero(), one))) //
-    //
-    //
-    )
+    """{\x:Nat.iszero x,\x:Bool.if x then 0 else succ 0}""" -> Pair(Abs(x, Nat(), IsZero(x)), Abs(x, Bool(), If(x, Zero(), one))))
 
   val typeCanonicalCases = Map[Term, String](
     Bool() -> "Bool",
