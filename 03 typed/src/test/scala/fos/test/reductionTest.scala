@@ -15,8 +15,7 @@ class reductionTest extends FlatSpec with Matchers {
     // Variables are not considered as values
     """\y:Bool.(\x:Bool.x) y""" :: Nil,
 
-    // Controversy: See http://moodle.epfl.ch/mod/forum/discuss.php?d=192740#p438873
-    """(\z:Nat.(\x:Bool->Bool.x) \y:Bool.y) 0""" :: """(\z:Nat.\y:Bool.y) 0""" :: """\y:Bool.y""" :: Nil,
+    """(\z:Nat.(\x:Bool->Bool.x) \y:Bool.y) 0""" :: """(\x: Bool -> Bool. x) \y:Bool.y""" :: """\y: Bool. y""" :: Nil,
 
     Nil)
 
