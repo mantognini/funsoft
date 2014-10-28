@@ -5,7 +5,7 @@ import fos.test.helpers.Helper
 import fos.SimplyTyped
 import fos.Term
 
-class reductionTest extends FlatSpec with Matchers {
+class ReductionTest extends FlatSpec with Matchers {
 
   val ValidAndTerminating: List[List[String]] = List(
     """\x:Bool.x""" :: Nil,
