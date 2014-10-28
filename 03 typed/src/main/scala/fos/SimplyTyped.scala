@@ -82,7 +82,7 @@ object SimplyTyped extends StandardTokenParsers {
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
 
-  /** Print an error message, together with the position where it occured. */
+  /** Print an error message, together with the position where it occurred. */
   case class TypeError(pos: Position, msg: String) extends Exception(msg) {
     override def toString =
       msg + "\n" + pos.longString
