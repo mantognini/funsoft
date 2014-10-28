@@ -134,7 +134,6 @@ object SimplyTyped extends StandardTokenParsers {
    * [x → s]fst t                   = fst [x → s]t
    * [x → s]snd t                   = snd [x → s]t
    */
-  // TODO: Create tests for substitutions
   def substitute(body: Term, x: Var, s: Term): Term = body match {
     case True() => True()
     case False() => False()
@@ -209,7 +208,7 @@ object SimplyTyped extends StandardTokenParsers {
 
     case If(t1, t2, t3) if typeof(t1) == Bool() && typeof(t2) == typeof(t3) => typeof(t3)
 
-    case Var(name) => ctx.getOrElse(name, throw new TypeError(t.pos, "unknown var " + name))
+    case Var(name) => ctx.getOrElse(name, throw TypeError(t.pos, s"unknown variable $name"))
 
     case Abs(x, typ, body) => Function(typ, typeof(body)(ctx + ((x.name, typ))))
 
@@ -217,24 +216,24 @@ object SimplyTyped extends StandardTokenParsers {
       case Function(typ11, typ12) =>
         val typ22 = typeof(t2)
         if (typ22 == typ11) typ12
-        else throw TypeError(t.pos, "Term " + t2 + " should be of type " + typ11 + ", but is " + typ22)
+        else throw TypeError(t.pos, s"parameter type mismatch: expected $typ11, found $typ22")
 
-      case typError => throw TypeError(t.pos, "Term " + t1 + " should be of type Function, but is " + typError)
+      case typError => throw TypeError(t.pos, s"function type expected $typError found")
     }
 
     case Pair(t1, t2) => Product(typeof(t1), typeof(t2))
 
     case First(t) => typeof(t) match {
       case Product(typ1, _) => typ1
-      case typError => throw TypeError(t.pos, "Term " + t + " should be of type Product, but is " + typError)
+      case typError => throw TypeError(t.pos, s"pair type expected but $typError found")
     }
 
     case Second(t) => typeof(t) match {
       case Product(_, typ2) => typ2
-      case typError => throw TypeError(t.pos, "Term " + t + " should be of type Product, but is " + typError)
+      case typError => throw TypeError(t.pos, s"pair type expected but $typError found")
     }
 
-    case _ => throw TypeError(t.pos, "No type checking rules apply to " + t)
+    case _ => throw TypeError(t.pos, "no type checking rules apply to " + t)
   }
 
   /**
