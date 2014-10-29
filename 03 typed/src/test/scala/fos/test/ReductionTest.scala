@@ -16,7 +16,7 @@ class ReductionTest extends FlatSpec with Matchers {
     """\y:Bool.(\x:Bool.x) y""" :: Nil,
 
     """(\z:Nat.(\x:Bool->Bool.x) \y:Bool.y) 0""" :: """(\x: Bool -> Bool. x) \y:Bool.y""" :: """\y: Bool. y""" :: Nil,
-
+    """(\x:Nat->Bool. (\y:Nat.(x y))) (\x:Nat.(iszero x)) 0""" :: """(\y:Nat.(\x:Nat.iszero x) y)  0""" :: """(\x:Nat.iszero x) 0""" :: """iszero 0""" :: """true""" :: Nil,
     Nil)
 
   behavior of "reduction(call-by-value)"
