@@ -18,6 +18,9 @@ object SimplyTyped extends StandardTokenParsers {
   // let x: T = t1 in t2        =>      (\x:T.t2) t1
   def convertLet(x: String, typ: Type, t1: Term, t2: Term) = App(Abs(Var(x), typ, t2), t1)
 
+  // letrec x: T = t1 in t2     =>      let x = fix (\x:T. t1) in t2
+  def convertLetrec(x: String, typ: Type, t1: Term, t2: Term) = convertLet(x, typ, Fix(Abs(Var(x), typ, t1)), t2)
+
   /**
    * Term     ::= SimpleTerm { SimpleTerm }
    */
@@ -57,6 +60,7 @@ object SimplyTyped extends StandardTokenParsers {
       | "fst" ~> Term ^^ { case p => First(p) }
       | "snd" ~> Term ^^ { case p => Second(p) }
       | "fix" ~> Term ^^ Fix
+      | ("letrec" ~> ident) ~ (":" ~> Type) ~ ("=" ~> Term) ~ ("in" ~> Term) ^^ { case x ~ typ ~ t1 ~ t2 => convertLetrec(x, typ, t1, t2) }
       | failure("illegal start of simple term"))
 
   /**
