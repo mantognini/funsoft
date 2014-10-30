@@ -67,6 +67,7 @@ case class App(t1: Term, t2: Term) extends Term {
     case Abs(_, _, t) => true
     case First(t) => true
     case Second(t) => true
+    case Fix(t) => true
     case _ => false
   }
 
@@ -129,6 +130,11 @@ case class First(p: Term) extends Term {
 case class Second(p: Term) extends Term {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
     surroundWithPar(par, s"snd $p")
+}
+
+case class Fix(t: Term) extends Term {
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"fix $t")
 }
 
 /** Abstract Syntax Trees for types. */

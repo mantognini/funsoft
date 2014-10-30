@@ -10,7 +10,7 @@ import scala.util.parsing.input._
  */
 object SimplyTyped extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".", ":", "=", "->", "{", "}", ",", "*")
-  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "in", "fst", "snd")
+  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "fix", "letrec", "in", "fst", "snd")
 
   // 0 => 0, n => Succ(n-1)
   def convertNumeric(n: Int): Term = if (n <= 0) Zero() else Succ(convertNumeric(n - 1))
@@ -56,6 +56,7 @@ object SimplyTyped extends StandardTokenParsers {
       | ("{" ~> Term <~ ",") ~ (Term <~ "}") ^^ { case p1 ~ p2 => Pair(p1, p2) }
       | "fst" ~> Term ^^ { case p => First(p) }
       | "snd" ~> Term ^^ { case p => Second(p) }
+      | "fix" ~> Term ^^ Fix
       | failure("illegal start of simple term"))
 
   /**
