@@ -127,6 +127,7 @@ object SimplyTyped extends StandardTokenParsers {
    *
    * [x → s]true                    = true
    * [x → s]false                   = false
+   * [x → s]0                       = 0
    * [x → s]if t1 then t2 else t3   = if [x → s]t1 then [x → s]t2 else [x → s]t3
    * [x → s]pred t                  = pred [x → s]t
    * [x → s]succ t                  = succ [x → s]t
@@ -144,6 +145,7 @@ object SimplyTyped extends StandardTokenParsers {
   def substitute(body: Term)(implicit info: (Var, Term)): Term = body match {
     case True() => True()
     case False() => False()
+    case Zero() => Zero()
     case If(t1, t2, t3) => If(substitute(t1), substitute(t2), substitute(t3))
     case Pred(t) => Pred(substitute(t))
     case Succ(t) => Succ(substitute(t))
