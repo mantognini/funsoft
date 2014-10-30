@@ -114,6 +114,7 @@ object SimplyTyped extends StandardTokenParsers {
     case NumericValue(_) => true
     case Abs(_, _, _) => true
     case Pair(Value(_), Value(_)) => true
+    case Fix(_) => true
     case _ => false
   }
 
@@ -154,6 +155,7 @@ object SimplyTyped extends StandardTokenParsers {
     case Pair(t1, t2) => Pair(substitute(t1, x, s), substitute(t2, x, s))
     case First(t) => First(substitute(t, x, s))
     case Second(t) => Second(substitute(t, x, s))
+    case Fix(t) => Fix(substitute(t, x, s))
   }
 
   /** Call by value reducer. */
@@ -168,6 +170,7 @@ object SimplyTyped extends StandardTokenParsers {
     case App(Abs(x, typ, body), Value(v2)) => substitute(body, x, v2)
     case First(Pair(Value(v1), Value(v2))) => v1
     case Second(Pair(Value(v1), Value(v2))) => v2
+    case fix @ Fix(Abs(x, typ, body)) => substitute(body, x, fix)
 
     // Congruence
     case If(t1, t2, t3) => If(reduce(t1), t2, t3)
@@ -180,6 +183,7 @@ object SimplyTyped extends StandardTokenParsers {
     case Second(t) => Second(reduce(t))
     case Pair(Value(v1), t2) => Pair(v1, reduce(t2))
     case Pair(t1, t2) => Pair(reduce(t1), t2)
+    case Fix(t) => Fix(reduce(t))
 
     case _ => throw NoRuleApplies(t)
   }
