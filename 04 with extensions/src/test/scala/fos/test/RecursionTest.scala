@@ -30,8 +30,16 @@ class RecursionTest extends FlatSpec with Matchers {
     }
   }
 
+  // Recursion with fix, see TAPL §11.11.1 (p144 + p510)
   val tests =
     """fix \x: Nat. 0""" -> "0" ::
+      """
+      let plus: Nat -> Nat -> Nat 
+          = fix (\p: Nat -> Nat -> Nat.
+                   \m: Nat. \n: Nat.
+                     if iszero m then n else succ (p (pred m) n)
+                )
+      in plus 0 0""" -> """0""" ::
       Nil
 
   behavior of "Our compiler with recursive function"
