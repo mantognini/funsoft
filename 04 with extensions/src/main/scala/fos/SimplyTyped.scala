@@ -236,6 +236,11 @@ object SimplyTyped extends StandardTokenParsers {
       case typError => throw TypeError(t.pos, s"pair type expected but $typError found")
     }
 
+    case Fix(t) => {
+      val typ = typeof(t)
+      Function(typ, typ)
+    }
+
     case _ => throw TypeError(t.pos, "no type checking rules apply to " + t)
   }
 
