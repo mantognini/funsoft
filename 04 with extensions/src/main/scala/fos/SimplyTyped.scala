@@ -10,13 +10,16 @@ import scala.util.parsing.input._
  */
 object SimplyTyped extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".", ":", "=", "->", "{", "}", ",", "*")
-  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "in", "fst", "snd")
+  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "fix", "letrec", "in", "fst", "snd")
 
   // 0 => 0, n => Succ(n-1)
   def convertNumeric(n: Int): Term = if (n <= 0) Zero() else Succ(convertNumeric(n - 1))
 
   // let x: T = t1 in t2        =>      (\x:T.t2) t1
   def convertLet(x: String, typ: Type, t1: Term, t2: Term) = App(Abs(Var(x), typ, t2), t1)
+
+  // letrec x: T = t1 in t2     =>      let x = fix (\x:T. t1) in t2
+  def convertLetrec(x: String, typ: Type, t1: Term, t2: Term) = convertLet(x, typ, Fix(Abs(Var(x), typ, t1)), t2)
 
   /**
    * Term     ::= SimpleTerm { SimpleTerm }
@@ -56,6 +59,8 @@ object SimplyTyped extends StandardTokenParsers {
       | ("{" ~> Term <~ ",") ~ (Term <~ "}") ^^ { case p1 ~ p2 => Pair(p1, p2) }
       | "fst" ~> Term ^^ { case p => First(p) }
       | "snd" ~> Term ^^ { case p => Second(p) }
+      | "fix" ~> Term ^^ Fix
+      | ("letrec" ~> ident) ~ (":" ~> Type) ~ ("=" ~> Term) ~ ("in" ~> Term) ^^ { case x ~ typ ~ t1 ~ t2 => convertLetrec(x, typ, t1, t2) }
       | failure("illegal start of simple term"))
 
   /**
@@ -109,6 +114,7 @@ object SimplyTyped extends StandardTokenParsers {
     case NumericValue(_) => true
     case Abs(_, _, _) => true
     case Pair(Value(_), Value(_)) => true
+    case Fix(_) => true
     case _ => false
   }
 
@@ -121,6 +127,7 @@ object SimplyTyped extends StandardTokenParsers {
    *
    * [x → s]true                    = true
    * [x → s]false                   = false
+   * [x → s]0                       = 0
    * [x → s]if t1 then t2 else t3   = if [x → s]t1 then [x → s]t2 else [x → s]t3
    * [x → s]pred t                  = pred [x → s]t
    * [x → s]succ t                  = succ [x → s]t
@@ -133,22 +140,25 @@ object SimplyTyped extends StandardTokenParsers {
    * [x → s]{t1, t2}                = {[x → s]t1, [x → s]t2}
    * [x → s]fst t                   = fst [x → s]t
    * [x → s]snd t                   = snd [x → s]t
+   * [x → s]fix t                   = fix [x → s]t
    */
-  def substitute(body: Term, x: Var, s: Term): Term = body match {
+  def substitute(body: Term)(implicit info: (Var, Term)): Term = body match {
     case True() => True()
     case False() => False()
-    case If(t1, t2, t3) => If(substitute(t1, x, s), substitute(t2, x, s), substitute(t3, x, s))
-    case Pred(t) => Pred(substitute(t, x, s))
-    case Succ(t) => Succ(substitute(t, x, s))
-    case IsZero(t) => IsZero(substitute(t, x, s))
-    case y: Var if y == x => s
-    case y: Var if y != x => y
-    case l @ Abs(y, _, _) if y == x => l
-    case Abs(y, typ, t) if y != x => Abs(y, typ, substitute(t, x, s))
-    case App(t1, t2) => App(substitute(t1, x, s), substitute(t2, x, s))
-    case Pair(t1, t2) => Pair(substitute(t1, x, s), substitute(t2, x, s))
-    case First(t) => First(substitute(t, x, s))
-    case Second(t) => Second(substitute(t, x, s))
+    case Zero() => Zero()
+    case If(t1, t2, t3) => If(substitute(t1), substitute(t2), substitute(t3))
+    case Pred(t) => Pred(substitute(t))
+    case Succ(t) => Succ(substitute(t))
+    case IsZero(t) => IsZero(substitute(t))
+    case y: Var if y == info._1 => info._2
+    case y: Var => y
+    case l @ Abs(y, _, _) if y == info._1 => l
+    case Abs(y, typ, t) => Abs(y, typ, substitute(t))
+    case App(t1, t2) => App(substitute(t1), substitute(t2))
+    case Pair(t1, t2) => Pair(substitute(t1), substitute(t2))
+    case First(t) => First(substitute(t))
+    case Second(t) => Second(substitute(t))
+    case Fix(t) => Fix(substitute(t))
   }
 
   /** Call by value reducer. */
@@ -160,9 +170,10 @@ object SimplyTyped extends StandardTokenParsers {
     case IsZero(Succ(NumericValue(nv))) => False()
     case Pred(Zero()) => Zero()
     case Pred(Succ(NumericValue(nv))) => nv
-    case App(Abs(x, typ, body), Value(v2)) => substitute(body, x, v2)
+    case App(Abs(x, typ, body), Value(v2)) => substitute(body)(x -> v2)
     case First(Pair(Value(v1), Value(v2))) => v1
     case Second(Pair(Value(v1), Value(v2))) => v2
+    case fix @ Fix(Abs(x, typ, body)) => substitute(body)(x -> fix)
 
     // Congruence
     case If(t1, t2, t3) => If(reduce(t1), t2, t3)
@@ -175,6 +186,7 @@ object SimplyTyped extends StandardTokenParsers {
     case Second(t) => Second(reduce(t))
     case Pair(Value(v1), t2) => Pair(v1, reduce(t2))
     case Pair(t1, t2) => Pair(reduce(t1), t2)
+    case Fix(t) => Fix(reduce(t))
 
     case _ => throw NoRuleApplies(t)
   }
@@ -224,6 +236,11 @@ object SimplyTyped extends StandardTokenParsers {
     case Second(t) => typeof(t) match {
       case Product(_, typ2) => typ2
       case typError => throw TypeError(t.pos, s"pair type expected but $typError found")
+    }
+
+    case Fix(t) => {
+      val typ = typeof(t)
+      Function(typ, typ)
     }
 
     case _ => throw TypeError(t.pos, "no type checking rules apply to " + t)
