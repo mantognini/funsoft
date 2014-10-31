@@ -20,7 +20,10 @@ object SimplyTyped extends StandardTokenParsers {
   def convertLet(x: String, typ: Type, t1: Term, t2: Term) = App(Abs(Var(x), typ, t2), t1)
 
   // letrec x: T = t1 in t2     =>      let x = fix (\x:T. t1) in t2
-  def convertLetrec(x: String, typ: Type, t1: Term, t2: Term) = convertLet(x, typ, Fix(Abs(Var(x), typ, t1)), t2)
+  def convertLetrec(x: String, typ: Type, t1: Term, t2: Term) = {
+    val fix = Fix(Abs(Var(x), typ, t1))
+    convertLet(x, typeof(fix), fix, t2)
+  }
 
   /**
    * Term     ::= SimpleTerm { SimpleTerm }
