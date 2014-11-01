@@ -137,6 +137,21 @@ case class Fix(t: Term) extends Term {
     surroundWithPar(par, s"fix $t")
 }
 
+case class Inl(t: Term, typ: Type) extends Term {
+  // TODO
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ???
+}
+
+case class Inr(t: Term, typ: Type) extends Term {
+  // TODO
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ???
+}
+
+case class Case(caseTerm: Term, inlVar: Var, inlBody: Term, inrVar: Var, inrBody: Term) extends Term {
+  // TODO
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ???
+}
+
 /** Abstract Syntax Trees for types. */
 abstract class Type extends Term {
   /* For pattern matching only */
