@@ -4,8 +4,10 @@ import org.scalatest._
 
 class PrettyPrintTest extends FlatSpec with Matchers {
 
-  import fos.{ SimplyTyped, Term, True, False, Zero, If, Pair, First, Second, Succ, Pred, IsZero, Var, Abs, App, Bool, Nat, Function, Product }
+  import fos.{ Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second, Inl, Inr, Case }
+  import fos.{ Type, Bool, Nat, Function, Product, Sum }
   import fos.test.helpers.ttools
+  import fos.test.SumTypesTest
 
   behavior of "The pretty printer"
 
@@ -18,6 +20,12 @@ class PrettyPrintTest extends FlatSpec with Matchers {
   }
 
   ttools.typeCanonicalCases.foreach {
+    case (ast, expr) => it should "properly print " + expr + ". NB, AST is " + toRawString(ast) in {
+      ast.toString shouldEqual expr
+    }
+  }
+
+  SumTypesTest.toStringCases.foreach {
     case (ast, expr) => it should "properly print " + expr + ". NB, AST is " + toRawString(ast) in {
       ast.toString shouldEqual expr
     }
@@ -41,5 +49,14 @@ class PrettyPrintTest extends FlatSpec with Matchers {
     case Zero() => "0"
     case False() => "false"
     case True() => "true"
+
+    case Sum(typ1, typ2) => "[" + toRawString(typ1) + "+" + toRawString(typ2) + "]"
+    case Inl(t, typ) => "(inl " + toRawString(t) + " as " + toRawString(typ) + ")"
+    case Inr(t, typ) => "(inr " + toRawString(t) + " as " + toRawString(typ) + ")"
+    case Case(t, inlVar, inlTerm, inrVar, inrTerm) =>
+      "(case " + toRawString(t) + " of inl " + toRawString(inlVar) + "=>" + toRawString(inlTerm) + " | inr " +
+        toRawString(inrVar) + "=>" + toRawString(inrTerm) + ")"
+
+    case _ => throw new NotImplementedError()
   }
 }

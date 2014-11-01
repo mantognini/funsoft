@@ -8,6 +8,7 @@ class TypeCheckTest extends WordSpec with Matchers {
   import fos.SimplyTyped
   import fos.SimplyTyped.{ TypeError }
   import fos.{ Type, Bool, Nat, Product, Function }
+  import fos.test.SumTypesTest
 
   // List of test that should fail
   val negatives =
@@ -70,8 +71,8 @@ class TypeCheckTest extends WordSpec with Matchers {
   }
 
   "The typechecker" should {
-    negatives foreach testNegative
-    positives foreach testPositive
+    SumTypesTest.dontTypeCheckStrings ::: negatives foreach testNegative
+    SumTypesTest.typeCheckPositives ::: positives foreach testPositive
   }
 
 }

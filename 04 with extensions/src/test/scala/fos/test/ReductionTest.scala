@@ -7,7 +7,9 @@ import fos.Term
 
 class ReductionTest extends FlatSpec with Matchers {
 
-  val ValidAndTerminating: List[List[String]] = List(
+  import fos.test.SumTypesTest
+
+  val ValidAndTerminating: List[List[String]] = SumTypesTest.stepsCases ::: List(
     """\x:Bool.x""" :: Nil,
     """\x:Nat.\y:Bool.y""" :: Nil,
     """\x:Bool->Nat.\y:Bool.x y""" :: Nil,

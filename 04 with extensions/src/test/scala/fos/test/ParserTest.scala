@@ -8,6 +8,7 @@ class ParserTest extends WordSpec with Matchers {
 
   import fos.{ SimplyTyped, Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second, Bool, Nat, Function, Product }
   import fos.test.helpers.Helper._
+  import fos.test.SumTypesTest
 
   val id_b_s = """(\x: Bool. x)"""
   val id_n_s = """(\x: Nat. x)"""
@@ -128,6 +129,8 @@ class ParserTest extends WordSpec with Matchers {
   "The parser" should {
     processTests("procude the correct AST with input ", tests, input => parseOrFail(input))
     processTests("procude the correst AST for Types with input ", typeTests, input => parseOrFail(input)(typeParser))
+    processTests("produce the correct AST for sum types extension ", SumTypesTest.parserTypeCases, input => parseOrFail(input))
+    processTests("produce the correct AST for sum types extension ", SumTypesTest.parserTypeCases, input => parseOrFail(input)(typeParser))
   }
 
 }

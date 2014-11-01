@@ -139,17 +139,17 @@ case class Fix(t: Term) extends Term {
 
 case class Inl(t: Term, typ: Type) extends Term {
   // TODO
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ???
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ""
 }
 
 case class Inr(t: Term, typ: Type) extends Term {
   // TODO
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ???
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ""
 }
 
 case class Case(caseTerm: Term, inlVar: Var, inlBody: Term, inrVar: Var, inrBody: Term) extends Term {
   // TODO
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ???
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ""
 }
 
 /** Abstract Syntax Trees for types. */
@@ -191,6 +191,6 @@ case class Product(fst: Type, snd: Type) extends Type {
 
 case class Sum(typ1: Type, typ2: Type) extends Type {
   // TODO
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ???
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ""
 }
 
