@@ -138,18 +138,18 @@ case class Fix(t: Term) extends Term {
 }
 
 case class Inl(t: Term, typ: Type) extends Term {
-  // TODO
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ""
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"inl $t as $typ")
 }
 
 case class Inr(t: Term, typ: Type) extends Term {
-  // TODO
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ""
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"inr $t as $typ")
 }
 
 case class Case(caseTerm: Term, inlVar: Var, inlBody: Term, inrVar: Var, inrBody: Term) extends Term {
-  // TODO
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ""
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) =
+    surroundWithPar(par, s"case $caseTerm of inl $inlVar=>$inlBody | inr $inrVar=>$inrBody")
 }
 
 /** Abstract Syntax Trees for types. */
@@ -159,6 +159,7 @@ abstract class Type extends Term {
     def unapply(t: Type) = t match {
       case Product(_, _) => Some(t)
       case Function(_, _) => Some(t)
+      case Sum(_, _) => Some(t)
       case _ => None
     }
   }
@@ -175,7 +176,8 @@ case class Nat() extends Type {
 case class Function(i: Type, o: Type) extends Type {
   override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = (i, o) match {
     case (Product(_, _), _) => s"$i->$o"
-    case (ComposedType(_), _) => s"($i)->$o"
+    case (Sum(_, _), _) => s"$i->$o"
+    case (Function(_, _), _) => s"($i)->$o"
     case _ => s"$i->$o"
   }
 }
@@ -190,7 +192,11 @@ case class Product(fst: Type, snd: Type) extends Type {
 }
 
 case class Sum(typ1: Type, typ2: Type) extends Type {
-  // TODO
-  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ""
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = (typ1, typ2) match {
+    case (ComposedType(_), Function(_, _)) => s"($typ1)+($typ2)"
+    case (_, Function(_, _)) => s"$typ1+($typ2)"
+    case (ComposedType(_), _) => s"($typ1)+$typ2"
+    case _ => s"$typ1+$typ2"
+  }
 }
 
