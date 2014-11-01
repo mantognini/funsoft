@@ -4,8 +4,7 @@ import org.scalatest._
 
 class PrettyPrintTest extends FlatSpec with Matchers {
 
-  import fos.{ Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second, Inl, Inr, Case }
-  import fos.{ Type, Bool, Nat, Function, Product, Sum }
+  import fos._
   import fos.test.helpers.ttools
   import fos.test.SumTypesTest
 
