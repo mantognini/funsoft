@@ -174,3 +174,8 @@ case class Product(fst: Type, snd: Type) extends Type {
   }
 }
 
+case class Sum(typ1: Type, typ2: Type) extends Type {
+  // TODO
+  override def prettyString(par: Boolean = false, forceRighParInInnerTerm: Boolean = false) = ???
+}
+
