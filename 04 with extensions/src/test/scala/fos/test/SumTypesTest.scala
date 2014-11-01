@@ -34,7 +34,7 @@ class SumTypesTest extends WordSpec with Matchers {
       """false""" :: Nil, Bool()),
     ("""inl inl zero as Nat+Bool as (Nat+Bool)+Nat""" :: Nil, Sum(Sum(Nat(), Bool()), Nat())),
     ("""inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat""" :: Nil, Sum(Function(Nat(), Bool()), Sum(Bool(), Nat()))),
-    ("""case inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat of inl x => zero | y => case y of inl y => if y then zero else succ zero | inr y => succ y""" ::
+    ("""case inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat of inl x => zero | inr y => case y of inl y => if y then zero else succ zero | inr y => succ y""" ::
       """case inl true as Bool+Nat of inl y => if y then zero else succ zero | inr y => succ y""" ::
       """if true then zero else succ zero""" ::
       """zero""" :: Nil, Nat()),
