@@ -32,7 +32,12 @@ class SumTypesTest extends WordSpec with Matchers {
       """iszero case inl zero as Nat+Bool of inl x => succ x | inr x => if x then zero else succ zero""" ::
       """iszero succ zero""" ::
       """false""" :: Nil, Bool()),
-    // TODO Inl of Inl?
+    ("""inl inl zero as Nat+Bool as (Nat+Bool)+Nat""" :: Nil, Sum(Sum(Nat(), Bool()), Nat())),
+    ("""inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat""" :: Nil, Sum(Function(Nat(), Bool()), Sum(Bool(), Nat()))),
+    ("""case inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat of inl x => zero | y => case y of inl y => if y then zero else succ zero | inr y => succ y""" ::
+      """case inl true as Bool+Nat of inl y => if y then zero else succ zero | inr y => succ y""" ::
+      """if true then zero else succ zero""" ::
+      """zero""" :: Nil, Nat()),
     (Nil, ???))
 
   def dontTypeCheck: List[Term] = List(
