@@ -5,7 +5,7 @@ import org.scalatest._
 class SumTypesTest extends WordSpec with Matchers {
 
   import fos.SimplyTyped
-  import fos.{ Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second }
+  import fos.{ Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second, Inl, Inr, Case }
   import fos.{ Type, Bool, Nat, Function, Product, Sum }
   import fos.test.helpers.Helper._
 
@@ -32,7 +32,27 @@ class SumTypesTest extends WordSpec with Matchers {
       """iszero case inl zero as Nat+Bool of inl x => succ x | inr x => if x then zero else succ zero""" ::
       """iszero succ zero""" ::
       """false""" :: Nil, Bool()),
+    // TODO Inl of Inl?
     (Nil, ???))
+
+  def dontTypeCheck: List[Term] = List(
+    // Inl | inr has to be a Sum(_,_)
+    Inr(True(), Bool()),
+    Inr(Zero(), Nat()),
+    Inl(Abs(x, Nat(), Zero()), Function(Nat(), Nat())),
+
+    // << Inl | Inr as T1+T2 >> terms have to match their sum-type T1+T2
+    Inr(True(), Sum(Bool(), Nat())),
+    Inl(Succ(Zero()), Sum(Bool(), Nat())),
+
+    // case term has to be a Sum(_,_)
+    Case(False(), x, Bool(), x, Bool()),
+    Case(IsZero(Zero()), x, Bool(), x, Bool()),
+    Case(If(True(), True(), Zero()), x, Bool(), y, Bool()),
+
+    // t1 amd t2 have to be of same type
+    Case(Inr(True(), Sum(Nat(), Bool())), x, True(), x, Zero()),
+    Case(Inl(Zero(), Sum(Nat(), Nat())), y, IsZero(Zero()), z, Zero()))
 
   def steps = simpleSteps ::: advancedSteps
 }
