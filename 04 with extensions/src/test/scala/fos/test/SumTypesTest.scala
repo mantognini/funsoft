@@ -59,5 +59,17 @@ class SumTypesTest extends WordSpec with Matchers {
     Case(Inr(True(), Sum(Nat(), Bool())), x, True(), x, Zero()),
     Case(Inl(Zero(), Sum(Nat(), Nat())), y, IsZero(Zero()), z, Zero()))
 
+  def toStringCases: List[Tuple2[Term, String]] = List(
+    // + has same precedence as *
+    (Sum(Bool(), Product(Nat(), Sum(Bool(), Nat()))), "Bool+Nat*Bool+Nat"),
+
+    // Cases (with inl / inr)
+    (Case(Inr(True(), Sum(Nat(), Bool())), x, Succ(x), y, Zero()),
+      "case inr true as Nat+Bool of inl x => succ x | inr y => zero"))
+
+  def parserCases: List[Tuple2[String, Term]] = toStringCases map { _.swap }
+
   def steps = simpleSteps ::: advancedSteps
+
+  // TODO: implement tests - or integrate test-cases into existing tests
 }
