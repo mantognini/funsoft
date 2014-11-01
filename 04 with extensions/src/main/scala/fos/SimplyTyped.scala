@@ -61,6 +61,10 @@ object SimplyTyped extends StandardTokenParsers {
       | "snd" ~> Term ^^ { case p => Second(p) }
       | "fix" ~> Term ^^ Fix
       | ("letrec" ~> ident) ~ (":" ~> Type) ~ ("=" ~> Term) ~ ("in" ~> Term) ^^ { case x ~ typ ~ t1 ~ t2 => convertLetrec(x, typ, t1, t2) }
+      | ("inl" ~> Term) ~ ("as" ~> Type) ^^ { case t ~ typ => Inl(t, typ) }
+      | ("inr" ~> Term) ~ ("as" ~> Type) ^^ { case t ~ typ => Inr(t, typ) }
+      | ("case" ~> Term) ~ ("of" ~> ("inl" ~> ident)) ~ ("=>" ~> Term <~ "|") ~ ("inr" ~> ident) ~ ("=>" ~> Term) ^^
+      { case t ~ inlVar ~ inlTerm ~ inrVar ~ inrTerm => Case(t, Var(inlVar), inlTerm, Var(inrVar), inrTerm) }
       | failure("illegal start of simple term"))
 
   /**
