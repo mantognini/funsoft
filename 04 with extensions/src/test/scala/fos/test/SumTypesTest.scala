@@ -65,7 +65,10 @@ class SumTypesTest extends WordSpec with Matchers {
 
     // Cases (with inl / inr)
     (Case(Inr(True(), Sum(Nat(), Bool())), x, Succ(x), y, Zero()),
-      "case inr true as Nat+Bool of inl x => succ x | inr y => zero"))
+      "case inr true as Nat+Bool of inl x => succ x | inr y => zero"),
+
+    // Bruce lee combo
+    (Case(Inr(Inl(True(), Sum(Bool(), Nat())), Sum(Function(Nat(), Bool()), Sum(Bool(), Nat()))), x, Zero(), y, Case(y, y, If(y, Zero(), Succ(Zero())), y, Succ(y))), "case inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat of inl x => zero | inr y => case y of inl y => if y then zero else succ zero | inr y => succ y"))
 
   def parserCases: List[Tuple2[String, Term]] = toStringCases map { _.swap }
 
