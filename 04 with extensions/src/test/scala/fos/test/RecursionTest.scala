@@ -52,6 +52,10 @@ class RecursionTest extends FlatSpec with Matchers {
       s"$plusDef in plus 0 0" -> "0" ::
       s"$plusDef in plus 5 5" -> "10" ::
       s"$plusDef in plus 9 1" -> "10" ::
+      s"$timesDef in times 1 10" -> "10" ::
+      s"$timesDef in times 2 10" -> "20" ::
+      s"$timesDef in times 5 10" -> "50" ::
+      s"$timesDef in times (times 2 3) 7" -> "42" ::
       s"$timesDef in times 9 10" -> "90" ::
       Nil
 
