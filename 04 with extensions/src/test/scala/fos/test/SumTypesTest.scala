@@ -24,7 +24,7 @@ object SumTypesTest {
 
   val advancedSteps: List[Tuple2[List[String], Type]] = List(
     ("""inl {0, false} as (Nat*Bool)+(Nat->Nat)""" :: Nil, Sum(Product(Nat(), Bool()), Function(Nat(), Nat()))),
-    ("""inl {0, \x:Nat.iszero x} as (Nat*(Nat->Bool))+Nat""" :: Nil, Sum(Product(Nat(), Bool()), Nat())),
+    ("""inl {0, \x:Nat.iszero x} as (Nat*(Nat->Bool))+Nat""" :: Nil, Sum(Product(Nat(), Function(Nat(), Bool())), Nat())),
     ("""iszero case if true then inl 0 as Nat+Bool else inr iszero succ 0 as Nat+Bool of inl x => succ x | inr x => if x then 0 else succ 0""" ::
       """iszero case inl 0 as Nat+Bool of inl x => succ x | inr x => if x then 0 else succ 0""" ::
       """iszero succ 0""" ::
