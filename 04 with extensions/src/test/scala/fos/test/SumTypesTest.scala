@@ -52,9 +52,9 @@ object SumTypesTest {
     Inl(Succ(Zero()), Sum(Bool(), Nat())),
 
     // case term has to be a Sum(_,_)
-    Case(False(), x, Bool(), x, Bool()),
-    Case(IsZero(Zero()), x, Bool(), x, Bool()),
-    Case(If(True(), True(), Zero()), x, Bool(), y, Bool()),
+    Case(False(), x, True(), x, False()),
+    Case(IsZero(Zero()), x, Zero(), x, Zero()),
+    Case(If(True(), True(), Zero()), x, True(), y, True()),
 
     // t1 amd t2 have to be of same type
     Case(Inr(True(), Sum(Nat(), Bool())), x, True(), x, Zero()),
