@@ -132,22 +132,28 @@ object SimplyTyped extends StandardTokenParsers {
   /**
    * Substitution rules:
    *
-   * [x → s]true                    = true
-   * [x → s]false                   = false
-   * [x → s]0                       = 0
-   * [x → s]if t1 then t2 else t3   = if [x → s]t1 then [x → s]t2 else [x → s]t3
-   * [x → s]pred t                  = pred [x → s]t
-   * [x → s]succ t                  = succ [x → s]t
-   * [x → s]iszero t                = iszero [x → s]t
-   * [x → s]y                       = s                                             if y = x
-   * [x → s]y                       = y                                             if y ≠ x
-   * [x → s](λy. t)                 = λy. t                                         if y = x
-   * [x → s](λy. t)                 = λy. [x → s]t                                  if y ≠ x
-   * [x → s](t1 t2)                 = [x → s]t1 [x → s]t2
-   * [x → s]{t1, t2}                = {[x → s]t1, [x → s]t2}
-   * [x → s]fst t                   = fst [x → s]t
-   * [x → s]snd t                   = snd [x → s]t
-   * [x → s]fix t                   = fix [x → s]t
+   * [x → s]true                    			= true
+   * [x → s]false                   			= false
+   * [x → s]0                       			= 0
+   * [x → s]if t1 then t2 else t3   			= if [x → s]t1 then [x → s]t2 else [x → s]t3
+   * [x → s]pred t                  			= pred [x → s]t
+   * [x → s]succ t                  			= succ [x → s]t
+   * [x → s]iszero t                			= iszero [x → s]t
+   * [x → s]y                       			= s                                             			if y = x
+   * [x → s]y                       			= y                                             			if y ≠ x
+   * [x → s](λy. t)                 			= λy. t                                         			if y = x
+   * [x → s](λy. t)                 			= λy. [x → s]t                                  			if y ≠ x
+   * [x → s](t1 t2)                				= [x → s]t1 [x → s]t2
+   * [x → s]{t1, t2}            			    = {[x → s]t1, [x → s]t2}
+   * [x → s]fst t    			               			= fst [x → s]t
+   * [x → s]snd t                   			= snd [x → s]t
+   * [x → s]fix t                   			= fix [x → s]t
+   * [x → s]inl t								= inl [x → s]t
+   * [x → s]inr t								= inr [x → s]t
+   * [x → s]case t of inl x1=>t1 | inr x2=>t2	= case [x → s]t of inl x1=>[x → s]t1 | inr x2=>[x → s]t2	if x ≠ x1 ^ x ≠ x2
+   * [x → s]case t of inl x1=>t1 | inr x2=>t2	= case [x → s]t of inl x1=>t1 | inr x2=>[x → s]t2			if x = x1 ^ x ≠ x2
+   * [x → s]case t of inl x1=>t1 | inr x2=>t2	= case [x → s]t of inl x1=>[x → s]t1 | inr x2=>t2			if x ≠ x1 ^ x = x2
+   * [x → s]case t of inl x1=>t1 | inr x2=>t2	= case [x → s]t of inl x1=>t1 | inr x2=>t2					if x = x1 ^ x = x2
    */
   def substitute(body: Term)(implicit info: (Var, Term)): Term = body match {
     case True() => True()
@@ -166,6 +172,16 @@ object SimplyTyped extends StandardTokenParsers {
     case First(t) => First(substitute(t))
     case Second(t) => Second(substitute(t))
     case Fix(t) => Fix(substitute(t))
+    case Inl(t, typ) => Inl(substitute(t), typ)
+    case Inr(t, typ) => Inr(substitute(t), typ)
+    case Case(caseTerm, inlVar, inlBody, inrVar, inrBody) if inlVar != info._1 && inrVar != info._1 =>
+      Case(substitute(caseTerm), inlVar, substitute(inlBody), inrVar, substitute(inrBody))
+    case Case(caseTerm, inlVar, inlBody, inrVar, inrBody) if inlVar == info._1 && inrVar != info._1 =>
+      Case(substitute(caseTerm), inlVar, inlBody, inrVar, substitute(inrBody))
+    case Case(caseTerm, inlVar, inlBody, inrVar, inrBody) if inlVar != info._1 && inrVar == info._1 =>
+      Case(substitute(caseTerm), inlVar, substitute(inlBody), inrVar, inrBody)
+    case Case(caseTerm, inlVar, inlBody, inrVar, inrBody) if inlVar == info._1 && inrVar == info._1 =>
+      Case(substitute(caseTerm), inlVar, inlBody, inrVar, inrBody)
   }
 
   /** Call by value reducer. */
