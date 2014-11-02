@@ -271,6 +271,30 @@ object SimplyTyped extends StandardTokenParsers {
       Function(typ, typ)
     }
 
+    case Case(t, inlVar, inlBody, inrVar, inrBody) => typeof(t) match {
+      case Sum(inlType, inrType) => {
+        val t1 = typeof(inlBody)(ctx + ((inlVar.name, inlType)))
+        val t2 = typeof(inrBody)(ctx + ((inrVar.name, inrType)))
+        if (t1 == t2)
+          t1
+        else
+          throw TypeError(inrBody.pos, s"inr term has type $t2 which does not match inl term type $t1")
+      }
+      case typError => throw TypeError(t.pos, s"sum type expected but $typError found")
+    }
+
+    case Inl(t, typ) => (typeof(t), typ) match {
+      case (inlType, Sum(t1, t2)) if inlType == t1 => typ
+      case (inlType, Sum(t1, t2)) => throw TypeError(t.pos, s"type $t1 expected but $inlType found")
+      case (inlType, typError) => throw TypeError(typ.pos, s"sum type expected but $typError found")
+    }
+
+    case Inr(t, typ) => (typeof(t), typ) match {
+      case (inrType, Sum(t1, t2)) if inrType == t2 => typ
+      case (inrType, Sum(t1, t2)) => throw TypeError(t.pos, s"type $t2 expected but $inrType found")
+      case (inrType, typError) => throw TypeError(typ.pos, s"sum type expected but $typError found")
+    }
+
     case _ => throw TypeError(t.pos, "no type checking rules apply to " + t)
   }
 
