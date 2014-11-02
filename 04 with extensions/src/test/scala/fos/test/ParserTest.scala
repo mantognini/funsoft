@@ -137,7 +137,7 @@ class ParserTest extends WordSpec with Matchers {
 
   processTests("procude the correct AST with input", tests, input => parseOrFail(input))
   processTests("procude the correst AST for Types with input", typeTests, input => parseOrFail(input)(typeParser))
-  processTests("produce the correct AST for sum types extension with input", SumTypesTest.parserTypeCases, input => parseOrFail(input))
+  processTests("produce the correct AST for sum types extension with input", SumTypesTest.parserTermCases, input => parseOrFail(input))
   processTests("produce the correct AST for sum types extension with input", SumTypesTest.parserTypeCases, input => parseOrFail(input)(typeParser))
 
 }
