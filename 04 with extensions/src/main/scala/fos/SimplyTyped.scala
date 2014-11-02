@@ -81,9 +81,19 @@ object SimplyTyped extends StandardTokenParsers {
    * Note: * has a higher precedence than ->
    */
   def Type: Parser[Type] = {
-    def function = rep1sep(sum | product, "->") ^^ { _.reduceRight { Function(_, _) } }
-    def product = rep1sep(parentheses | boolean | natural, "*") ^^ { _.reduceRight { Product(_, _) } }
-    def sum = rep1sep(parentheses | boolean | natural, "+") ^^ { _.reduceRight { Sum(_, _) } }
+    def function = rep1sep(sumOrProduct, "->") ^^ { _.reduceRight { Function(_, _) } }
+
+    def sumOrProduct = bottomTypes ~ rep(("*" | "+") ~ bottomTypes) ^^ {
+      case x ~ xs => xs match {
+        case Nil => x
+        case _ => (List(new ~("dummy", x)) ::: xs).reduceRight((left, right) => right._1 match {
+          case "+" => new ~(left._1, Sum(left._2, right._2))
+          case "*" => new ~(left._1, Product(left._2, right._2))
+        })._2
+      }
+    }
+
+    def bottomTypes = parentheses | boolean | natural
     def parentheses = "(" ~> Type <~ ")"
     def boolean = "Bool" ^^^ Bool()
     def natural = "Nat" ^^^ Nat()
