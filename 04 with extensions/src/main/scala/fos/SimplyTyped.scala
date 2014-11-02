@@ -9,8 +9,9 @@ import scala.util.parsing.input._
  *  the TAPL book.
  */
 object SimplyTyped extends StandardTokenParsers {
-  lexical.delimiters ++= List("(", ")", "\\", ".", ":", "=", "->", "{", "}", ",", "*")
-  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "fix", "letrec", "in", "fst", "snd")
+  lexical.delimiters ++= List("(", ")", "\\", ".", ":", "=", "->", "{", "}", ",", "*", "+", "|", "=>")
+  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ", "pred", "iszero", "let", "fix", "letrec", "in", "fst", "snd",
+    "case", "inl", "inr", "as", "of")
 
   // 0 => 0, n => Succ(n-1)
   def convertNumeric(n: Int): Term = if (n <= 0) Zero() else Succ(convertNumeric(n - 1))
@@ -80,8 +81,9 @@ object SimplyTyped extends StandardTokenParsers {
    * Note: * has a higher precedence than ->
    */
   def Type: Parser[Type] = {
-    def function = rep1sep(dualTp("*") | dualTp("+"), "->") ^^ { _.reduceRight { Function(_, _) } }
-    def dualTp(sep: String) = rep1sep(parentheses | boolean | natural, sep) ^^ { _.reduceRight { Product(_, _) } }
+    def function = rep1sep(sum | product, "->") ^^ { _.reduceRight { Function(_, _) } }
+    def product = rep1sep(parentheses | boolean | natural, "*") ^^ { _.reduceRight { Product(_, _) } }
+    def sum = rep1sep(parentheses | boolean | natural, "+") ^^ { _.reduceRight { Sum(_, _) } }
     def parentheses = "(" ~> Type <~ ")"
     def boolean = "Bool" ^^^ Bool()
     def natural = "Nat" ^^^ Nat()
