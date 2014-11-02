@@ -57,7 +57,7 @@ case class App(t1: Term, t2: Term) extends Term {
   // would have been applied before it .. and we would have had
   // pred x s			--> App(Pred(x), s)
   //
-  // Hence, we should be careful with FT terms and put parenthis around them
+  // Hence, we should be careful with FT terms and put parentheses around them
   // whenever needed
   def isFT(t: Term): Boolean = t match {
     case If(_, _, t) => true
