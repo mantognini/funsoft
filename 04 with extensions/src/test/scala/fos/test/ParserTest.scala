@@ -3,12 +3,16 @@ package fos.test
 import org.scalatest._
 import fos.test.helpers.ttools
 import scala.util.Random
+import org.scalatest.exceptions.TestFailedException
 
 class ParserTest extends WordSpec with Matchers {
 
   import fos.{ SimplyTyped, Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second, Bool, Nat, Function, Product }
   import fos.test.helpers.Helper._
-  import fos.test.SumTypesTest
+  import fos.test.helpers.ttools
+  import fos.test.PrettyPrintTest
+
+  def toRawString(t: Term) = ttools.toRawString(t)
 
   val id_b_s = """(\x: Bool. x)"""
   val id_n_s = """(\x: Nat. x)"""
@@ -116,21 +120,24 @@ class ParserTest extends WordSpec with Matchers {
       mapToList(ttools.typeCanonicalCases)
 
   def processTests(msgPrefix: String, tests: List[(String, Term)], parser: String => Term) {
-    tests foreach {
-      case (input, ast) => msgPrefix + input + " " + (new Random).nextInt in {
-        val res = parser(input)
-        assert(res === ast)
+    "The parser" should {
+      tests foreach {
+        case (input, ast) => {
+          val r = (new Random).nextInt
+          val output = parser(input)
+          s"$msgPrefix $input and produce ${toRawString(output)} ($r)" in {
+            assert(ast == output)
+          }
+        }
       }
     }
   }
 
   def typeParser(input: String): SimplyTyped.ParseResult[Term] = SimplyTyped.phrase(SimplyTyped.Type)(new SimplyTyped.lexical.Scanner(input))
 
-  "The parser" should {
-    processTests("procude the correct AST with input ", tests, input => parseOrFail(input))
-    processTests("procude the correst AST for Types with input ", typeTests, input => parseOrFail(input)(typeParser))
-    processTests("produce the correct AST for sum types extension ", SumTypesTest.parserTypeCases, input => parseOrFail(input))
-    processTests("produce the correct AST for sum types extension ", SumTypesTest.parserTypeCases, input => parseOrFail(input)(typeParser))
-  }
+  processTests("procude the correct AST with input", tests, input => parseOrFail(input))
+  processTests("procude the correst AST for Types with input", typeTests, input => parseOrFail(input)(typeParser))
+  processTests("produce the correct AST for sum types extension with input", SumTypesTest.parserTypeCases, input => parseOrFail(input))
+  processTests("produce the correct AST for sum types extension with input", SumTypesTest.parserTypeCases, input => parseOrFail(input)(typeParser))
 
 }

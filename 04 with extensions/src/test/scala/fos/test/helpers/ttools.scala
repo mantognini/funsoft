@@ -2,7 +2,8 @@ package fos.test.helpers
 
 object ttools {
 
-  import fos.{ SimplyTyped, Term, True, False, Zero, If, Pair, First, Second, Succ, Pred, IsZero, Var, Abs, App, Bool, Nat, Function, Product }
+  import fos.{ Term, True, False, Zero, If, Succ, Pred, IsZero, Var, Abs, App, Pair, First, Second, Inl, Inr, Case }
+  import fos.{ Type, Bool, Nat, Function, Product, Sum }
   import fos.test.helpers.Helper._
 
   // These expressions use as few parentheses as possible
@@ -103,5 +104,34 @@ object ttools {
     Function(Product(Function(Bool(), Bool()), Product(Nat(), Nat())), Bool()) -> "(Bool->Bool)*Nat*Nat->Bool",
     Function(Product(Bool(), Nat()), Product(Product(Bool(), Nat()), Bool())) -> "Bool*Nat->(Bool*Nat)*Bool",
     Product(Function(Bool(), Nat()), Function(Bool(), Nat())) -> "(Bool->Nat)*(Bool->Nat)")
+
+  def toRawString(t: Term): String = t match {
+    case Product(fst, snd) => "[" + toRawString(fst) + "*" + toRawString(snd) + "]"
+    case Function(i, o) => "[" + toRawString(i) + "->" + toRawString(o) + "]"
+    case Nat() => "Nat"
+    case Bool() => "Bool"
+    case Second(p) => "snd(" + toRawString(p) + ")"
+    case First(p) => "fst(" + toRawString(p) + ")"
+    case Pair(fst, snd) => "pair(" + toRawString(fst) + ", " + toRawString(snd) + ")"
+    case If(cond, zen, elze) => "if(" + toRawString(cond) + ", " + toRawString(zen) + ", " + toRawString(elze) + ")"
+    case IsZero(t) => "iszero " + toRawString(t)
+    case Pred(t) => "pred " + toRawString(t)
+    case Succ(t) => "succ(" + toRawString(t) + ")"
+    case App(t1, t2) => "App(" + toRawString(t1) + ", " + toRawString(t2) + ")"
+    case Abs(x, typ, body) => "Abs(" + toRawString(x) + ":" + toRawString(typ) + ", " + toRawString(body) + ")"
+    case Var(name) => name
+    case Zero() => "0"
+    case False() => "false"
+    case True() => "true"
+
+    case Sum(typ1, typ2) => "[" + toRawString(typ1) + "+" + toRawString(typ2) + "]"
+    case Inl(t, typ) => "(inl " + toRawString(t) + " as " + toRawString(typ) + ")"
+    case Inr(t, typ) => "(inr " + toRawString(t) + " as " + toRawString(typ) + ")"
+    case Case(t, inlVar, inlTerm, inrVar, inrTerm) =>
+      "(case " + toRawString(t) + " of inl " + toRawString(inlVar) + "=>" + toRawString(inlTerm) + " | inr " +
+        toRawString(inrVar) + "=>" + toRawString(inrTerm) + ")"
+
+    case _ => throw new NotImplementedError()
+  }
 
 }
