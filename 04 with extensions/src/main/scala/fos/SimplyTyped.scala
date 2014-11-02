@@ -120,6 +120,8 @@ object SimplyTyped extends StandardTokenParsers {
     case Abs(_, _, _) => true
     case Pair(Value(_), Value(_)) => true
     case Fix(_) => true
+    case Inl(Value(_), _) => true
+    case Inr(Value(_), _) => true
     case _ => false
   }
 
