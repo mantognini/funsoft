@@ -4,6 +4,7 @@ import org.scalatest._
 import fos.test.helpers.Helper
 import fos.SimplyTyped
 import fos.Term
+import scala.util.Random
 
 class ReductionTest extends FlatSpec with Matchers {
 
@@ -29,7 +30,8 @@ class ReductionTest extends FlatSpec with Matchers {
   def testSteps(l: List[String], t: Term, stepNo: Int): Unit = l match {
     case Nil => Assertions.fail(s"reduced to $t but no more steps expected")
     case x :: xs => {
-      it should s"produce $x at step $stepNo" in {
+      val r = (new Random).nextInt
+      it should s"produce $x at step $stepNo ($r)" in {
         assert(t === parse(x))
       }
       try {
