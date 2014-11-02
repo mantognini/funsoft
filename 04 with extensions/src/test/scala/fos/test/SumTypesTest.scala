@@ -64,7 +64,11 @@ object SumTypesTest {
 
   val typeToStringCases: List[Tuple2[Term, String]] = List(
     // + has same precedence as *
-    (Sum(Bool(), Product(Nat(), Sum(Bool(), Nat()))), "Bool+Nat*Bool+Nat"))
+    (Sum(Bool(), Product(Nat(), Sum(Bool(), Nat()))), "Bool+Nat*Bool+Nat"),
+    (Sum(Bool(), Sum(Product(Nat(), Bool()), Nat())), "Bool+(Nat*Bool)+Nat"),
+    (Function(Sum(Bool(), Nat()), Product(Nat(), Bool())), "Bool+Nat->Nat*Bool"),
+    (Sum(Bool(), Sum(Function(Nat(), Nat()), Bool())), "Bool+(Nat->Nat)+Bool"),
+    (Sum(Bool(), Product(Function(Nat(), Nat()), Bool())), "Bool+(Nat->Nat)*Bool"))
 
   val termsToStringCases: List[Tuple2[Term, String]] = List(
     // Cases (with inl / inr)
