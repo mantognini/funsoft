@@ -47,6 +47,13 @@ class RecursionTest extends FlatSpec with Matchers {
             if iszero m then 0 else plus n (times (pred m) n)
     """
 
+  val factorialDef =
+    timesDef + """in
+    letrec factorial : Nat -> Nat
+        = \m: Nat.
+          if iszero m then 1 else times m (factorial (pred m))
+    """
+
   val tests =
     """fix \x: Nat. 0""" -> "0" ::
       s"$plusDef in plus 0 0" -> "0" ::
@@ -57,6 +64,8 @@ class RecursionTest extends FlatSpec with Matchers {
       s"$timesDef in times 5 10" -> "50" ::
       s"$timesDef in times (times 2 3) 7" -> "42" ::
       s"$timesDef in times 9 10" -> "90" ::
+      s"$factorialDef in factorial 4" -> "24" ::
+      s"$factorialDef in factorial 5" -> "120" ::
       Nil
 
   behavior of "Our compiler with recursive function"
