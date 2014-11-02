@@ -280,9 +280,9 @@ object SimplyTyped extends StandardTokenParsers {
       case typError => throw TypeError(t.pos, s"pair type expected but $typError found")
     }
 
-    case Fix(t) => {
-      val typ = typeof(t)
-      Function(typ, typ)
+    case Fix(t) => typeof(t) match {
+      case Function(typ1, typ2) if typ1 == typ2 => typ1
+      case typError => throw TypeError(t.pos, s"function from T to T expected but $typError found")
     }
 
     case Case(t, inlVar, inlBody, inrVar, inrBody) => typeof(t) match {
