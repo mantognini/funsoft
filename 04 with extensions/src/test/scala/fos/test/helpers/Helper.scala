@@ -29,6 +29,12 @@ object Helper {
   def parseOrFail(input: String)(implicit parser: String => SimplyTyped.ParseResult[Term]): Term =
     tryComputeOrFail[ParseException, Term] { parseOrDie(input)(parser) }
 
+  def parseAndCheckOrFail(input: String)(implicit parser: String => SimplyTyped.ParseResult[Term]): Term = {
+    val ast = parseOrFail(input)(parser)
+    tryOrFail[SimplyTyped.TypeError] { SimplyTyped.typeof(ast) }
+    ast
+  }
+
   // Define a few vars
   import fos.{ Var }
   val a = Var("a")

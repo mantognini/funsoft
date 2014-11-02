@@ -20,8 +20,8 @@ class RecursionTest extends FlatSpec with Matchers {
   // Doesn't test infinite recursion!!
   def test(input: String, answer: String) {
     it should s"evaluate $input to $answer" in {
-      val ast = Helper.parseOrFail(input)
-      val expectedAst = Helper.parseOrFail(answer)
+      val ast = Helper.parseAndCheckOrFail(input)
+      val expectedAst = Helper.parseAndCheckOrFail(answer)
       info(s"the initial ast is: $ast")
       val eval = reduce(ast)
       val finalAst = eval.last
