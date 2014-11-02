@@ -10,31 +10,31 @@ object SumTypesTest {
   val simpleSteps: List[Tuple2[List[String], Type]] = List(
     ("""inl false as Bool+Nat""" :: Nil, Sum(Bool(), Nat())),
     ("""inr true as Nat+Bool""" :: Nil, Sum(Nat(), Bool())),
-    ("""inr pred succ succ zero as Nat+Nat""" :: """inr succ zero as Nat+Nat""" :: Nil, Sum(Nat(), Nat())),
-    ("""inl fst {true, zero} as Bool+Nat""" :: """inl true as Bool+Nat""" :: Nil, Sum(Bool(), Nat())),
+    ("""inr pred succ succ 0 as Nat+Nat""" :: """inr succ 0 as Nat+Nat""" :: Nil, Sum(Nat(), Nat())),
+    ("""inl fst {true, 0} as Bool+Nat""" :: """inl true as Bool+Nat""" :: Nil, Sum(Bool(), Nat())),
     ("""case inl false as Bool+Nat of inl x => x | inr y => iszero y""" :: """false""" :: Nil, Bool()),
-    ("""case inr zero as (Bool*Bool->(Nat->Bool+Nat->Nat)*Bool)+Nat of inl x => zero | inr y => succ y""" ::
-      """succ zero""" :: Nil, Nat()),
-    ("""case if true then inl succ zero as Nat+Bool else inr false as Nat+Bool of inl x => iszero x | inr y => if y then false else true""" ::
-      """case inl succ zero as Nat+Bool of inl x => iszero x | inr y => if y then false else true""" ::
-      """iszero succ zero""" :: """false""" :: Nil, Bool()),
-    ("""case inl if false then zero else succ zero as Nat+Bool*Nat+Bool*((Nat->Nat)->Bool) of inl x => succ x | inr y => zero""" ::
-      """case inl succ zero as Nat+Bool*Nat+Bool*((Nat->Nat)->Bool) of inl x => succ x | inr y => zero""" ::
-      """succ succ zero""" :: Nil, Nat()))
+    ("""case inr 0 as (Bool*Bool->(Nat->Bool+Nat->Nat)*Bool)+Nat of inl x => 0 | inr y => succ y""" ::
+      """succ 0""" :: Nil, Nat()),
+    ("""case if true then inl succ 0 as Nat+Bool else inr false as Nat+Bool of inl x => iszero x | inr y => if y then false else true""" ::
+      """case inl succ 0 as Nat+Bool of inl x => iszero x | inr y => if y then false else true""" ::
+      """iszero succ 0""" :: """false""" :: Nil, Bool()),
+    ("""case inl if false then 0 else succ 0 as Nat+Bool*Nat+Bool*((Nat->Nat)->Bool) of inl x => succ x | inr y => 0""" ::
+      """case inl succ 0 as Nat+Bool*Nat+Bool*((Nat->Nat)->Bool) of inl x => succ x | inr y => 0""" ::
+      """succ succ 0""" :: Nil, Nat()))
 
   val advancedSteps: List[Tuple2[List[String], Type]] = List(
-    ("""inl {zero, false} as (Nat*Bool)+(Nat->Nat)""" :: Nil, Sum(Product(Nat(), Bool()), Function(Nat(), Nat()))),
-    ("""inl {zero, \x:Nat.iszero x} as (Nat*(Nat->Bool))+Nat""" :: Nil, Sum(Product(Nat(), Bool()), Nat())),
-    ("""iszero case if true then inl zero as Nat+Bool else inr iszero succ zero as Nat+Bool of inl x => succ x | inr x => if x then zero else succ zero""" ::
-      """iszero case inl zero as Nat+Bool of inl x => succ x | inr x => if x then zero else succ zero""" ::
-      """iszero succ zero""" ::
+    ("""inl {0, false} as (Nat*Bool)+(Nat->Nat)""" :: Nil, Sum(Product(Nat(), Bool()), Function(Nat(), Nat()))),
+    ("""inl {0, \x:Nat.iszero x} as (Nat*(Nat->Bool))+Nat""" :: Nil, Sum(Product(Nat(), Bool()), Nat())),
+    ("""iszero case if true then inl 0 as Nat+Bool else inr iszero succ 0 as Nat+Bool of inl x => succ x | inr x => if x then 0 else succ 0""" ::
+      """iszero case inl 0 as Nat+Bool of inl x => succ x | inr x => if x then 0 else succ 0""" ::
+      """iszero succ 0""" ::
       """false""" :: Nil, Bool()),
-    ("""inl inl zero as Nat+Bool as (Nat+Bool)+Nat""" :: Nil, Sum(Sum(Nat(), Bool()), Nat())),
+    ("""inl inl 0 as Nat+Bool as (Nat+Bool)+Nat""" :: Nil, Sum(Sum(Nat(), Bool()), Nat())),
     ("""inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat""" :: Nil, Sum(Function(Nat(), Bool()), Sum(Bool(), Nat()))),
-    ("""case inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat of inl x => zero | inr y => case y of inl y => if y then zero else succ zero | inr y => succ y""" ::
-      """case inl true as Bool+Nat of inl y => if y then zero else succ zero | inr y => succ y""" ::
-      """if true then zero else succ zero""" ::
-      """zero""" :: Nil, Nat()))
+    ("""case inr inl true as Bool+Nat as (Nat->Bool)+Bool+Nat of inl x => 0 | inr y => case y of inl y => if y then 0 else succ 0 | inr y => succ y""" ::
+      """case inl true as Bool+Nat of inl y => if y then 0 else succ 0 | inr y => succ y""" ::
+      """if true then 0 else succ 0""" ::
+      """0""" :: Nil, Nat()))
 
   val stepsAndFinalType = simpleSteps ::: advancedSteps
 
