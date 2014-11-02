@@ -21,11 +21,12 @@ class RecursionTest extends FlatSpec with Matchers {
   def test(input: String, answer: String) {
     it should s"evaluate $input to $answer" in {
       val ast = Helper.parseOrFail(input)
+      val expectedAst = Helper.parseOrFail(answer)
       info(s"the initial ast is: $ast")
       val eval = reduce(ast)
-      val value = eval.last.toString
-      info(s"the computed value is: $value")
-      assert(value === answer)
+      val finalAst = eval.last
+      info(s"the computed value is: $finalAst")
+      assert(finalAst === expectedAst)
       info("🍺")
     }
   }
