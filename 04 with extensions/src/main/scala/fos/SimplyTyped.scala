@@ -2,6 +2,7 @@ package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
+import scala.annotation.tailrec
 
 /**
  * This object implements a parser and evaluator for the
@@ -14,7 +15,16 @@ object SimplyTyped extends StandardTokenParsers {
     "case", "inl", "inr", "as", "of")
 
   // 0 => 0, n => Succ(n-1)
-  def convertNumeric(n: Int): Term = if (n <= 0) Zero() else Succ(convertNumeric(n - 1))
+  def convertNumeric(n: Int): Term = {
+    @tailrec
+    def walk(count: Int, acc: Term): Term = {
+      if (count == 0) acc
+      else walk(count - 1, Succ(acc))
+    }
+
+    if (n <= 0) Zero()
+    else walk(n, Zero())
+  }
 
   // let x: T = t1 in t2        =>      (\x:T.t2) t1
   def convertLet(x: String, typ: Type, t1: Term, t2: Term) = App(Abs(Var(x), typ, t2), t1)
