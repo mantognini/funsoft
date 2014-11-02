@@ -40,8 +40,8 @@ class RecursionTest extends FlatSpec with Matchers {
             if iszero m then n else succ (plus (pred m) n)
     """
 
-  val timesDef = s"$plusDef in " +
-    """
+  val timesDef =
+    plusDef + """in
     letrec times : Nat -> Nat -> Nat
           = \m: Nat. \n: Nat.
             if iszero m then 0 else plus n (times (pred m) n)
