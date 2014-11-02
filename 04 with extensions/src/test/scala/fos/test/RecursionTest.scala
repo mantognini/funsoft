@@ -70,4 +70,9 @@ class RecursionTest extends FlatSpec with Matchers {
 
   behavior of "Our compiler with recursive function"
   tests foreach { case (input, answer) => test(input, answer) }
+
+  // test(s"$factorialDef in factorial 10", "3628800")
+  // 10! produces a stack overflow at fos.SimplyTyped$.convertNumeric(SimplyTyped.scala:16))
+  // or a java.lang.OutOfMemoryError when convertNumeric is properly fixed
+  // Not sure if it's because of eclipse or scala test, though.
 }
