@@ -3,23 +3,26 @@ package fos
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
 
-/** This object implements a parser and evaluator for the
+/**
+ * This object implements a parser and evaluator for the
  *  simply typed lambda calculus found in Chapter 9 of
  *  the TAPL book.
  */
 object Infer extends StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".", ":", "=", "->", "{", "}", ",", "*", "+")
-  lexical.reserved   ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ",
-                              "pred", "iszero", "let", "in")
+  lexical.reserved ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ",
+    "pred", "iszero", "let", "in")
 
-  /** <pre>
+  /**
+   * <pre>
    *  Term     ::= SimpleTerm { SimpleTerm }</pre>
    */
   def Term: Parser[Term] = positioned(
-      SimpleTerm ~ rep(SimpleTerm) ^^ { case t ~ ts => (t :: ts).reduceLeft[Term](App) }
-    | failure("illegal start of term"))
+    SimpleTerm ~ rep(SimpleTerm) ^^ { case t ~ ts => (t :: ts).reduceLeft[Term](App) }
+      | failure("illegal start of term"))
 
-  /** <pre>
+  /**
+   * <pre>
    *  SimpleTerm ::= "true"
    *               | "false"
    *               | number
@@ -33,42 +36,43 @@ object Infer extends StandardTokenParsers {
    *               | "let" ident [":" Type] "=" Term "in" Term</pre>
    */
   def SimpleTerm: Parser[Term] = positioned(
-      "true"          ^^^ True()
-    | "false"         ^^^ False()
-    | numericLit      ^^ { case chars => lit2Num(chars.toInt) }
-    | "succ" ~ Term   ^^ { case "succ" ~ t => Succ(t) }
-    | "pred" ~ Term   ^^ { case "pred" ~ t => Pred(t) }
-    | "iszero" ~ Term ^^ { case "iszero" ~ t => IsZero(t) }
-    | "if" ~ Term ~ "then" ~ Term ~ "else" ~ Term ^^ {
+    "true" ^^^ True()
+      | "false" ^^^ False()
+      | numericLit ^^ { case chars => lit2Num(chars.toInt) }
+      | "succ" ~ Term ^^ { case "succ" ~ t => Succ(t) }
+      | "pred" ~ Term ^^ { case "pred" ~ t => Pred(t) }
+      | "iszero" ~ Term ^^ { case "iszero" ~ t => IsZero(t) }
+      | "if" ~ Term ~ "then" ~ Term ~ "else" ~ Term ^^ {
         case "if" ~ t1 ~ "then" ~ t2 ~ "else" ~ t3 => If(t1, t2, t3)
       }
-    | ident ^^ { case id => Var(id) }
-    | "\\" ~ ident ~ opt(":" ~ Type) ~ "." ~ Term ^^ {
-      case "\\" ~ x ~ Some(":" ~ tp) ~ "." ~ t => Abs(x, tp, t)
-      case "\\" ~ x ~ None ~ "." ~ t => Abs(x, EmptyTypeTerm, t)
-    }
-    | "(" ~> Term <~ ")"  ^^ { case t => t }
-    | "let" ~ ident ~ "=" ~ Term ~ "in" ~ Term ^^ { case "let" ~ x ~ "=" ~ t1 ~ "in" ~ t2 => Let(x, t1, t2) }
-    | failure("illegal start of simple term"))
+      | ident ^^ { case id => Var(id) }
+      | "\\" ~ ident ~ opt(":" ~ Type) ~ "." ~ Term ^^ {
+        case "\\" ~ x ~ Some(":" ~ tp) ~ "." ~ t => Abs(x, tp, t)
+        case "\\" ~ x ~ None ~ "." ~ t => Abs(x, EmptyTypeTerm, t)
+      }
+      | "(" ~> Term <~ ")" ^^ { case t => t }
+      | "let" ~ ident ~ "=" ~ Term ~ "in" ~ Term ^^ { case "let" ~ x ~ "=" ~ t1 ~ "in" ~ t2 => Let(x, t1, t2) }
+      | failure("illegal start of simple term"))
 
-  /** <pre>
+  /**
+   * <pre>
    *  Type       ::= SimpleType { "->" Type }</pre>
    */
   def Type: Parser[TypeTree] = positioned(
-      BaseType ~ opt("->" ~ Type) ^^ {
-        case t1 ~ Some("->" ~ t2) => FunTypeTerm(t1, t2)
-        case t1 ~ None => t1
-      }
-    | failure("illegal start of type"))
+    BaseType ~ opt("->" ~ Type) ^^ {
+      case t1 ~ Some("->" ~ t2) => FunTypeTerm(t1, t2)
+      case t1 ~ None => t1
+    }
+      | failure("illegal start of type"))
 
-  /** <pre>
+  /**
+   * <pre>
    *  BaseType ::= "Bool" | "Nat" | "(" Type ")"</pre>
    */
   def BaseType: Parser[TypeTree] = positioned(
-      "Bool" ^^^ BoolTypeTerm
-    | "Nat"  ^^^ NatTypeTerm
-    | "(" ~> Type <~ ")" ^^ { case t => t }
-  )
+    "Bool" ^^^ BoolTypeTerm
+      | "Nat" ^^^ NatTypeTerm
+      | "(" ~> Type <~ ")" ^^ { case t => t })
 
   def lit2Num(n: Int): Term =
     if (n == 0) Zero() else Succ(lit2Num(n - 1))

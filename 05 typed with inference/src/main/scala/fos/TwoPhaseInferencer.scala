@@ -9,7 +9,8 @@ class TwoPhaseInferencer extends TypeInferencers {
   val noConstraints: List[Constraint] = Nil
   case class TypingResult(tpe: Type, c: List[Constraint])
 
-  /** Type <code>t</code> in <code>env</code> and return its type and a
+  /**
+   * Type <code>t</code> in <code>env</code> and return its type and a
    *  constraint list.
    */
   def collect(env: Env, t: Term): TypingResult = t match {
@@ -18,7 +19,7 @@ class TwoPhaseInferencer extends TypeInferencers {
       if (t1 == null)
         throw TypeError("Unknown variable " + x)
       TypingResult(t1.instantiate, noConstraints)
-  //   ... To complete ... 
+    //   ... To complete ... 
   }
 
   /**
@@ -28,7 +29,7 @@ class TwoPhaseInferencer extends TypeInferencers {
     else c.head match {
       case (TypeVar(a), TypeVar(b)) if (a == b) =>
         unify(c.tail)
-  //   ... To complete ... 
+      //   ... To complete ... 
       case (t1, t2) =>
         throw TypeError("Could not unify: " + t1 + " with " + t2)
     }

@@ -16,7 +16,7 @@ abstract class TypeInferencers {
   /** Turn a syntactic type (given explicitly) into a proper type. */
   def toType(s: TypeTree): Type = s match {
     case BoolTypeTerm => TypeBool
-    case NatTypeTerm  => TypeNat
+    case NatTypeTerm => TypeNat
     case FunTypeTerm(t1, t2) => TypeFun(toType(t1), toType(t2))
   }
 
