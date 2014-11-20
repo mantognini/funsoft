@@ -19,7 +19,7 @@ class TwoPhaseInferencer extends TypeInferencers {
       if (t1 == null)
         throw TypeError("Unknown variable " + x)
       TypingResult(t1.instantiate, noConstraints)
-    //   ... To complete ... 
+    // TODO implement TwoPhaseInferencer.collect
   }
 
   /**
@@ -29,7 +29,7 @@ class TwoPhaseInferencer extends TypeInferencers {
     else c.head match {
       case (TypeVar(a), TypeVar(b)) if (a == b) =>
         unify(c.tail)
-      //   ... To complete ... 
+      // TODO implement TwoPhaseInferencer.unify
       case (t1, t2) =>
         throw TypeError("Could not unify: " + t1 + " with " + t2)
     }

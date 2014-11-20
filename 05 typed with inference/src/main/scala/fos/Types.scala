@@ -18,13 +18,12 @@ case object TypeBool extends Type
 
 /** Type Schemes are not types. */
 case class TypeScheme(args: List[TypeVar], tp: Type) {
-  //   ... To complete ... 
-  def instantiate = if (args.isEmpty) tp else ??? // TODO
+  def instantiate = if (args.isEmpty) tp else ??? // TODO non empty type scheme
   override def toString() = args.mkString("[", ", ", "].") + tp
 }
 
 object Type {
-  //   ... To complete ... 
+  // TODO what should be added to Type?
 }
 
 abstract class Substitution extends (Type => Type) {
