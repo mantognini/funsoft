@@ -1,6 +1,6 @@
 package fos
 
-import scala.collection.immutable.{Set, ListSet}
+import scala.collection.immutable.{ Set, ListSet }
 
 abstract class Type {
   override def toString() = this match {
@@ -12,7 +12,9 @@ abstract class Type {
 }
 
 case class TypeVar(name: String) extends Type
-  //   ... To complete ... 
+case class TypeFun(from: Type, to: Type) extends Type
+case object TypeNat extends Type
+case object TypeBool extends Type
 
 /** Type Schemes are not types. */
 case class TypeScheme(args: List[TypeVar], tp: Type) {
