@@ -44,7 +44,7 @@ case class Abs(v: String, tp: TypeTree, t: Term) extends Term {
 case class App(t1: Term, t2: Term) extends Term {
   override def toString() = t1.toString + (t2 match {
     case App(_, _) => " (" + t2.toString + ")" // left-associative
-    case _         => " " + t2.toString
+    case _ => " " + t2.toString
   })
 }
 case class Let(x: String, v: Term, t: Term) extends Term {
@@ -54,21 +54,23 @@ case class Let(x: String, v: Term, t: Term) extends Term {
 /** Abstract Syntax Trees for types. */
 abstract class TypeTree extends Term
 
-case object BoolType extends TypeTree {
+// NB: to reduce confusion between BoolType and TypeBool we renamed the terms with `Term` prefix.
+
+case object BoolTypeTerm extends TypeTree {
   override def toString() = "Bool"
 }
 
-case object NatType extends TypeTree {
+case object NatTypeTerm extends TypeTree {
   override def toString() = "Nat"
 }
 
-case class FunType(t1: TypeTree, t2: TypeTree) extends TypeTree {
+case class FunTypeTerm(t1: TypeTree, t2: TypeTree) extends TypeTree {
   override def toString() = (t1 match {
-    case FunType(_, _) => "(" + t1 + ")" // right-associative
-    case _             => t1.toString
+    case FunTypeTerm(_, _) => "(" + t1 + ")" // right-associative
+    case _ => t1.toString
   }) + "->" + t2
 }
 
-case object EmptyType extends TypeTree {
+case object EmptyTypeTerm extends TypeTree {
   override def toString() = "_"
 }

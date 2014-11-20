@@ -45,7 +45,7 @@ object Infer extends StandardTokenParsers {
     | ident ^^ { case id => Var(id) }
     | "\\" ~ ident ~ opt(":" ~ Type) ~ "." ~ Term ^^ {
       case "\\" ~ x ~ Some(":" ~ tp) ~ "." ~ t => Abs(x, tp, t)
-      case "\\" ~ x ~ None ~ "." ~ t => Abs(x, EmptyType, t)
+      case "\\" ~ x ~ None ~ "." ~ t => Abs(x, EmptyTypeTerm, t)
     }
     | "(" ~> Term <~ ")"  ^^ { case t => t }
     | "let" ~ ident ~ "=" ~ Term ~ "in" ~ Term ^^ { case "let" ~ x ~ "=" ~ t1 ~ "in" ~ t2 => Let(x, t1, t2) }
@@ -56,7 +56,7 @@ object Infer extends StandardTokenParsers {
    */
   def Type: Parser[TypeTree] = positioned(
       BaseType ~ opt("->" ~ Type) ^^ {
-        case t1 ~ Some("->" ~ t2) => FunType(t1, t2)
+        case t1 ~ Some("->" ~ t2) => FunTypeTerm(t1, t2)
         case t1 ~ None => t1
       }
     | failure("illegal start of type"))
@@ -65,8 +65,8 @@ object Infer extends StandardTokenParsers {
    *  BaseType ::= "Bool" | "Nat" | "(" Type ")"</pre>
    */
   def BaseType: Parser[TypeTree] = positioned(
-      "Bool" ^^^ BoolType
-    | "Nat"  ^^^ NatType
+      "Bool" ^^^ BoolTypeTerm
+    | "Nat"  ^^^ NatTypeTerm
     | "(" ~> Type <~ ")" ^^ { case t => t }
   )
 
