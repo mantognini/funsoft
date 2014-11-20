@@ -73,14 +73,14 @@ object Infer extends StandardTokenParsers {
   def lit2Num(n: Int): Term =
     if (n == 0) Zero() else Succ(lit2Num(n - 1))
 
-  val Inferencer = new TwoPhaseInferencer
+  val inferencer = new TwoPhaseInferencer
 
   def main(args: Array[String]) {
     val tokens = new lexical.Scanner(StreamReader(new java.io.InputStreamReader(System.in)))
     phrase(Term)(tokens) match {
       case Success(trees, _) =>
         try {
-          println("typed: " + Inferencer.typeOf(trees))
+          println("typed: " + inferencer.typeOf(trees))
         } catch {
           case tperror: Exception => println(tperror.toString)
         }
