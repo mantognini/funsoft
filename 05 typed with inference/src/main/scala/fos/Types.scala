@@ -31,12 +31,11 @@ abstract class Substitution extends (Type => Type) {
 
   var indent = 0
 
-  //   ... To complete ... 
   def apply(tp: Type): Type = {
     //println("  " * indent + "in: " + tp + "   subst: " + this)
     indent = indent + 1
     val result = tp match {
-      case TypeVar(name) => ??? // TODO
+      case t: TypeVar => lookup(t)
       case TypeFun(from, to) => TypeFun(apply(from), apply(to))
       case TypeNat => TypeNat
       case TypeBool => TypeBool
@@ -54,10 +53,20 @@ abstract class Substitution extends (Type => Type) {
   def apply(env: List[(String, TypeScheme)]): List[(String, TypeScheme)] =
     env map { (pair) => (pair._1, TypeScheme(pair._2.args, apply(pair._2.tp))) }
 
-  //   ... To complete ... 
+  def lookup(t: TypeVar): Type;
+
+  // Composition
+  def °(s: (TypeVar, Type)) = NonEmptySubstitution(s._1, s._2, this)
 }
 
 /** The empty substitution. */
-object emptySubst extends Substitution {
+object EmptySubstitution extends Substitution {
   def lookup(t: TypeVar) = t
+}
+
+/**
+ * The non empty substitution, with its tail
+ */
+case class NonEmptySubstitution(from: TypeVar, to: Type, tail: Substitution) extends Substitution {
+  def lookup(t: TypeVar) = if (t == from) to else tail.lookup(t)
 }

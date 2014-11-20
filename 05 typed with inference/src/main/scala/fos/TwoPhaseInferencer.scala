@@ -24,7 +24,7 @@ class TwoPhaseInferencer extends TypeInferencers {
   /**
    */
   def unify(c: List[Constraint]): Substitution =
-    if (c.isEmpty) emptySubst
+    if (c.isEmpty) EmptySubstitution
     else c.head match {
       case (TypeVar(a), TypeVar(b)) if (a == b) =>
         unify(c.tail)
