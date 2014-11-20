@@ -19,6 +19,7 @@ case object TypeBool extends Type
 /** Type Schemes are not types. */
 case class TypeScheme(args: List[TypeVar], tp: Type) {
   //   ... To complete ... 
+  def instantiate = if (args.isEmpty) tp else ???
   override def toString() = args.mkString("[", ", ", "].") + tp
 }
 
@@ -35,7 +36,10 @@ abstract class Substitution extends (Type => Type) {
     //println("  " * indent + "in: " + tp + "   subst: " + this)
     indent = indent + 1
     val result = tp match {
-  //   ... To complete ... 
+      case TypeVar(name) => ??? // TODO
+      case TypeFun(from, to) => TypeFun(apply(from), apply(to))
+      case TypeNat => TypeNat
+      case TypeBool => TypeBool
     }
     indent = indent - 1
     //println("  " * indent + "out: " + result + "   subst: " + this)
