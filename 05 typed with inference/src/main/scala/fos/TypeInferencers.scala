@@ -20,5 +20,6 @@ abstract class TypeInferencers {
     case FunTypeTerm(t1, t2) => TypeFun(toType(t1), toType(t2))
   }
 
+  /** Return null when fails */
   def typeOf(t: Term): Type;
 }
