@@ -120,11 +120,12 @@ class TwoPhaseInferencer extends TypeInferencers {
   def unify(c: List[Constraint]): Substitution =
     if (c.isEmpty) EmptySubstitution
     else c.head match {
-      case (TypeVar(a), TypeVar(b)) if (a == b) =>
-        unify(c.tail)
+      // If both are the same:
+      case (a, b) if (a == b) => unify(c.tail)
+
       // TODO implement TwoPhaseInferencer.unify
-      case (t1, t2) =>
-        throw TypeError("Could not unify: " + t1 + " with " + t2)
+
+      case (t1, t2) => throw TypeError("Could not unify: " + t1 + " with " + t2)
     }
 
   override def typeOf(t: Term): Type = try {
