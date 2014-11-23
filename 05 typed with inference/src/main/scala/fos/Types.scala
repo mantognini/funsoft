@@ -9,6 +9,9 @@ abstract class Type {
     case TypeNat => "Nat"
     case TypeBool => "Bool"
   }
+
+  // Convert the type to a generic scheme 
+  def toScheme(args: List[TypeVar] = Nil) = TypeScheme(args, this)
 }
 
 case class TypeVar(name: String) extends Type

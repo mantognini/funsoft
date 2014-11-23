@@ -23,6 +23,9 @@ class TwoPhaseInferencer extends TypeInferencers {
     def |(c: Constraint) = TypingResult(tpe, c :: Nil)
     def |(cs: List[Constraint]) = TypingResult(tpe, cs)
 
+    // Function
+    def ->(to: Type) = TypeFun(tpe, to)
+
     // Constraint
     def ===(other: Type) = (tpe, other)
   }
@@ -88,20 +91,26 @@ class TwoPhaseInferencer extends TypeInferencers {
       val c = c1 U c2 U c3 U tp1 === TypeBool U tp2 === tp3
       tp2 | c
 
-    case Var(x) =>
-      val T = lookup(env, x)
+    case Var(v) =>
+      val T = lookup(env, v)
       if (T == null)
-        throw TypeError("Unknown variable " + x)
+        throw TypeError("Unknown variable " + v)
       T | Ø
 
-    case Abs(x, EmptyTypeTerm, t2) =>
+    case Abs(arg, EmptyTypeTerm, t2) =>
       ???
 
-    case Abs(x, tp1, t2) =>
-      ???
+    case Abs(arg, tp, t2) =>
+      val tp1 = toType(tp)
+      val TypingResult(tp2, c) = collect(t2)((arg, tp1.toScheme()) :: env)
+      tp1 -> tp2 | c
 
     case App(t1, t2) =>
-      ???
+      val TypingResult(tp1, c1) = collect(t1)
+      val TypingResult(tp2, c2) = collect(t2)
+      val x = X // is fresh
+      val c = c1 U c2 U tp1 === (tp2 -> x)
+      x | c
 
     case Let(x, v, t) =>
       ???
