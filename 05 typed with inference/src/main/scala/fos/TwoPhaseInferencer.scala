@@ -9,13 +9,22 @@ class TwoPhaseInferencer extends TypeInferencers {
   // In order to be as close as possible to the rules given in Fig. 2
   // we define a few DSL facilities such as | or U.
   //
-  // NB: we intentionally break naming consistency of variables,
-  // such as T and C (instead of name starting with a lower case letter). 
+  // The following naming conventions for variables are used:
+  //    T is noted tp, e.g. T1 becomes tp1
+  //    C is noted c, e.g. C1 becomes c1
+  //    {}, aka empty constraint, is denoted by Ø
+  //    Γ is noted env
+  //    Type constraint T1 = T2 is noted tp1 === tp2
+  //    C1 ∪ C2 is noted c1 U c2
+  //    X denotes a fresh type variable
 
   implicit class TypeDSL(tpe: Type) {
     // Usage: T | C
     def |(c: Constraint) = TypingResult(tpe, c :: Nil)
     def |(cs: List[Constraint]) = TypingResult(tpe, cs)
+
+    // Constraint
+    def ===(other: Type) = (tpe, other)
   }
 
   implicit class TypeSchemeDSL(scheme: TypeScheme) {
@@ -55,29 +64,26 @@ class TwoPhaseInferencer extends TypeInferencers {
       TypeNat | Ø
 
     case Pred(t1) =>
-      val tr1 = collect(t1)
-      val C = (tr1.tpe, TypeNat) U tr1.c
-      TypeNat | C
+      val TypingResult(tp1, c1) = collect(t1)
+      val c = tp1 === TypeNat U c1
+      TypeNat | c
 
     case Succ(t1) =>
-      val tr1 = collect(t1)
-      val C = (tr1.tpe, TypeNat) U tr1.c
-      TypeNat | C
+      val TypingResult(tp1, c1) = collect(t1)
+      val c = tp1 === TypeNat U c1
+      TypeNat | c
 
     case IsZero(t1) =>
-      val tr1 = collect(t1)
-      val C = (tr1.tpe, TypeNat) U tr1.c
-      TypeBool | C
+      val TypingResult(tp1, c1) = collect(t1)
+      val c = tp1 === TypeNat U c1
+      TypeBool | c
 
     case If(t1, t2, t3) =>
-      val tr1 = collect(t1)
-      val tr2 = collect(t2)
-      val tr3 = collect(t3)
-      val T1 = tr1.tpe
-      val T2 = tr2.tpe
-      val T3 = tr3.tpe
-      val C = tr1.c U tr2.c U tr3.c U (T1, TypeBool) U (T2, T3)
-      T2 | C
+      val TypingResult(tp1, c1) = collect(t1)
+      val TypingResult(tp2, c2) = collect(t2)
+      val TypingResult(tp3, c3) = collect(t3)
+      val c = c1 U c2 U c3 U tp1 === TypeBool U tp2 === tp3
+      tp2 | c
 
     case Var(x) =>
       val T = lookup(env, x)
