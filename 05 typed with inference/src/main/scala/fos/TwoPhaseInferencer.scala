@@ -48,6 +48,9 @@ class TwoPhaseInferencer extends TypeInferencers {
   val Ø: List[Constraint] = Nil
   case class TypingResult(tpe: Type, c: List[Constraint])
 
+  // Fresh type variable
+  def X = Type.fresh
+
   /**
    * Type <code>t</code> in <code>env</code> and return its type and a
    *  constraint list.

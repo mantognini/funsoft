@@ -9,7 +9,7 @@ abstract class TypeInferencers {
 
   /** Lookup variable <code>name</code> in the given environment. */
   def lookup(env: Env, name: String): TypeScheme = env match {
-    case Nil => null
+    case Nil => null // TODO shouldn't we directly throw an exception here to simplify the code
     case (n, tp) :: env1 => if (n == name) tp else lookup(env1, name)
   }
 
