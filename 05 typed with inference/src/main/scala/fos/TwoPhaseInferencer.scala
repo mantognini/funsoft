@@ -116,16 +116,43 @@ class TwoPhaseInferencer extends TypeInferencers {
       ???
   }
 
+  //  Substitution[X ↦ T] C
+  def substitute(sub: (TypeVar, Type), c: List[Constraint]): List[Constraint] = {
+    val (x, t) = sub
+
+    def walk(tp: Type): Type = tp match {
+      case tp if tp == x => t
+      case TypeFun(a, b) => TypeFun(walk(a), walk(b))
+      case tp => tp
+    }
+    c map { case (tp1, tp2) => (walk(tp1), walk(tp2)) }
+  }
+
+  // FV(T) is the set of all type variables mentioned in T. (§22.3.2, p.321)
+  def FV(t: Type): Set[TypeVar] = t match {
+    case TypeBool | TypeNat => Set.empty
+    case v: TypeVar => Set(v)
+    case TypeFun(a, b) => FV(a) ++ FV(b)
+  }
+
   /** Unification Algorithm, TAPL p.327 */
   def unify(c: List[Constraint]): Substitution =
     if (c.isEmpty) EmptySubstitution
     else c.head match {
-      // If both are the same:
-      case (a, b) if (a == b) => unify(c.tail)
+      case (s, t) if (s == t) =>
+        unify(c.tail)
 
-      // TODO implement TwoPhaseInferencer.unify
+      case (x: TypeVar, t) if !FV(t).contains(x) =>
+        unify(substitute(x -> t, c.tail)) ° (x -> t)
 
-      case (t1, t2) => throw TypeError("Could not unify: " + t1 + " with " + t2)
+      case (s, x: TypeVar) if !FV(s).contains(x) =>
+        unify(substitute(x -> s, c.tail)) ° (x -> s)
+
+      case (TypeFun(s1, s2), TypeFun(t1, t2)) =>
+        unify(c.tail U s1 === t1 U s2 === t2)
+
+      case (t1, t2) =>
+        throw TypeError("Could not unify: " + t1 + " with " + t2)
     }
 
   override def typeOf(t: Term): Type = try {
