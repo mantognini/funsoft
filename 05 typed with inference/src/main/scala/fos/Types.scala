@@ -52,7 +52,6 @@ abstract class Substitution extends (Type => Type) {
     //println("  " * indent + "out: " + result + "   subst: " + this)
     result
   }
-  override def toString() = ""
 
   def apply(p: (Type, Type)): (Type, Type) = p match {
     case Pair(t1, t2) => (this(t1), this(t2))
@@ -70,6 +69,8 @@ abstract class Substitution extends (Type => Type) {
 /** The empty substitution. */
 object EmptySubstitution extends Substitution {
   def lookup(t: TypeVar) = t
+
+  override def toString() = "Ø"
 }
 
 /**
@@ -77,4 +78,6 @@ object EmptySubstitution extends Substitution {
  */
 case class NonEmptySubstitution(from: TypeVar, to: Type, tail: Substitution) extends Substitution {
   def lookup(t: TypeVar) = if (t == from) to else tail.lookup(t)
+
+  override def toString() = s"[ $from -> $to ] ° $tail"
 }
