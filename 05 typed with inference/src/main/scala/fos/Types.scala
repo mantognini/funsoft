@@ -27,7 +27,12 @@ case class TypeScheme(args: List[TypeVar], tp: Type) {
 
 object Type {
   // TODO what should be added to Type?
-  def fresh: TypeVar = ??? // TODO implement me
+
+  private var last = 0 // id counter for fresh var names
+  def fresh: TypeVar = {
+    last += 1
+    TypeVar("tp$" + last)
+  }
 }
 
 abstract class Substitution extends (Type => Type) {
