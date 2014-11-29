@@ -24,7 +24,7 @@ class TwoPhaseInferencer extends TypeInferencers {
     def |(cs: List[Constraint]) = TypingResult(tpe, cs)
 
     // Function
-    def ->(to: Type) = TypeFun(tpe, to)
+    def ==>(to: Type) = TypeFun(tpe, to)
 
     // Constraint
     def ===(other: Type) = (tpe, other)
@@ -50,9 +50,6 @@ class TwoPhaseInferencer extends TypeInferencers {
   // Empty constrain set
   val Ø: List[Constraint] = Nil
   case class TypingResult(tpe: Type, c: List[Constraint])
-
-  // Fresh type variable
-  def X = Type.fresh
 
   /**
    * Type <code>t</code> in <code>env</code> and return its type and a
@@ -98,21 +95,24 @@ class TwoPhaseInferencer extends TypeInferencers {
       T | Ø
 
     case Abs(arg, EmptyTypeTerm, t2) =>
+      val x = Type.fresh
+      // TODO implement collect on Abs w/o explicit type 
       ???
 
     case Abs(arg, tp, t2) =>
       val tp1 = toType(tp)
       val TypingResult(tp2, c) = collect(t2)((arg, tp1.toScheme()) :: env)
-      tp1 -> tp2 | c
+      tp1 ==> tp2 | c
 
     case App(t1, t2) =>
       val TypingResult(tp1, c1) = collect(t1)
       val TypingResult(tp2, c2) = collect(t2)
-      val x = X // is fresh
-      val c = c1 U c2 U tp1 === (tp2 -> x)
+      val x = Type.fresh // is fresh
+      val c = c1 U c2 U tp1 === (tp2 ==> x)
       x | c
 
     case Let(x, v, t) =>
+      /// TODO implement collect on Let
       ???
   }
 
