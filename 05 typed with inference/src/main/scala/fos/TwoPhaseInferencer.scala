@@ -96,8 +96,8 @@ class TwoPhaseInferencer extends TypeInferencers {
 
     case Abs(arg, EmptyTypeTerm, t2) =>
       val x = Type.fresh
-      // TODO implement collect on Abs w/o explicit type 
-      ???
+      val TypingResult(tp2, c) = collect(t2)((arg, x.toScheme()) :: env)
+      x ==> tp2 | c
 
     case Abs(arg, tp, t2) =>
       val tp1 = toType(tp)
