@@ -43,7 +43,10 @@ abstract class Substitution extends (Type => Type) {
     //println("  " * indent + "in: " + tp + "   subst: " + this)
     indent = indent + 1
     val result = tp match {
-      case t: TypeVar => lookup(t)
+      case t @ TypeVar(v) => lookup(t) match {
+        case TypeFun(a, b) => TypeFun(this(a), this(b))
+        case t2 => t2
+      }
       case TypeFun(from, to) => TypeFun(apply(from), apply(to))
       case TypeNat => TypeNat
       case TypeBool => TypeBool
@@ -68,7 +71,7 @@ abstract class Substitution extends (Type => Type) {
 
 /** The empty substitution. */
 object EmptySubstitution extends Substitution {
-  def lookup(t: TypeVar) = t
+  def lookup(t: TypeVar): Type = t
 
   override def toString() = "Ø"
 }
@@ -77,7 +80,7 @@ object EmptySubstitution extends Substitution {
  * The non empty substitution, with its tail
  */
 case class NonEmptySubstitution(from: TypeVar, to: Type, tail: Substitution) extends Substitution {
-  def lookup(t: TypeVar) = if (t == from) to else tail.lookup(t)
+  def lookup(t: TypeVar): Type = if (t == from) to else tail.lookup(t)
 
   override def toString() = s"[ $from -> $to ] ° $tail"
 }
