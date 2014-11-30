@@ -26,7 +26,16 @@ case class TypeScheme(args: List[TypeVar], tp: Type) {
 }
 
 object Type {
-  // TODO what should be added to Type?
+  def generalize(tp: Type, exceptions: List[TypeVar]): TypeScheme = {
+    def getTypeVars(tp: Type, exceptions: List[TypeVar], accu: List[TypeVar]): List[TypeVar] = tp match {
+      case tv @ TypeVar(_) => if (exceptions.contains(tv)) accu else (tv :: accu)
+      case TypeFun(a, b) => getTypeVars(a, exceptions, accu) ::: getTypeVars(b, exceptions, accu)
+      case TypeNat => accu
+      case TypeBool => accu
+    }
+    TypeScheme(getTypeVars(tp, exceptions, Nil).distinct, tp)
+  }
+
   def addToSubstitution(vars: List[TypeVar], substitution: Substitution): Substitution = vars match {
     case Nil => substitution
     case v :: xs => Type.addToSubstitution(xs, substitution ° (v, Type.fresh))

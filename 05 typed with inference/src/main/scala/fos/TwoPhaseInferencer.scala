@@ -112,8 +112,14 @@ class TwoPhaseInferencer extends TypeInferencers {
       x | c
 
     case Let(x, v, t) =>
-      /// TODO implement collect on Let
-      ???
+      val TypingResult(tpv, cv) = collect(v)
+      val substitution = unify(cv)
+      val tp = substitution(tpv)
+      val newEnv = substitution(env)
+      val envTypeVars: List[TypeVar] = newEnv map { p => TypeVar(p._1) }
+      val typeScheme = Type.generalize(tp, envTypeVars)
+      val TypingResult(tp2, c2) = collect(t)((x, typeScheme) :: newEnv)
+      tp2 | c2
   }
 
   //  Substitution[X ↦ T] C
