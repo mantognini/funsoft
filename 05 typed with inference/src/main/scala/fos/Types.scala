@@ -21,12 +21,17 @@ case object TypeBool extends Type
 
 /** Type Schemes are not types. */
 case class TypeScheme(args: List[TypeVar], tp: Type) {
-  def instantiate = if (args.isEmpty) tp else ??? // TODO non empty type scheme
+  def instantiate: Type = Type.getSubstitution(args)(tp)
   override def toString() = args.mkString("[", ", ", "].") + tp
 }
 
 object Type {
   // TODO what should be added to Type?
+  def addToSubstitution(vars: List[TypeVar], substitution: Substitution): Substitution = vars match {
+    case Nil => substitution
+    case v :: xs => Type.addToSubstitution(xs, substitution ° (v, Type.fresh))
+  }
+  def getSubstitution(vars: List[TypeVar]): Substitution = addToSubstitution(vars, EmptySubstitution)
 
   private var last = 0 // id counter for fresh var names
   def fresh: TypeVar = {
