@@ -3,8 +3,6 @@ package fos
 abstract class TypeInferencers {
   import Type._
 
-  type Env = List[(String, TypeScheme)]
-
   case class TypeError(msg: String) extends Exception(msg)
 
   /** Lookup variable <code>name</code> in the given environment. */

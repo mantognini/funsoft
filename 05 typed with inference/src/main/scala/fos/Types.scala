@@ -26,6 +26,8 @@ case class TypeScheme(args: List[TypeVar], tp: Type) {
 }
 
 object Type {
+  type Env = List[(String, TypeScheme)]
+
   def generalize(tp: Type, exceptions: List[TypeVar]): TypeScheme = {
     def getTypeVars(tp: Type, exceptions: List[TypeVar], accu: List[TypeVar]): List[TypeVar] = tp match {
       case tv @ TypeVar(_) => if (exceptions.contains(tv)) accu else (tv :: accu)
@@ -35,6 +37,11 @@ object Type {
     }
     TypeScheme(getTypeVars(tp, exceptions, Nil).distinct, tp)
   }
+
+  def collectTypeVariables(env: Env): List[TypeVar] = env.foldLeft(List[TypeVar]())((tvs, envEntry) => envEntry._2.tp match {
+    case tv @ TypeVar(_) => tv :: tvs
+    case _ => tvs
+  })
 
   def addToSubstitution(vars: List[TypeVar], substitution: Substitution): Substitution = vars match {
     case Nil => substitution
