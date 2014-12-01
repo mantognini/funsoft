@@ -65,8 +65,8 @@ abstract class Substitution extends (Type => Type) {
     indent = indent + 1
     val result = tp match {
       case t @ TypeVar(v) => lookup(t) match {
-        case t2 @ TypeVar(w) if v != w => this(t2)
-        case TypeFun(a, b) => TypeFun(this(a), this(b))
+        case t2 @ TypeVar(w) if v != w => apply(t2)
+        case TypeFun(a, b) => TypeFun(apply(a), apply(b))
         case t2 => t2
       }
       case TypeFun(from, to) => TypeFun(apply(from), apply(to))
