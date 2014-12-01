@@ -104,5 +104,5 @@ object EmptySubstitution extends Substitution {
 case class NonEmptySubstitution(from: TypeVar, to: Type, tail: Substitution) extends Substitution {
   def lookup(t: TypeVar): Type = if (t == from) to else tail.lookup(t)
 
-  override def toString() = s"[ $from -> $to ] ° $tail"
+  override def toString() = s"$tail ° [ $from -> $to ]"
 }
