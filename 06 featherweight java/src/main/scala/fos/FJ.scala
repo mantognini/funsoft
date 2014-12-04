@@ -152,7 +152,7 @@ object FJ extends StandardTokenParsers {
         try {
           cls foreach (cl => typeOf(cl, Nil))
           val typeExpr = typeOf(expr, Nil)
-          println("TYPE EXPR: " + typeExpr);
+          println("TYPE EXPR: " + typeExpr)
           val evExpr = Evaluate(expr)
           print("EVALUATE TO: ")
           evExpr

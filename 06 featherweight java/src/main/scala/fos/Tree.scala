@@ -1,4 +1,3 @@
-
 package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
@@ -26,7 +25,7 @@ case class FieldAlreadyDefined(msg: String) extends FieldException(msg)
 sealed abstract class Tree extends Positional
 
 case class Program(cls: List[ClassDef], expr: Expr) extends Tree {
-  cls.foreach(c => CT.add(c.name, c));
+  cls.foreach(c => CT.add(c.name, c))
 }
 case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ctor: CtrDef, methods: List[MethodDef]) extends Tree {
   private def fieldLookup: List[FieldDef] = {
@@ -64,22 +63,22 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
   def overrideMethod(tpe: String, name: String, args: List[FieldDef], body: Expr): Unit = {
     if ((methods count (m => m.name == name)) > 1) throw new MethodOverrideException(", method " + name + " is defined more than once")
     try {
-      checkListFieldsDef(args);
+      checkListFieldsDef(args)
     } catch {
       case FieldAlreadyDefined(msg) => throw FieldAlreadyDefined("In class " + this.name + ", in the arguments of method " + name + ", " + msg)
     }
-    val inheritedMethod = getClassDef(superclass) findMethod (name);
+    val inheritedMethod = getClassDef(superclass) findMethod (name)
     inheritedMethod match {
       case None => ()
       case Some(MethodDef(tpeS, _, argsS, _)) =>
-        var error = false;
+        var error = false
         if (tpe == tpeS) {
-          val paramsOvMethod = args map (arg => arg.tpe);
-          val paramsInMethod = argsS map (argS => argS.tpe);
+          val paramsOvMethod = args map (arg => arg.tpe)
+          val paramsInMethod = argsS map (argS => argS.tpe)
           if (args.length != argsS.length)
             throw new MethodOverrideException("can't apply " + paramsOvMethod.mkString("(", ",", ")") + " to " + paramsInMethod.mkString("(", ",", ")"))
           for (i <- List.range(0, paramsInMethod length)) {
-            if ((paramsInMethod(i) != paramsOvMethod(i)) && !error) error = true;
+            if ((paramsInMethod(i) != paramsOvMethod(i)) && !error) error = true
           }
           if (error)
             throw new MethodOverrideException("can't apply " + paramsOvMethod.mkString("(", ",", ")") + " to " + paramsInMethod.mkString("(", ",", ")"))
@@ -94,11 +93,11 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
    * Should throw ClassConstructorArgsException's.
    */
   def checkTypeArguments(argsType: List[String]): Unit = {
-    var errorSub = Pair(false, 0);
-    val typeFields: List[String] = fieldLookup map (fd => fd.tpe);
+    var errorSub = Pair(false, 0)
+    val typeFields: List[String] = fieldLookup map (fd => fd.tpe)
     if ((typeFields length) == (argsType length)) {
       for (i <- List.range(0, typeFields length)) {
-        if (!(getClassDef(argsType(i)).isSubClassOf(typeFields(i))) && !errorSub._1) errorSub = Pair(true, i);
+        if (!(getClassDef(argsType(i)).isSubClassOf(typeFields(i))) && !errorSub._1) errorSub = Pair(true, i)
       }
       if (errorSub._1)
         throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")") + " because " +
@@ -114,13 +113,13 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
    */
   def verifyConstructorArgs: Unit = {
     try {
-      checkListFieldsDef(ctor.args);
+      checkListFieldsDef(ctor.args)
     } catch {
       case FieldAlreadyDefined(msg) => throw FieldAlreadyDefined(", in the constructor, " + msg)
     }
-    val fieldss = fieldLookup;
-    val fieldsType = fieldss map (fd => fd.tpe);
-    val constructType = ctor.args map (arg => arg.tpe);
+    val fieldss = fieldLookup
+    val fieldsType = fieldss map (fd => fd.tpe)
+    val constructType = ctor.args map (arg => arg.tpe)
     if (fieldss.length != (ctor.args length))
       throw new ClassConstructorArgsException("can't apply " + constructType.mkString("(", ",", ")") +
         " to " + fieldsType.mkString("(", ",", ")"))
@@ -165,11 +164,11 @@ case class MethodDef(tpe: String, name: String, args: List[FieldDef], body: Expr
    * Check type arguments of method definiton. Should throw MethodArgsException's.
    */
   def checkTypeArguments(argsType: List[String]): Unit = {
-    var error = false;
-    val params = (args map (arg => arg.tpe));
+    var error = false
+    val params = (args map (arg => arg.tpe))
     if ((params length) == (argsType length)) {
       for (i <- List.range(0, params length)) {
-        if (!((getClassDef(argsType(i))) isSubClassOf params(i)) && !error) error = true;
+        if (!((getClassDef(argsType(i))) isSubClassOf params(i)) && !error) error = true
       }
       if (error)
         throw new MethodArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + params.mkString("(", ",", ")"))
