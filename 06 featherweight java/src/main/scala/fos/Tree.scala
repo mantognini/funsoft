@@ -157,7 +157,6 @@ case class MethodDef(tpe: String, name: String, args: List[FieldDef], body: Expr
    * Check type arguments of method definition. Should throw MethodArgsException's.
    */
   def checkTypeArguments(argsType: List[String]): Unit = {
-    var error = false
     val params = args map { _.tpe }
 
     if (params.length != argsType.length)
