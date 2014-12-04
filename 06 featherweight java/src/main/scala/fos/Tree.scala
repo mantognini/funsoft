@@ -114,23 +114,18 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
    * Should throw FieldAlreadyDefined and ClassConstructorArgsException.
    */
   def verifyConstructorArgs: Unit = {
+    // NB: this test is potentially superfluous
     try {
-      checkListFieldsDef(ctor.args)
+      checkListFieldsDef(ctor.args) // checks only names!!
     } catch {
       case FieldAlreadyDefined(msg) => throw FieldAlreadyDefined(", in the constructor, " + msg)
     }
+
+    // Check that all parameters and fields' names plus their respective types match exactly, in the same order
     val fieldss = fieldLookup
-    val fieldsType = fieldss map (fd => fd.tpe)
-    val constructType = ctor.args map (arg => arg.tpe)
-    if (fieldss.length != (ctor.args length))
-      throw new ClassConstructorArgsException("can't apply " + constructType.mkString("(", ",", ")") +
-        " to " + fieldsType.mkString("(", ",", ")"))
-    (fieldss zip ctor.args) foreach (pair => {
-      if (pair._1 != pair._2)
-        throw new ClassConstructorArgsException("can't apply " + (ctor.args).mkString("(", ",", ")") +
-          " to " + fieldss.mkString("(", ",", ")"))
-    })
-    () //No error means every parameter of the constructor has the same type and name of the ones in the class
+    if (fieldss != ctor.args) {
+      throw new ClassConstructorArgsException("can't apply " + ctor.args.mkString("(", ",", ")") + " to " + fieldss.mkString("(", ",", ")"))
+    }
   }
 
   def superClass: Option[ClassDef] = CT lookup (this superclass)
