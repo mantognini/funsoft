@@ -128,19 +128,15 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
     }
   }
 
-  def superClass: Option[ClassDef] = CT lookup (this superclass)
+  def superClass: Option[ClassDef] = CT lookup superclass
 
-  def isSuperclassOf(that: Option[ClassDef]): Boolean =
-    that match {
-      case None => false
-      case Some(sub) =>
-        //C <: C
-        if (name == sub.name) true
-        else {
-          // CT(C) = class C extends D {...} -> C <: D OR C <: D & D <: E -> C <: E
-          this isSuperclassOf (sub superClass)
-        }
-    }
+  def isSuperclassOf(that: Option[ClassDef]): Boolean = {
+    that map { clazz =>
+      // C <: C, or 
+      // CT(C) = class C extends D {...} -> C <: D OR C <: D & D <: E -> C <: E
+      name == clazz.name || (this isSuperclassOf clazz.superClass)
+    } getOrElse false
+  }
 
   def isSubClassOf(that: ClassDef): Boolean = that isSuperclassOf Some(this)
 
