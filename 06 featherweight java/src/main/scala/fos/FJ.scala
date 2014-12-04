@@ -152,7 +152,7 @@ object FJ extends StandardTokenParsers {
         try {
           cls foreach (cl => typeOf(cl, Nil))
           val typeExpr = typeOf(expr, Nil)
-          println("TYPE EXPR: " + typeExpr); expr
+          println("TYPE EXPR: " + typeExpr);
           val evExpr = Evaluate(expr)
           print("EVALUATE TO: ")
           evExpr
@@ -167,7 +167,7 @@ object FJ extends StandardTokenParsers {
             CT.clear
             expr
 
-          case e @ _ =>
+          case e: Throwable =>
             println(e)
             CT.clear
             expr
@@ -186,11 +186,8 @@ object FJ extends StandardTokenParsers {
     val tokens = new lexical.Scanner(StreamReader(new InputStreamReader(inputStream)))
     phrase(Prog)(tokens) match {
       case Success(trees, _) =>
-        try {
-          print(eval(trees))
-        } catch {
-          case tperror => println(tperror.toString)
-        }
+        print(eval(trees))
+
       case e =>
         println(e)
     }
