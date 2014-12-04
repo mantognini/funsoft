@@ -73,9 +73,8 @@ object FJ extends StandardTokenParsers {
    *            | empty
    *  </pre>
    */
-  def ParamList: Parser[List[FieldDef]] = (
-    ident ~ ident ~ rep("," ~> ident ~ ident ^^ { case tpe ~ name => FieldDef(tpe, name) }) ^^ { case tpe ~ name ~ rest => FieldDef(tpe, name) :: rest }
-    | success(Nil: List[FieldDef]))
+  def ParamList: Parser[List[FieldDef]] =
+    repsep(ident ~ ident ^^ { case tpe ~ name => FieldDef(tpe, name) }, ",")
 
   /**
    * <pre>
@@ -83,9 +82,8 @@ object FJ extends StandardTokenParsers {
    *            | epsilon
    *  </pre>
    */
-  def VarList: Parser[List[Var]] = (
-    ident ~ rep("," ~> ident ^^ { x => Var(x) }) ^^ { case name ~ rest => Var(name) :: rest }
-    | success(Nil: List[Var]))
+  def VarList: Parser[List[Var]] =
+    repsep(ident ^^ { Var(_) }, ",")
 
   /**
    * <pre>
@@ -102,9 +100,8 @@ object FJ extends StandardTokenParsers {
    *  Expressions ::= [Expr { "," Expr } ]
    *  </pre>
    */
-  def Expressions: Parser[List[Expr]] = (
-    Expr ~ rep("," ~> Expr) ^^ { case expr ~ rest => expr :: rest }
-    | success(Nil: List[Expr]))
+  def Expressions: Parser[List[Expr]] =
+    repsep(Expr, ",")
 
   /**
    * <pre>
@@ -134,10 +131,10 @@ object FJ extends StandardTokenParsers {
   def mkExpression(obj: Expr, rest: List[~[String, Option[List[Expr]]]]) = {
     var t: Expr = obj
     def buildPath(xs: List[~[String, Option[List[Expr]]]]): Unit = xs match {
-      case ~(meth, Some(args)) :: rest =>
+      case meth ~ Some(args) :: rest =>
         t = Apply(t, meth, args)
         buildPath(rest)
-      case ~(field, None) :: rest =>
+      case field ~ None :: rest =>
         t = Select(t, field)
         buildPath(rest)
       case Nil => ()
