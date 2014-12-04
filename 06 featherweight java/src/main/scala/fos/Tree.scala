@@ -51,12 +51,10 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
       case dups => throw FieldAlreadyDefined("variable(s) " + dups.mkString(", ") + " are already defined in the scope")
     }
 
-  def findMethod(methodName: String): Option[MethodDef] = methods find (m => m.name == methodName) match {
-    case None => CT lookup superclass match {
-      case None => None
-      case Some(superc) => superc findMethod methodName
-    }
-    case Some(method) => Some(method)
+  def findMethod(methodName: String): Option[MethodDef] = {
+    def zelf = methods find { _.name == methodName }
+    def zuper = CT lookup superclass flatMap { _ findMethod methodName }
+    zelf orElse zuper
   }
 
   def overrideMethod(tpe: String, name: String, args: List[FieldDef], body: Expr): Unit = {
