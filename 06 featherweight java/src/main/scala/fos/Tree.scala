@@ -45,11 +45,13 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
    * Verify that in the list there is no two occurrence of the same variable name
    * Should throw FieldAlreadyDefined exception.
    */
-  private def checkListFieldsDef(fs: List[FieldDef]): Unit =
-    fs diff fs.distinct match {
+  private def checkListFieldsDef(fs: List[FieldDef]): Unit = {
+    val names = fs map { _.name }
+    names diff names.distinct match {
       case Nil => ()
       case dups => throw FieldAlreadyDefined("variable(s) " + dups.mkString(", ") + " are already defined in the scope")
     }
+  }
 
   def findMethod(methodName: String): Option[MethodDef] = {
     def zelf = methods find { _.name == methodName }
