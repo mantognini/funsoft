@@ -37,7 +37,7 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
 
   def getFieldsSuperclass: List[FieldDef] = getClassDef(superclass) fieldLookup
 
-  def findField(fieldName: String): Option[FieldDef] = fieldLookup find (f => f.name == fieldName)
+  def findField(fieldName: String): Option[FieldDef] = fieldLookup find { _.name == fieldName }
 
   def checkFields: Unit = checkListFieldsDef(fieldLookup)
 
