@@ -154,20 +154,21 @@ case class Assign(obj: String, field: String, rhs: Var) extends Tree
 case class MethodDef(tpe: String, name: String, args: List[FieldDef], body: Expr) extends Tree {
 
   /*
-   * Check type arguments of method definiton. Should throw MethodArgsException's.
+   * Check type arguments of method definition. Should throw MethodArgsException's.
    */
   def checkTypeArguments(argsType: List[String]): Unit = {
     var error = false
-    val params = (args map (arg => arg.tpe))
-    if ((params length) == (argsType length)) {
-      for (i <- List.range(0, params length)) {
-        if (!((getClassDef(argsType(i))) isSubClassOf params(i)) && !error) error = true
-      }
-      if (error)
-        throw new MethodArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + params.mkString("(", ",", ")"))
-      ()
-    } else
+    val params = args map { _.tpe }
+
+    if (params.length != argsType.length)
       throw new MethodArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + params.mkString("(", ",", ")"))
+
+    for {
+      (arg, param) <- argsType zip params
+      if !(getClassDef(arg) isSubClassOf param)
+    } {
+      throw new MethodArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + params.mkString("(", ",", ")"))
+    }
   }
 }
 
