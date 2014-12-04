@@ -91,18 +91,20 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
    * Should throw ClassConstructorArgsException's.
    */
   def checkTypeArguments(argsType: List[String]): Unit = {
-    var errorSub = Pair(false, 0)
-    val typeFields: List[String] = fieldLookup map (fd => fd.tpe)
-    if ((typeFields length) == (argsType length)) {
-      for (i <- List.range(0, typeFields length)) {
-        if (!(getClassDef(argsType(i)).isSubClassOf(typeFields(i))) && !errorSub._1) errorSub = Pair(true, i)
+    val typeFields: List[String] = fieldLookup map { _.tpe }
+
+    if (typeFields.length == argsType.length) {
+      for {
+        (arg, field) <- argsType zip typeFields
+        if !getClassDef(arg).isSubClassOf(field)
+      } {
+        throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")") + " because " + arg + " is not a subtype of " + field)
       }
-      if (errorSub._1)
-        throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")") + " because " +
-          argsType(errorSub._2) + " is not a subtype of " + typeFields(errorSub._2))
-      () //no errors means everything was fine
-    } else
+
+      // No errors means everything was fine... U DON'T SAY!
+    } else {
       throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")"))
+    }
   }
 
   /**
