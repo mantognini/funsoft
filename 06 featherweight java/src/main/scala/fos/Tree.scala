@@ -58,33 +58,34 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
   }
 
   def overrideMethod(tpe: String, name: String, args: List[FieldDef], body: Expr): Unit = {
-    if ((methods count (m => m.name == name)) > 1) throw new MethodOverrideException(", method " + name + " is defined more than once")
+    if ((methods count { _.name == name }) > 1)
+      throw new MethodOverrideException(s"In class ${this.name}, method $name is defined more than once")
+
     try {
       checkListFieldsDef(args)
     } catch {
-      case FieldAlreadyDefined(msg) => throw FieldAlreadyDefined("In class " + this.name + ", in the arguments of method " + name + ", " + msg)
+      case FieldAlreadyDefined(msg) =>
+        throw FieldAlreadyDefined(s"In class ${this.name}, in the arguments of method $name, $msg")
     }
-    val inheritedMethod = getClassDef(superclass) findMethod (name)
+
+    val inheritedMethod = getClassDef(superclass) findMethod name
     inheritedMethod match {
       case None => ()
       case Some(MethodDef(tpeS, _, argsS, _)) =>
-        var error = false
         if (tpe == tpeS) {
-          val paramsOvMethod = args map (arg => arg.tpe)
-          val paramsInMethod = argsS map (argS => argS.tpe)
-          if (args.length != argsS.length)
+          val paramsOvMethod = args map { _.tpe }
+          val paramsInMethod = argsS map { _.tpe }
+
+          if (paramsOvMethod != paramsInMethod)
             throw new MethodOverrideException("can't apply " + paramsOvMethod.mkString("(", ",", ")") + " to " + paramsInMethod.mkString("(", ",", ")"))
-          for (i <- List.range(0, paramsInMethod length)) {
-            if ((paramsInMethod(i) != paramsOvMethod(i)) && !error) error = true
-          }
-          if (error)
-            throw new MethodOverrideException("can't apply " + paramsOvMethod.mkString("(", ",", ")") + " to " + paramsInMethod.mkString("(", ",", ")"))
-          () //Everything was ok, so override ok
-        } else
-          throw new MethodOverrideException("Type mismatch. The return type " + tpeS + " of inherithed " +
-            "method " + name + " has different signature. Overriding method has type " + tpe)
+
+          // Everything was ok, so override ok
+        } else {
+          throw new MethodOverrideException(s"Type mismatch. The return type $tpeS of inherithed method $name has different signature. Overriding method has type $tpe")
+        }
     }
   }
+
   /**
    * checkTypeArguments: verify only the type of the parameters not the name
    * Should throw ClassConstructorArgsException's.
