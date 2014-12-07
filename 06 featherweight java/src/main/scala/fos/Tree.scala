@@ -1,4 +1,3 @@
-
 package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
@@ -26,7 +25,7 @@ case class FieldAlreadyDefined(msg: String) extends FieldException(msg)
 sealed abstract class Tree extends Positional
 
 case class Program(cls: List[ClassDef], expr: Expr) extends Tree {
-  cls.foreach(c => CT.add(c.name, c));
+  cls.foreach(c => CT.add(c.name, c))
 }
 case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ctor: CtrDef, methods: List[MethodDef]) extends Tree {
   private def fieldLookup: List[FieldDef] = {
@@ -38,7 +37,7 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
 
   def getFieldsSuperclass: List[FieldDef] = getClassDef(superclass) fieldLookup
 
-  def findField(fieldName: String): Option[FieldDef] = fieldLookup find (f => f.name == fieldName)
+  def findField(fieldName: String): Option[FieldDef] = fieldLookup find { _.name == fieldName }
 
   def checkFields: Unit = checkListFieldsDef(fieldLookup)
 
@@ -46,66 +45,68 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
    * Verify that in the list there is no two occurrence of the same variable name
    * Should throw FieldAlreadyDefined exception.
    */
-  private def checkListFieldsDef(f: List[FieldDef]): Unit = {
-    f find (field => (f count (_field => _field.name == field.name)) > 1) match {
-      case None => ()
-      case Some(varfield) => throw FieldAlreadyDefined("variable " + varfield.name + " is already defined in the scope")
+  private def checkListFieldsDef(fs: List[FieldDef]): Unit = {
+    val names = fs map { _.name }
+    names diff names.distinct match {
+      case Nil => ()
+      case dups => throw FieldAlreadyDefined("variable(s) " + dups.mkString(", ") + " are already defined in the scope")
     }
   }
 
-  def findMethod(methodName: String): Option[MethodDef] = methods find (m => m.name == methodName) match {
-    case None => CT lookup superclass match {
-      case None => None
-      case Some(superc) => superc findMethod methodName
-    }
-    case Some(method) => Some(method)
+  def findMethod(methodName: String): Option[MethodDef] = {
+    def zelf = methods find { _.name == methodName }
+    def zuper = CT lookup superclass flatMap { _ findMethod methodName }
+    zelf orElse zuper
   }
 
   def overrideMethod(tpe: String, name: String, args: List[FieldDef], body: Expr): Unit = {
-    if ((methods count (m => m.name == name)) > 1) throw new MethodOverrideException(", method " + name + " is defined more than once")
+    if ((methods count { _.name == name }) > 1)
+      throw new MethodOverrideException(s"In class ${this.name}, method $name is defined more than once")
+
     try {
-      checkListFieldsDef(args);
+      checkListFieldsDef(args)
     } catch {
-      case FieldAlreadyDefined(msg) => throw FieldAlreadyDefined("In class " + this.name + ", in the arguments of method " + name + ", " + msg)
+      case FieldAlreadyDefined(msg) =>
+        throw FieldAlreadyDefined(s"In class ${this.name}, in the arguments of method $name, $msg")
     }
-    val inheritedMethod = getClassDef(superclass) findMethod (name);
+
+    val inheritedMethod = getClassDef(superclass) findMethod name
     inheritedMethod match {
       case None => ()
       case Some(MethodDef(tpeS, _, argsS, _)) =>
-        var error = false;
         if (tpe == tpeS) {
-          val paramsOvMethod = args map (arg => arg.tpe);
-          val paramsInMethod = argsS map (argS => argS.tpe);
-          if (args.length != argsS.length)
+          val paramsOvMethod = args map { _.tpe }
+          val paramsInMethod = argsS map { _.tpe }
+
+          if (paramsOvMethod != paramsInMethod)
             throw new MethodOverrideException("can't apply " + paramsOvMethod.mkString("(", ",", ")") + " to " + paramsInMethod.mkString("(", ",", ")"))
-          for (i <- List.range(0, paramsInMethod length)) {
-            if ((paramsInMethod(i) != paramsOvMethod(i)) && !error) error = true;
-          }
-          if (error)
-            throw new MethodOverrideException("can't apply " + paramsOvMethod.mkString("(", ",", ")") + " to " + paramsInMethod.mkString("(", ",", ")"))
-          () //Everything was ok, so override ok
-        } else
-          throw new MethodOverrideException("Type mismatch. The return type " + tpeS + " of inherithed " +
-            "method " + name + " has different signature. Overriding method has type " + tpe)
+
+          // Everything was ok, so override ok
+        } else {
+          throw new MethodOverrideException(s"Type mismatch. The return type $tpeS of inherithed method $name has different signature. Overriding method has type $tpe")
+        }
     }
   }
+
   /**
    * checkTypeArguments: verify only the type of the parameters not the name
    * Should throw ClassConstructorArgsException's.
    */
   def checkTypeArguments(argsType: List[String]): Unit = {
-    var errorSub = Pair(false, 0);
-    val typeFields: List[String] = fieldLookup map (fd => fd.tpe);
-    if ((typeFields length) == (argsType length)) {
-      for (i <- List.range(0, typeFields length)) {
-        if (!(getClassDef(argsType(i)).isSubClassOf(typeFields(i))) && !errorSub._1) errorSub = Pair(true, i);
+    val typeFields: List[String] = fieldLookup map { _.tpe }
+
+    if (typeFields.length == argsType.length) {
+      for {
+        (arg, field) <- argsType zip typeFields
+        if !getClassDef(arg).isSubClassOf(field)
+      } {
+        throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")") + " because " + arg + " is not a subtype of " + field)
       }
-      if (errorSub._1)
-        throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")") + " because " +
-          argsType(errorSub._2) + " is not a subtype of " + typeFields(errorSub._2))
-      () //no errors means everything was fine
-    } else
+
+      // No errors means everything was fine... U DON'T SAY!
+    } else {
       throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")"))
+    }
   }
 
   /**
@@ -113,38 +114,29 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
    * Should throw FieldAlreadyDefined and ClassConstructorArgsException.
    */
   def verifyConstructorArgs: Unit = {
+    // NB: this test is potentially superfluous
     try {
-      checkListFieldsDef(ctor.args);
+      checkListFieldsDef(ctor.args) // checks only names!!
     } catch {
       case FieldAlreadyDefined(msg) => throw FieldAlreadyDefined(", in the constructor, " + msg)
     }
-    val fieldss = fieldLookup;
-    val fieldsType = fieldss map (fd => fd.tpe);
-    val constructType = ctor.args map (arg => arg.tpe);
-    if (fieldss.length != (ctor.args length))
-      throw new ClassConstructorArgsException("can't apply " + constructType.mkString("(", ",", ")") +
-        " to " + fieldsType.mkString("(", ",", ")"))
-    (fieldss zip ctor.args) foreach (pair => {
-      if (pair._1 != pair._2)
-        throw new ClassConstructorArgsException("can't apply " + (ctor.args).mkString("(", ",", ")") +
-          " to " + fieldss.mkString("(", ",", ")"))
-    })
-    () //No error means every parameter of the constructor has the same type and name of the ones in the class
+
+    // Check that all parameters and fields' names plus their respective types match exactly, in the same order
+    val fieldss = fieldLookup
+    if (fieldss != ctor.args) {
+      throw new ClassConstructorArgsException("can't apply " + ctor.args.mkString("(", ",", ")") + " to " + fieldss.mkString("(", ",", ")"))
+    }
   }
 
-  def superClass: Option[ClassDef] = CT lookup (this superclass)
+  def superClass: Option[ClassDef] = CT lookup superclass
 
-  def isSuperclassOf(that: Option[ClassDef]): Boolean =
-    that match {
-      case None => false
-      case Some(sub) =>
-        //C <: C
-        if (name == sub.name) true
-        else {
-          // CT(C) = class C extends D {...} -> C <: D OR C <: D & D <: E -> C <: E
-          this isSuperclassOf (sub superClass)
-        }
-    }
+  def isSuperclassOf(that: Option[ClassDef]): Boolean = {
+    that map { clazz =>
+      // C <: C, or 
+      // CT(C) = class C extends D {...} -> C <: D OR C <: D & D <: E -> C <: E
+      name == clazz.name || (this isSuperclassOf clazz.superClass)
+    } getOrElse false
+  }
 
   def isSubClassOf(that: ClassDef): Boolean = that isSuperclassOf Some(this)
 
@@ -162,20 +154,20 @@ case class Assign(obj: String, field: String, rhs: Var) extends Tree
 case class MethodDef(tpe: String, name: String, args: List[FieldDef], body: Expr) extends Tree {
 
   /*
-   * Check type arguments of method definiton. Should throw MethodArgsException's.
+   * Check type arguments of method definition. Should throw MethodArgsException's.
    */
   def checkTypeArguments(argsType: List[String]): Unit = {
-    var error = false;
-    val params = (args map (arg => arg.tpe));
-    if ((params length) == (argsType length)) {
-      for (i <- List.range(0, params length)) {
-        if (!((getClassDef(argsType(i))) isSubClassOf params(i)) && !error) error = true;
-      }
-      if (error)
-        throw new MethodArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + params.mkString("(", ",", ")"))
-      ()
-    } else
+    val params = args map { _.tpe }
+
+    if (params.length != argsType.length)
       throw new MethodArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + params.mkString("(", ",", ")"))
+
+    for {
+      (arg, param) <- argsType zip params
+      if !(getClassDef(arg) isSubClassOf param)
+    } {
+      throw new MethodArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + params.mkString("(", ",", ")"))
+    }
   }
 }
 

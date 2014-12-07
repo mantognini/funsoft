@@ -1,6 +1,6 @@
 package fos
 
-import scala.collection.mutable.{ Map, HashMap };
+import scala.collection.mutable.{ Map, HashMap }
 
 case class TypeError(msg: String) extends Exception(msg)
 
@@ -58,7 +58,7 @@ object CT {
   def delete(key: String) = ct -= key
 
   def clear(): Unit = {
-    ct clear;
+    ct.clear
     add(objectClass, objectClassDef)
   }
 
