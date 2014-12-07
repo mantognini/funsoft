@@ -25,7 +25,7 @@ object FJ extends StandardTokenParsers {
 
   /**
    * <pre>
-   *  ClassDef ::= "class" C extends C "{"
+   *  ClassDef ::= "class" C "extends" C "{"
    *                   { FieldDef } ConstructorDef  { MethodDef }
    *               "}"
    *  </pre>

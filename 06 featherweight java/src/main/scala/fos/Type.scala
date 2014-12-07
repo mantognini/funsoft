@@ -11,6 +11,7 @@ object Type {
 
   type Class = String
   type Context = List[Pair[Class, String]]
+  val emptyContext: Context = Nil
 
   def typeOf(tree: Tree, ctx: Context): Class = ???
   //   ... To complete ... 
