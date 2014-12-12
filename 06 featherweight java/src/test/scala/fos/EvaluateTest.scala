@@ -8,4 +8,15 @@ class EvaluateTest extends WordSpec with Matchers {
     id += 1
     id
   }
+
+  def parseExpr(input: String): Expr = {
+    val parser = FJ.phrase(FJ.Expr)
+    val token = new FJ.lexical.Scanner(input)
+    val res = parser(token)
+    res match {
+      case FJ.Success(ast, _) => ast
+      case FJ.Failure(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
+      case FJ.Error(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
+    }
+  }
 }
