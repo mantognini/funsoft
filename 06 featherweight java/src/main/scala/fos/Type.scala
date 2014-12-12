@@ -17,6 +17,7 @@ object Type {
 }
 
 case class EvaluationException(msg: String) extends Exception
+case class NoRuleApplies(expr: Expr) extends Exception(expr.toString)
 
 object Value {
   def unapply(expr: Expr): Option[Expr] = expr match {
@@ -46,7 +47,7 @@ object Evaluate extends (Expr => Expr) {
     case Cast(cls, e) => ??? // TODO: Implement evaluator for this expression
     case Select(obj, field) => ??? // TODO: Implement evaluator for this expression
     case Apply(obj, method, args) => ??? // TODO: Implement evaluator for this expression
-    case _ => throw new EvaluationException(s"Forgot expression $expr")
+    case _ => throw NoRuleApplies(expr)
   }
 
   def substituteInBody(exp: Expr, thiss: New, substs: List[(FieldDef, Expr)]): Expr = exp match {
