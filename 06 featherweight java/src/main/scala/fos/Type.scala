@@ -59,7 +59,10 @@ object Evaluate extends (Expr => Expr) {
       case _ => Select(Evaluate(obj), field) // (4)
     }
     case Apply(obj, method, args) => (obj, args) match {
-      case (Value(_), Values(_)) => ??? // TODO: (2)
+      case (Value(vObj), Values(vArgs)) => { // (2)
+        val md = getMethodDef(vObj.cls, method)
+        substituteInBody(md.body, vObj, md.args.zip(vArgs))
+      }
       case (Value(_), _) => ??? // TODO: (6)
       case _ => Apply(Evaluate(obj), method, args) // (5)
     }
