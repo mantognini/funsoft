@@ -51,7 +51,6 @@ object Evaluate extends (Expr => Expr) {
    * (8) E-Cast
    */
   def apply(expr: Expr): Expr = expr match {
-    case Var(name) => ??? // TODO: Implement evaluator for this expression
     case New(cls, args) => ??? // TODO: Implement evaluator for this expression
     case Cast(cls, e) => ??? // TODO: Implement evaluator for this expression
     case Select(obj, field) =>
