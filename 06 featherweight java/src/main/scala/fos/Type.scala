@@ -22,8 +22,14 @@ object Evaluate extends (Expr => Expr) {
 
   import Utils._
 
-  def apply(expr: Expr): Expr = ???
-  //   ... To complete ... 
+  def apply(expr: Expr): Expr = expr match {
+    case Var(name) => ??? // TODO: Implement evaluator for this expression
+    case New(cls, args) => ??? // TODO: Implement evaluator for this expression
+    case Cast(cls, e) => ??? // TODO: Implement evaluator for this expression
+    case Select(obj, field) => ??? // TODO: Implement evaluator for this expression
+    case Apply(obj, method, args) => ??? // TODO: Implement evaluator for this expression
+    case _ => throw new EvaluationException(s"Forgot expression $expr")
+  }
 
   def substituteInBody(exp: Expr, thiss: New, substs: List[(FieldDef, Expr)]): Expr = exp match {
     case Select(obj: Expr, field: String) => Select(substituteInBody(obj, thiss, substs), field)
