@@ -41,6 +41,17 @@ object Evaluate extends (Expr => Expr) {
 
   import Utils._
 
+  /*
+   * Apply one step of the evaluation among rules (see TAPL p.258, Figure 19-3)
+   * (1) E-ProjNew
+   * (2) E-InvkNew
+   * (3) E-CastNew
+   * (4) E-Field
+   * (5) E-Invk-Recv
+   * (6) E-Invk-Arg
+   * (7) E-New-Arg
+   * (8) E-Cast
+   */
   def apply(expr: Expr): Expr = expr match {
     case Var(name) => ??? // TODO: Implement evaluator for this expression
     case New(cls, args) => ??? // TODO: Implement evaluator for this expression
