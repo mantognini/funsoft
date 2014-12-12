@@ -63,7 +63,10 @@ object Evaluate extends (Expr => Expr) {
         val md = getMethodDef(vObj.cls, method)
         substituteInBody(md.body, vObj, md.args.zip(vArgs))
       }
-      case (Value(_), _) => ??? // TODO: (6)
+      case (Value(_), args) => //(6)
+        args.span(Value.unapply(_).isDefined) match {
+          case (values, nonValues) => Apply(obj, method, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
+        }
       case _ => Apply(Evaluate(obj), method, args) // (5)
     }
     case _ => throw NoRuleApplies(expr)
