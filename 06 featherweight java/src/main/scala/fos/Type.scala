@@ -54,21 +54,24 @@ object Evaluate extends (Expr => Expr) {
     case Var(name) => ??? // TODO: Implement evaluator for this expression
     case New(cls, args) => ??? // TODO: Implement evaluator for this expression
     case Cast(cls, e) => ??? // TODO: Implement evaluator for this expression
-    case Select(obj, field) => obj match {
-      case New(cls, Values(ctrArgs)) => getCstrArgValueFromField(cls, ctrArgs, field) // (1)
-      case _ => Select(Evaluate(obj), field) // (4)
-    }
-    case Apply(obj, method, args) => (obj, args) match {
-      case (Value(vObj), Values(vArgs)) => { // (2)
-        val md = getMethodDef(vObj.cls, method)
-        substituteInBody(md.body, vObj, md.args.zip(vArgs))
+    case Select(obj, field) =>
+      obj match {
+        case New(cls, Values(ctrArgs)) => getCstrArgValueFromField(cls, ctrArgs, field) // (1)
+        case _ => Select(Evaluate(obj), field) // (4)
       }
-      case (Value(_), args) => //(6)
-        args.span(Value.unapply(_).isDefined) match {
-          case (values, nonValues) => Apply(obj, method, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
+    case Apply(obj, method, args) =>
+      (obj, args) match {
+        case (Value(vObj), Values(vArgs)) => { // (2)
+          val md = getMethodDef(vObj.cls, method)
+          substituteInBody(md.body, vObj, md.args.zip(vArgs))
         }
-      case _ => Apply(Evaluate(obj), method, args) // (5)
-    }
+        case (Value(_), args) => //(6)
+          args.span(Value.unapply(_).isDefined) match {
+            case (values, nonValues) => Apply(obj, method, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
+          }
+        case _ =>
+          Apply(Evaluate(obj), method, args) // (5)
+      }
     case _ => throw NoRuleApplies(expr)
   }
 
