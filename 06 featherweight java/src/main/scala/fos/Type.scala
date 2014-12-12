@@ -80,13 +80,29 @@ object Evaluate extends (Expr => Expr) {
     case _ => throw new EvaluationException("Apply: Forgot expression " + exp)
   }
 
-  def getCstrArgValueFromField(cls: String, ctrArgs: List[Expr], field: String): Expr = CT.lookup(cls) match {
-    case Some(cd) => cd.fields.zip(ctrArgs).find(_._1.name == field) match {
+  def getCstrArgValueFromField(cls: String, ctrArgs: List[Expr], field: String): Expr =
+    getClassDef(cls).fields.zip(ctrArgs).find(_._1.name == field) match {
       case Some((fd, ctrArg)) => ctrArg
-      case None => throw new EvaluationException(s"Field access `(new $cls).$field` to an undefined class field")
+      case None => throw new EvaluationException(s"Cannot access field in `$cls($ctrArgs).$field`")
     }
-    case None => throw new EvaluationException(s"Field access `(new $cls).$field` to an undefined class")
-  }
+
+  def getClassDef(cls: String): ClassDef =
+    CT.lookup(cls) match {
+      case Some(cd) => cd
+      case None => throw new EvaluationException(s"Unknown class $cls")
+    }
+
+  def getFieldDef(cls: String, field: String): FieldDef =
+    getClassDef(cls).fields.find(_.name == field) match {
+      case Some(fd) => fd
+      case None => throw new EvaluationException(s"Access `$cls.$field` to an undefined field")
+    }
+
+  def getMethodDef(cls: String, meth: String): MethodDef =
+    getClassDef(cls).findMethod(meth) match {
+      case Some(md) => md
+      case None => throw new EvaluationException(s"Access `$cls.$meth` to an undefined method")
+    }
 }
 
 object CT {
