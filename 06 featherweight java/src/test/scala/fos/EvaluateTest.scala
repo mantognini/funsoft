@@ -19,4 +19,13 @@ class EvaluateTest extends WordSpec with Matchers {
       case FJ.Error(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
     }
   }
+
+  def evaluate(input: String)(implicit parser: String => Expr): Expr = {
+    info(s"input: $input")
+    val ast = parser(input)
+    info(s"AST: $ast")
+    val expr = Evaluate(ast)
+    info(s"-> expr: $expr")
+    expr
+  }
 }
