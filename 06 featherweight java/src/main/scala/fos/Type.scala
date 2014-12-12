@@ -56,7 +56,10 @@ object Evaluate extends (Expr => Expr) {
     case Var(name) => ??? // TODO: Implement evaluator for this expression
     case New(cls, args) => ??? // TODO: Implement evaluator for this expression
     case Cast(cls, e) => ??? // TODO: Implement evaluator for this expression
-    case Select(obj, field) => ??? // TODO: Implement evaluator for this expression
+    case Select(obj, field) => obj match {
+      case New(cls, Values(ctrArgs)) => getCstrArgValueFromField(cls, ctrArgs, field) // (1)
+      case _ => Select(Evaluate(obj), field) // (4)
+    }
     case Apply(obj, method, args) => ??? // TODO: Implement evaluator for this expression
     case _ => throw NoRuleApplies(expr)
   }
@@ -73,6 +76,14 @@ object Evaluate extends (Expr => Expr) {
 
     case Apply(obj, method, args) => Apply(substituteInBody(obj, thiss, substs), method, args map (arg => substituteInBody(arg, thiss, substs)))
     case _ => throw new EvaluationException("Apply: Forgot expression " + exp)
+  }
+
+  def getCstrArgValueFromField(cls: String, ctrArgs: List[Expr], field: String): Expr = CT.lookup(cls) match {
+    case Some(cd) => cd.fields.zip(ctrArgs).find(_._1.name == field) match {
+      case Some((fd, ctrArg)) => ctrArg
+      case None => throw new EvaluationException(s"Field access `(new $cls).$field` to an undefined class field")
+    }
+    case None => throw new EvaluationException(s"Field access `(new $cls).$field` to an undefined class")
   }
 }
 
