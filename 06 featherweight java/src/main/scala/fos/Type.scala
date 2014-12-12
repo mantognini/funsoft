@@ -18,6 +18,24 @@ object Type {
 
 case class EvaluationException(msg: String) extends Exception
 
+object Value {
+  def unapply(expr: Expr): Option[Expr] = expr match {
+    case New(cls, Nil) => Some(expr)
+    case New(cls, Values(args)) => Some(expr)
+    case _ => None
+  }
+}
+
+object Values {
+  def unapply(xe: List[Expr]): Option[List[Expr]] = xe.find(_ match {
+    case Value(_) => false
+    case _ => true
+  }) match {
+    case None => Some(xe)
+    case Some(_) => None
+  }
+}
+
 object Evaluate extends (Expr => Expr) {
 
   import Utils._
