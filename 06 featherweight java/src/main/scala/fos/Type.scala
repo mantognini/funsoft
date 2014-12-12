@@ -57,7 +57,7 @@ object Evaluate extends (Expr => Expr) {
       }
     case Cast(d, expr) => expr match {
       case New(c, Values(_)) if getClassDef(c).isSubClassOf(d) => expr // (3)
-      case _ => ??? // TODO: E-Cast (8)
+      case _ => Cast(d, Evaluate(expr)) // (8)
     }
     case Select(obj, field) =>
       obj match {
