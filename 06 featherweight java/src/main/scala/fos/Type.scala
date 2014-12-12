@@ -55,7 +55,10 @@ object Evaluate extends (Expr => Expr) {
       args.span(Value.unapply(_).isDefined) match {
         case (values, nonValues) => New(cls, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
       }
-    case Cast(cls, e) => ??? // TODO: Implement evaluator for this expression
+    case Cast(d, expr) => expr match {
+      case New(c, Values(_)) if getClassDef(c).isSubClassOf(d) => expr // (3)
+      case _ => ??? // TODO: E-Cast (8)
+    }
     case Select(obj, field) =>
       obj match {
         case New(cls, Values(ctrArgs)) => getCstrArgValueFromField(cls, ctrArgs, field) // (1)
