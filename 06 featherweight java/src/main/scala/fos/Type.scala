@@ -60,7 +60,11 @@ object Evaluate extends (Expr => Expr) {
       case New(cls, Values(ctrArgs)) => getCstrArgValueFromField(cls, ctrArgs, field) // (1)
       case _ => Select(Evaluate(obj), field) // (4)
     }
-    case Apply(obj, method, args) => ??? // TODO: Implement evaluator for this expression
+    case Apply(obj, method, args) => (obj, args) match {
+      case (Value(_), Values(_)) => ??? // TODO: (2)
+      case (Value(_), _) => ??? // TODO: (6)
+      case _ => Apply(Evaluate(obj), method, args) // (5)
+    }
     case _ => throw NoRuleApplies(expr)
   }
 
