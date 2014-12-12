@@ -20,21 +20,19 @@ case class EvaluationException(msg: String) extends Exception
 case class NoRuleApplies(expr: Expr) extends Exception(expr.toString)
 
 object Value {
-  def unapply(expr: Expr): Option[Expr] = expr match {
-    case New(cls, Nil) => Some(expr)
-    case New(cls, Values(args)) => Some(expr)
+  def unapply(expr: Expr): Option[New] = expr match {
+    case ne @ New(cls, Nil) => Some(ne)
+    case ne @ New(cls, Values(args)) => Some(ne)
     case _ => None
   }
 }
 
 object Values {
-  def unapply(xe: List[Expr]): Option[List[Expr]] = xe.find(_ match {
-    case Value(_) => false
-    case _ => true
-  }) match {
-    case None => Some(xe)
-    case Some(_) => None
-  }
+  def unapply(xe: List[Expr]): Option[List[New]] =
+    xe.map(Value.unapply(_)).foldRight(Some(Nil): Option[List[New]])((nArgOption, accu) => (nArgOption, accu) match {
+      case (Some(nArg), Some(xn)) => Some(nArg :: xn)
+      case _ => None
+    })
 }
 
 object Evaluate extends (Expr => Expr) {
