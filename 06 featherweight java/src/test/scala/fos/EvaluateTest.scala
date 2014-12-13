@@ -5,7 +5,10 @@ import org.scalatest._
 case class EvaluateTestError(str: String) extends Exception(str)
 
 class EvaluateTest extends WordSpec with Matchers {
-  val validTestCases: List[List[String]] = Nil
+  val validTestCases: List[List[String]] =
+    ("new Pair(new A(), new B())" :: Nil) ::
+      ("new Pair(new A(), new B()).snd" :: "new B()" :: Nil) ::
+      Nil
 
   CTHelper.addClassA()
   CTHelper.addClassB()
