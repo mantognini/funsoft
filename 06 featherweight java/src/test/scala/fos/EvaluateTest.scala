@@ -26,6 +26,33 @@ object CTHelper {
     val cd: ClassDef = ClassDef(cls, superCls, fieldDefs, ctor, methods)
     CT.add(cls, cd)
   }
+
+  def addClassA(): Unit = {
+    val cls = "A"
+    val superCls = "Object"
+    val fields: List[(String, String)] = Nil
+    addClass(cls, superCls, fields, Nil)
+  }
+  def addClassB(): Unit = {
+    val cls = "A"
+    val superCls = "Object"
+    val fields: List[(String, String)] = Nil
+    addClass(cls, superCls, fields, Nil)
+  }
+  def addClassPair(): Unit = {
+    val cls = "Pair"
+    val superCls = "Object"
+    val fields: List[(String, String)] =
+      "Object" -> "fst" ::
+        "Object" -> "snd" ::
+        Nil
+
+    val setfstArgs = FieldDef("Object", "newfst") :: Nil
+    val setfstBody = New("Pair", Var("newfst") :: Select(Var("this"), "snd") :: Nil)
+    val setfst = MethodDef("Pair", "setfst", setfstArgs, setfstBody)
+
+    addClass(cls, superCls, fields, setfst :: Nil)
+  }
 }
 
 object evaluateHelper {
