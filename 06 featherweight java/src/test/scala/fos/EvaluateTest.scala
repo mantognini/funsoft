@@ -48,11 +48,6 @@ object CTHelper {
 }
 
 object EvaluateHelper {
-  private var id = 0
-  def testId() = {
-    id += 1
-    id
-  }
   def parseExpr(input: String): Expr = {
     val parser = FJ.phrase(FJ.Expr)
     val token = new FJ.lexical.Scanner(input)
