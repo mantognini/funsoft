@@ -51,7 +51,7 @@ object Evaluate extends (Expr => Expr) {
    * (8) E-Cast
    */
   def apply(expr: Expr): Expr = expr match {
-    case New(cls, args) => // (7)
+    case New(cls, args) if Values.unapply(args).isEmpty => // (7)
       args.span(Value.unapply(_).isDefined) match {
         case (values, nonValues) => New(cls, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
       }
