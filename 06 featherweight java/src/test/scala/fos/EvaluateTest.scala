@@ -48,20 +48,19 @@ object CTHelper {
         Nil
 
     val setfstArgs = FieldDef("Object", "newfst") :: Nil
-    val setfstBody = evaluateHelper.parseExpr("new Pair(newfst, this.snd)")
+    val setfstBody = EvaluateHelper.parseExpr("new Pair(newfst, this.snd)")
     val setfst = MethodDef("Pair", "setfst", setfstArgs, setfstBody)
 
     addClass(cls, superCls, fields, setfst :: Nil)
   }
 }
 
-object evaluateHelper {
+object EvaluateHelper {
   private var id = 0
   def testId() = {
     id += 1
     id
   }
-
   def parseExpr(input: String): Expr = {
     val parser = FJ.phrase(FJ.Expr)
     val token = new FJ.lexical.Scanner(input)
