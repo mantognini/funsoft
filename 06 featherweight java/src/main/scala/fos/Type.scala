@@ -17,7 +17,6 @@ object Type {
 }
 
 case class EvaluationException(msg: String) extends Exception
-case class NoRuleApplies(expr: Expr) extends Exception(expr.toString)
 
 object Value {
   def unapply(expr: Expr): Option[New] = expr match {
@@ -51,7 +50,8 @@ object Evaluate extends (Expr => Expr) {
    * (8) E-Cast
    */
   def apply(expr: Expr): Expr = expr match {
-    case New(cls, args) if Values.unapply(args).isEmpty => // (7)
+    case Value(expr) => expr
+    case New(cls, args) => // (7)
       args.span(Value.unapply(_).isDefined) match {
         case (values, nonValues) => New(cls, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
       }
@@ -77,7 +77,7 @@ object Evaluate extends (Expr => Expr) {
         case _ =>
           Apply(Evaluate(obj), method, args) // (5)
       }
-    case _ => throw NoRuleApplies(expr)
+    case _ => throw new EvaluationException(s"Evaluation is stuck with expr $expr")
   }
 
   def substituteInBody(exp: Expr, thiss: New, substs: List[(FieldDef, Expr)]): Expr = exp match {
