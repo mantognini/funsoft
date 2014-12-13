@@ -63,4 +63,44 @@ object EvaluateHelper {
     val expr = Evaluate(ast)
     expr
   }
+  def test(steps: List[String], info: Informer): Option[String] = {
+    def testAStep(step: String, expected: Option[String]): Option[String] = {
+      info(s"info: testing that `$step` evaluates to `$expected`")
+      expected match {
+        case Some(nextStep) => {
+          try {
+            val effectiveNextStep = evaluate(step)
+            if (effectiveNextStep == EvaluateHelper.parseExpr(nextStep)) {
+              None
+            } else {
+              Some(s"`$step` does not evaluate to `$nextStep` but rather to `$effectiveNextStep`")
+            }
+          } catch {
+            case e: NoRuleApplies => Some(s"Expected `$step` to evaluate into `$nextStep` but got stuck")
+            case e: Throwable => throw new EvaluationException(s"Unexpected error $e")
+          }
+        }
+        case None => {
+          try {
+            val effectiveNextStep = evaluate(step)
+            Some(s"`$step` evaluated to `$effectiveNextStep` but was expected to be the last evaluation step")
+          } catch {
+            case e: NoRuleApplies => None
+            case e: Throwable => throw new EvaluationException(s"Unexpected error $e")
+          }
+        }
+      }
+    }
+    def testRec(steps: List[String]): Option[String] = {
+      steps match {
+        case Nil => None
+        case lastStep :: Nil => testAStep(lastStep, None)
+        case step :: xs => testAStep(step, Some(xs.head)) match {
+          case e @ Some(_) => e
+          case None => testRec(xs)
+        }
+      }
+    }
+    testRec(steps)
+  }
 }
