@@ -15,6 +15,19 @@ class EvaluateTest extends WordSpec with Matchers {
   }
 }
 
+object CTHelper {
+  def addClass(cls: String, superCls: String, fields: List[(String, String)], methods: List[MethodDef]): Unit = {
+    val fieldDefs: List[FieldDef] = fields.map(p => FieldDef(p._1, p._2))
+    val superCd: ClassDef = CT.lookup(superCls).getOrElse(
+      throw new EvaluateTestError(s"superclass $cls not defined in CT"))
+    val superVar: List[Var] = superCd.fields.map(fd => Var(fd.name))
+    val ctorAssigns: List[Assign] = superCd.fields.zip(superVar).map(p => Assign(cls, p._1.name, p._2))
+    val ctor: CtrDef = CtrDef(cls, fieldDefs, superVar, ctorAssigns)
+    val cd: ClassDef = ClassDef(cls, superCls, fieldDefs, ctor, methods)
+    CT.add(cls, cd)
+  }
+}
+
 object evaluateHelper {
   private var id = 0
   def testId() = {
