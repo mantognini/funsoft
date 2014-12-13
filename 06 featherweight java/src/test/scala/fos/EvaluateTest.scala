@@ -48,7 +48,7 @@ object CTHelper {
         Nil
 
     val setfstArgs = FieldDef("Object", "newfst") :: Nil
-    val setfstBody = New("Pair", Var("newfst") :: Select(Var("this"), "snd") :: Nil)
+    val setfstBody = evaluateHelper.parseExpr("new Pair(newfst, this.snd)")
     val setfst = MethodDef("Pair", "setfst", setfstArgs, setfstBody)
 
     addClass(cls, superCls, fields, setfst :: Nil)
