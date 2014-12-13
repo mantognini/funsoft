@@ -5,6 +5,17 @@ import org.scalatest._
 case class EvaluateTestError(str: String) extends Exception(str)
 
 class EvaluateTest extends WordSpec with Matchers {
+  val validTestCases: List[List[String]] = Nil
+
+  CTHelper.addClassA()
+  CTHelper.addClassB()
+  CTHelper.addClassPair()
+
+  "The Evaluator" should {
+    s"evaluate expressions" in {
+      validTestCases.map(EvaluateHelper.test(_, info) should be(None))
+    }
+  }
 }
 
 object CTHelper {
