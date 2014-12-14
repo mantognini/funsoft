@@ -10,11 +10,17 @@ class EvaluateTest extends WordSpec with Matchers {
     ("new Pair(new A(), new B())" :: Nil) ::
       // E-ProjNew
       ("new Pair(new A(), new B()).snd" :: "new B()" :: Nil) ::
-      // E-InvkNew
+      // E-InvkNew & E-New-Arg
       ("new Pair(new A(), new B()).setfst(new B())" :: "new Pair(new B(), new Pair(new A(), new B()).snd)" :: "new Pair(new B(), new B())" :: Nil) ::
       // E-CastNew
       ("(Pair) new Pair(new A(), new B())" :: "new Pair(new A(), new B())" :: Nil) ::
-      Nil
+      // E-Field & E-Cast (& E-CastNew & E-ProjNew)
+      ("((Pair) new Pair(new Pair(new A(), new B()), new A()).fst).snd" :: "((Pair) new Pair(new A(), new B())).snd" :: "new Pair(new A(), new B()).snd" :: "new B()" :: Nil) ::
+      // E-Invk-Recv (& E-Cast & E-ProjNew & E-CastNew & E-InvkNew & E-New-Arg)
+      ("((Pair) new Pair(new A(), new Pair(new A(), new B())).snd).setfst(new B())" :: "((Pair) new Pair(new A(), new B())).setfst(new B())" :: "new Pair(new A(), new B()).setfst(new B())" :: "new Pair(new B(), new Pair(new A(), new B()).snd)" :: "new Pair(new B(), new B())" :: Nil) ::
+      // E-Invk-Arg (& E-CastNew & E-InvkNew E-New-Arg & E-ProjNew)
+      ("new Pair(new A(), new B()).setfst((A) new A())" :: "new Pair(new A(), new B()).setfst(new A())" :: "new Pair(new A(), new Pair(new A(), new B()).snd)" :: "new Pair(new A(), new B())" :: Nil) :: Nil
+  Nil
 
   CTHelper.addClassA()
   CTHelper.addClassB()
