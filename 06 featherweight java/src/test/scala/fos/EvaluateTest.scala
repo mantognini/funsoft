@@ -6,8 +6,14 @@ case class EvaluateTestError(str: String) extends Exception(str)
 
 class EvaluateTest extends WordSpec with Matchers {
   val validTestCases: List[List[String]] =
+    // No rules applies
     ("new Pair(new A(), new B())" :: Nil) ::
+      // E-ProjNew
       ("new Pair(new A(), new B()).snd" :: "new B()" :: Nil) ::
+      // E-InvkNew
+      ("new Pair(new A(), new B()).setfst(new B())" :: "new Pair(new B(), new Pair(new A(), new B()).snd)" :: "new Pair(new B(), new B())" :: Nil) ::
+      // E-CastNew
+      ("(Pair) new Pair(new A(), new B())" :: "new Pair(new A(), new B())" :: Nil) ::
       Nil
 
   CTHelper.addClassA()
