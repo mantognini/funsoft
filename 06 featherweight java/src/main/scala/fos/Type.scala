@@ -20,6 +20,7 @@ case class EvaluationException(msg: String) extends Exception
 case class NoRuleApplies(expr: Expr) extends Exception(expr.toString)
 
 object Value {
+  // Returns None if `expr` is not a value
   def unapply(expr: Expr): Option[New] = expr match {
     case ne @ New(cls, Nil) => Some(ne)
     case ne @ New(cls, Values(args)) => Some(ne)
@@ -28,6 +29,7 @@ object Value {
 }
 
 object Values {
+  // Returns None if there exists one element in `xe` which is not a value.
   def unapply(xe: List[Expr]): Option[List[New]] =
     xe.map(Value.unapply(_)).foldRight(Some(Nil): Option[List[New]])((nArgOption, accu) => (nArgOption, accu) match {
       case (Some(nArg), Some(xn)) => Some(nArg :: xn)
