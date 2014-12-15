@@ -35,6 +35,8 @@ object Values {
       case (Some(nArg), Some(xn)) => Some(nArg :: xn)
       case _ => None
     })
+
+  def existsANonValueIn(xs: List[Expr]): Boolean = unapply(xs).isEmpty
 }
 
 object Evaluate extends (Expr => Expr) {
@@ -52,8 +54,9 @@ object Evaluate extends (Expr => Expr) {
    * (7) E-New-Arg
    * (8) E-Cast
    */
+
   def apply(expr: Expr): Expr = expr match {
-    case New(cls, args) if Values.unapply(args).isEmpty => // (7)
+    case New(cls, args) if Values.existsANonValueIn(args) => // (7)
       args.span(Value.unapply(_).isDefined) match {
         case (values, nonValues) => New(cls, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
       }
