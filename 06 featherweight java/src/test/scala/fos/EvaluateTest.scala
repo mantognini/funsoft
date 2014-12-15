@@ -42,6 +42,7 @@ object CTHelper {
     val ctorAssigns: List[Assign] = superCd.fields.zip(superVar).map(p => Assign(cls, p._1.name, p._2))
     val ctor: CtrDef = CtrDef(cls, fieldDefs, superVar, ctorAssigns)
     val cd: ClassDef = ClassDef(cls, superCls, fieldDefs, ctor, methods)
+
     CT.add(cls, cd)
   }
 
@@ -49,12 +50,14 @@ object CTHelper {
     val cls = "A"
     val superCls = "Object"
     val fields: List[(String, String)] = Nil
+
     addClass(cls, superCls, fields, Nil)
   }
   def addClassB(): Unit = {
     val cls = "A"
     val superCls = "Object"
     val fields: List[(String, String)] = Nil
+
     addClass(cls, superCls, fields, Nil)
   }
   def addClassPair(): Unit = {
