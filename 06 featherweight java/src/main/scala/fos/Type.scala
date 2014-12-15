@@ -66,7 +66,7 @@ object Evaluate extends (Expr => Expr) {
     }
     case Select(obj, field) =>
       obj match {
-        case New(cls, Values(ctrArgs)) => getCstrArgValueFromField(cls, ctrArgs, field) // (1)
+        case New(cls, Values(ctrArgs)) => getCtorArgValueFromField(cls, ctrArgs, field) // (1)
         case _ => Select(Evaluate(obj), field) // (4)
       }
     case Apply(obj, method, args) =>
@@ -99,10 +99,10 @@ object Evaluate extends (Expr => Expr) {
     case _ => throw new EvaluationException("Apply: Forgot expression " + exp)
   }
 
-  def getCstrArgValueFromField(cls: String, ctrArgs: List[Expr], field: String): Expr =
-    getClassDef(cls).fields.zip(ctrArgs).find(_._1.name == field) match {
-      case Some((fd, ctrArg)) => ctrArg
-      case None => throw new EvaluationException(s"Cannot access field in `$cls($ctrArgs).$field`")
+  def getCtorArgValueFromField(cls: String, ctorArgs: List[Expr], field: String): Expr =
+    getClassDef(cls).fields.zip(ctorArgs).find(_._1.name == field) match {
+      case Some((fd, ctorArg)) => ctorArg
+      case None => throw new EvaluationException(s"Cannot access field in `$cls(ctorArgs).$field`")
     }
 
   def getClassDef(cls: String): ClassDef =
