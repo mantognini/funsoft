@@ -22,8 +22,8 @@ case class NoRuleApplies(expr: Expr) extends Exception(expr.toString)
 object Value {
   // Returns None if `expr` is not a value
   def unapply(expr: Expr): Option[New] = expr match {
-    case ne @ New(cls, Nil) => Some(ne)
-    case ne @ New(cls, Values(args)) => Some(ne)
+    case ne @ New(_, Nil) => Some(ne)
+    case ne @ New(_, Values(args)) => Some(ne)
     case _ => None
   }
 }
@@ -56,9 +56,9 @@ object Evaluate extends (Expr => Expr) {
    */
 
   def apply(expr: Expr): Expr = expr match {
-    case New(cls, args) if Values.existsANonValueIn(args) => // (7)
+    case New(klass, args) if Values.existsANonValueIn(args) => // (7)
       args.span(Value.unapply(_).isDefined) match {
-        case (values, nonValues) => New(cls, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
+        case (values, nonValues) => New(klass, values ::: (Evaluate(nonValues.head) :: nonValues.tail))
       }
     case Cast(d, expr) => expr match {
       case New(c, Values(_)) if getClassDef(c).isSubClassOf(d) => expr // (3)
@@ -66,13 +66,13 @@ object Evaluate extends (Expr => Expr) {
     }
     case Select(obj, field) =>
       obj match {
-        case New(cls, Values(ctrArgs)) => getCtorArgValueFromField(cls, ctrArgs, field) // (1)
+        case New(klass, Values(ctrArgs)) => getCtorArgValueFromField(klass, ctrArgs, field) // (1)
         case _ => Select(Evaluate(obj), field) // (4)
       }
     case Apply(obj, method, args) =>
       (obj, args) match {
         case (Value(vObj), Values(vArgs)) => { // (2)
-          val md = getMethodDef(vObj.cls, method)
+          val md = getMethodDef(vObj.klass, method)
           substituteInBody(md.body, vObj, md.args.zip(vArgs))
         }
         case (Value(_), args) => //(6)
@@ -87,8 +87,8 @@ object Evaluate extends (Expr => Expr) {
 
   def substituteInBody(exp: Expr, thiss: New, substs: List[(FieldDef, Expr)]): Expr = exp match {
     case Select(obj: Expr, field: String) => Select(substituteInBody(obj, thiss, substs), field)
-    case New(cls, args) => New(cls, args map (arg => substituteInBody(arg, thiss, substs)))
-    case Cast(cls, e) => Cast(cls, substituteInBody(e, thiss, substs))
+    case New(klass, args) => New(klass, args map (arg => substituteInBody(arg, thiss, substs)))
+    case Cast(klass, e) => Cast(klass, substituteInBody(e, thiss, substs))
     case Var("this") => thiss
     case Var(bd) => substs find (subs => subs._1.name == bd) match {
       case None => exp
@@ -99,28 +99,28 @@ object Evaluate extends (Expr => Expr) {
     case _ => throw new EvaluationException("Apply: Forgot expression " + exp)
   }
 
-  def getCtorArgValueFromField(cls: String, ctorArgs: List[Expr], field: String): Expr =
-    getClassDef(cls).fields.zip(ctorArgs).find(_._1.name == field) match {
+  def getCtorArgValueFromField(klass: String, ctorArgs: List[Expr], field: String): Expr =
+    getClassDef(klass).fields.zip(ctorArgs).find(_._1.name == field) match {
       case Some((fd, ctorArg)) => ctorArg
-      case None => throw new EvaluationException(s"Cannot access field in `$cls(ctorArgs).$field`")
+      case None => throw new EvaluationException(s"Cannot access field in `$klass(ctorArgs).$field`")
     }
 
-  def getClassDef(cls: String): ClassDef =
-    CT.lookup(cls) match {
+  def getClassDef(klass: String): ClassDef =
+    CT.lookup(klass) match {
       case Some(cd) => cd
-      case None => throw new EvaluationException(s"Unknown class $cls")
+      case None => throw new EvaluationException(s"Unknown class $klass")
     }
 
-  def getFieldDef(cls: String, field: String): FieldDef =
-    getClassDef(cls).fields.find(_.name == field) match {
+  def getFieldDef(klass: String, field: String): FieldDef =
+    getClassDef(klass).fields.find(_.name == field) match {
       case Some(fd) => fd
-      case None => throw new EvaluationException(s"Access `$cls.$field` to an undefined field")
+      case None => throw new EvaluationException(s"Access `$klass.$field` to an undefined field")
     }
 
-  def getMethodDef(cls: String, meth: String): MethodDef =
-    getClassDef(cls).findMethod(meth) match {
+  def getMethodDef(klass: String, meth: String): MethodDef =
+    getClassDef(klass).findMethod(meth) match {
       case Some(md) => md
-      case None => throw new EvaluationException(s"Access `$cls.$meth` to an undefined method")
+      case None => throw new EvaluationException(s"Access `$klass.$meth` to an undefined method")
     }
 }
 

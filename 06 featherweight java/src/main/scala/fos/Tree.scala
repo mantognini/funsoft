@@ -24,8 +24,8 @@ case class FieldAlreadyDefined(msg: String) extends FieldException(msg)
 
 sealed abstract class Tree extends Positional
 
-case class Program(cls: List[ClassDef], expr: Expr) extends Tree {
-  cls.foreach(c => CT.add(c.name, c))
+case class Program(cds: List[ClassDef], expr: Expr) extends Tree {
+  cds.foreach(c => CT.add(c.name, c))
 }
 case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ctor: CtrDef, methods: List[MethodDef]) extends Tree {
   private def fieldLookup: List[FieldDef] = {
@@ -176,11 +176,11 @@ abstract class Expr extends Tree
 case class Var(name: String) extends Expr {
   override def toString = name
 }
-case class New(cls: String, args: List[Expr]) extends Expr {
-  override def toString = "new " + cls + "" + args.mkString("(", ",", ")")
+case class New(klass: String, args: List[Expr]) extends Expr {
+  override def toString = "new " + klass + "" + args.mkString("(", ",", ")")
 }
-case class Cast(cls: String, e: Expr) extends Expr {
-  override def toString = "( (" + cls + ")" + e + ")"
+case class Cast(klass: String, e: Expr) extends Expr {
+  override def toString = "( (" + klass + ")" + e + ")"
 }
 case class Select(obj: Expr, field: String) extends Expr {
   override def toString = obj + "." + field
@@ -219,8 +219,8 @@ object PrettyPrinter {
   }
 
   def toDocument(t: Tree): Document = t match {
-    case Program(cls, expr) =>
-      group(toDocument(cls, "", "")) :/: group(toDocument(expr))
+    case Program(klass, expr) =>
+      group(toDocument(klass, "", "")) :/: group(toDocument(expr))
 
     case ClassDef(name, superclass, fields, ctor, methods) =>
       group("class " :: name :/: "extends " :: superclass :: empty) ::
@@ -248,10 +248,10 @@ object PrettyPrinter {
     case Var(name) =>
       text(name)
 
-    case New(cls, args) =>
-      "new " :: cls :: "(" :: group(toDocument(args, ",", "") :: text(")"))
-    case Cast(cls, expr) =>
-      group("(" :: cls :: ")" :/: toDocument(expr))
+    case New(klass, args) =>
+      "new " :: klass :: "(" :: group(toDocument(args, ",", "") :: text(")"))
+    case Cast(klass, expr) =>
+      group("(" :: klass :: ")" :/: toDocument(expr))
 
     case Select(obj, field) =>
       toDocument(obj) :: "." :: text(field)
