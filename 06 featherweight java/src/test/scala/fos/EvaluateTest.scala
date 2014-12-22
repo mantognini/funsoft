@@ -1,10 +1,45 @@
 package fos
 
 import org.scalatest._
+import scala.annotation.tailrec
 
 case class EvaluateTestError(str: String) extends Exception(str)
 
 class EvaluateTest extends WordSpec with Matchers {
+
+  def evaluate(input: String): Expr = {
+    val ast = parseExpr(input)
+    val typ = Type.typeOf(ast)(Type.emptyContext) // Make sure it typechecks first
+    val expr = Evaluate(ast)
+    expr
+  }
+
+  def testSteps(steps: List[String]) {
+    // No exception should be thrown, except for the last one.
+    // At each steps, the next one should be the output of the current one.
+
+    @tailrec
+    def walk(steps: List[String]): Unit = steps match {
+      case Nil =>
+        fail("unexpected empty steps")
+
+      case step :: Nil =>
+        val exception = intercept[NoRuleApplies] {
+          val result = evaluate(step)
+          fail(s"`$step` was evaluated to `$result` but it was expected to be the last evaluation step")
+        }
+        info(s"got stuck on $step as expected!")
+
+      case current :: next :: tail =>
+        val result = evaluate(current)
+        assert(result == parseExpr(next))
+        info(s"evaluated $current to $result as expected")
+        walk(next :: tail)
+    }
+
+    walk(steps)
+  }
+
   val validTestCases: List[List[String]] =
     // No rules applies
     ("new Pair(new A(), new B())" :: Nil) ::
@@ -40,16 +75,16 @@ class EvaluateTest extends WordSpec with Matchers {
       addClassP2()
     }
 
-    validTestCases foreach { t =>
-      s"successfully evaluate expression $t" in {
-        test(t) should be(None)
+    validTestCases foreach { steps =>
+      s"successfully evaluate expression $steps" in {
+        testSteps(steps)
         info("🍺")
       }
     }
 
-    stuckCases foreach { t =>
-      s"get stuck on expression $t" in {
-        test(t :: Nil) should be(None)
+    stuckCases foreach { lastStep =>
+      s"get stuck on expression $lastStep" in {
+        testSteps(lastStep :: Nil)
         info("🍺")
       }
     }
@@ -138,54 +173,5 @@ class P2 extends P1 {
       case FJ.Failure(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
       case FJ.Error(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
     }
-  }
-
-  def evaluate(input: String): Expr = {
-    val ast = parseExpr(input)
-    val expr = Evaluate(ast)
-    expr
-  }
-
-  def test(steps: List[String]): Option[String] = {
-    def testAStep(step: String, expected: Option[String]): Option[String] = {
-      info(s"info: testing that `$step` evaluates to `$expected`")
-      expected match {
-        case Some(nextStep) => {
-          try {
-            val effectiveNextStep = evaluate(step)
-            if (effectiveNextStep == parseExpr(nextStep)) {
-              None
-            } else {
-              Some(s"`$step` does not evaluate to `$nextStep` but rather to `$effectiveNextStep`")
-            }
-          } catch {
-            case e: NoRuleApplies => Some(s"Expected `$step` to evaluate into `$nextStep` but got stuck")
-            case e: Throwable => throw new EvaluationException(s"Unexpected error $e")
-          }
-        }
-        case None => {
-          try {
-            val effectiveNextStep = evaluate(step)
-            Some(s"`$step` evaluated to `$effectiveNextStep` but was expected to be the last evaluation step")
-          } catch {
-            case e: NoRuleApplies => None
-            case e: Throwable => throw new EvaluationException(s"Unexpected error $e")
-          }
-        }
-      }
-    }
-
-    def testRec(steps: List[String]): Option[String] = {
-      steps match {
-        case Nil => None
-        case lastStep :: Nil => testAStep(lastStep, None)
-        case step :: xs => testAStep(step, Some(xs.head)) match {
-          case e @ Some(_) => e
-          case None => testRec(xs)
-        }
-      }
-    }
-
-    testRec(steps)
   }
 }
