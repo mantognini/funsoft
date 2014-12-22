@@ -3,10 +3,11 @@ package fos.helper
 import fos._
 import Type._
 
-import org.scalatest.Assertions.fail
-import org.scalatest.Informer
+import org.scalatest._
 
-class Loader(info: Informer) {
+trait Loader {
+  this: WordSpec =>
+
   def parseClass: String => ClassDef = parse(FJ.ClsDef)
 
   def parseExpr: String => Expr = parse(FJ.Expr)

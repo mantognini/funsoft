@@ -4,9 +4,8 @@ import helper.Loader
 
 import org.scalatest._
 
-class TypecheckerTest extends WordSpec with Matchers {
-  private val loader = new Loader(this.info)
-  private implicit val parser = loader.parseClass
+class TypecheckerTest extends WordSpec with Matchers with Loader {
+  private implicit val parser = parseClass
 
   private var id = 0
   def testId(): Int = {
@@ -18,7 +17,7 @@ class TypecheckerTest extends WordSpec with Matchers {
   def testPass(input: String, expected: Type.Class)(implicit parser: String => Tree) {
     s"accept solo class $expected [$testId]" in {
       CT.clear
-      val typ = loader.load(input)
+      val typ = load(input)
       info(s"expected: $expected")
       assert(typ == expected)
       info("🍺")
@@ -28,7 +27,7 @@ class TypecheckerTest extends WordSpec with Matchers {
   def testPassTogether(inputs: List[String])(implicit parser: String => Tree) {
     s"accept class pack [$testId]" in {
       CT.clear
-      loader.loadAll(inputs)
+      loadAll(inputs)
       info("🍺")
     }
   }
@@ -38,7 +37,7 @@ class TypecheckerTest extends WordSpec with Matchers {
     s"reject bad code [$testId]" in {
       CT.clear
       val exception = intercept[TypeError] {
-        val typ = loader.load(input)
+        val typ = load(input)
         info(s"unexpected type: $typ")
       }
       info(s"excepted error: ${exception.msg}")
@@ -50,9 +49,9 @@ class TypecheckerTest extends WordSpec with Matchers {
     s"reject batch of bad code [$testId]" in {
       assert(inputs.size >= 1)
       CT.clear
-      loader.loadAll(inputs dropRight 1) // Those that should succeed
+      loadAll(inputs dropRight 1) // Those that should succeed
       val exception = intercept[TypeError] {
-        val typ = loader.load(inputs.last)
+        val typ = load(inputs.last)
         info(s"unexpected type: $typ")
       }
       info(s"excepted error: ${exception.msg}")

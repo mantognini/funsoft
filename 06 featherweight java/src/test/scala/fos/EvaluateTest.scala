@@ -5,8 +5,7 @@ import helper.Loader
 import org.scalatest._
 import scala.annotation.tailrec
 
-class EvaluateTest extends WordSpec with Matchers {
-  private val loader = new Loader(this.info)
+class EvaluateTest extends WordSpec with Matchers with Loader {
 
   def initContext() {
     CT.clear()
@@ -29,7 +28,7 @@ class EvaluateTest extends WordSpec with Matchers {
 
   def evaluate(input: String): Expr = {
     initContext()
-    val ast = loader.parseExpr(input)
+    val ast = parseExpr(input)
     val typ = typecheck(ast) // Make sure it typechecks first
     val expr = Evaluate(ast)
     expr
@@ -57,7 +56,7 @@ class EvaluateTest extends WordSpec with Matchers {
 
       case current :: next :: tail =>
         val result = evaluate(current)
-        assert(result == loader.parseExpr(next))
+        assert(result == parseExpr(next))
         info(s"evaluated $current to $result as expected")
         walk(next :: tail)
     }
@@ -165,7 +164,7 @@ class P2 extends P1 {
   }
 
   def addClass(code: String) {
-    val klass = loader.load(code)(loader.parseClass)
+    val klass = load(code)(parseClass)
     info(s"$klass was loaded")
     // When typecheck is ok, the class is added to CT
   }
