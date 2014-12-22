@@ -24,6 +24,11 @@ trait Loader {
   def loadAll(inputs: List[String])(implicit parser: String => Tree): List[Type.Class] =
     inputs map { load(_) }
 
+  def clearContext() {
+    info(s"clearing CT")
+    CT.clear
+  }
+
   private def parse[A](p: FJ.Parser[A])(input: String): A = {
     val parser = FJ.phrase(p)
     val token = new FJ.lexical.Scanner(input)

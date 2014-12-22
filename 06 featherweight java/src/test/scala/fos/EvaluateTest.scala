@@ -8,7 +8,7 @@ import scala.annotation.tailrec
 class EvaluateTest extends WordSpec with Matchers with Loader {
 
   def initContext() {
-    CT.clear()
+    clearContext()
     addClassA()
     addClassB()
     addClassPair()
@@ -91,7 +91,6 @@ class EvaluateTest extends WordSpec with Matchers with Loader {
   "The Evaluator" should {
     validTestCases foreach { steps =>
       s"successfully evaluate expressions $steps" in {
-        CT.clear
         testSteps(steps)
         info("🍺")
       }
@@ -99,7 +98,6 @@ class EvaluateTest extends WordSpec with Matchers with Loader {
 
     stuckCases foreach { lastStep =>
       s"get stuck on expression $lastStep" in {
-        CT.clear
         testSteps(lastStep :: Nil)
         info("🍺")
       }
