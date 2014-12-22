@@ -19,8 +19,8 @@ class EvaluateTest extends WordSpec with Matchers {
       // E-Invk-Recv (& E-Cast & E-ProjNew & E-CastNew & E-InvkNew & E-New-Arg)
       ("((Pair) new Pair(new A(), new Pair(new A(), new B())).snd).setfst(new B())" :: "((Pair) new Pair(new A(), new B())).setfst(new B())" :: "new Pair(new A(), new B()).setfst(new B())" :: "new Pair(new B(), new Pair(new A(), new B()).snd)" :: "new Pair(new B(), new B())" :: Nil) ::
       // E-Invk-Arg (& E-CastNew & E-InvkNew E-New-Arg & E-ProjNew)
-      ("new Pair(new A(), new B()).setfst((A) new A())" :: "new Pair(new A(), new B()).setfst(new A())" :: "new Pair(new A(), new Pair(new A(), new B()).snd)" :: "new Pair(new A(), new B())" :: Nil) :: Nil
-  Nil
+      ("new Pair(new A(), new B()).setfst((A) new A())" :: "new Pair(new A(), new B()).setfst(new A())" :: "new Pair(new A(), new Pair(new A(), new B()).snd)" :: "new Pair(new A(), new B())" :: Nil) ::
+      Nil
 
   CTHelper.addClassA()
   CTHelper.addClassB()
