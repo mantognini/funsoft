@@ -1,9 +1,12 @@
 package fos
 
+import helper.Loader
+
 import org.scalatest._
 import scala.annotation.tailrec
 
 class EvaluateTest extends WordSpec with Matchers {
+  private val loader = new Loader(this.info)
 
   def initContext() {
     CT.clear()
@@ -25,9 +28,9 @@ class EvaluateTest extends WordSpec with Matchers {
   }
 
   def evaluate(input: String): Expr = {
-    val ast = parseExpr(input)
-    val typ = typecheck(ast) // Make sure it typechecks first
     initContext()
+    val ast = loader.parseExpr(input)
+    val typ = typecheck(ast) // Make sure it typechecks first
     val expr = Evaluate(ast)
     expr
   }
@@ -54,7 +57,7 @@ class EvaluateTest extends WordSpec with Matchers {
 
       case current :: next :: tail =>
         val result = evaluate(current)
-        assert(result == parseExpr(next))
+        assert(result == loader.parseExpr(next))
         info(s"evaluated $current to $result as expected")
         walk(next :: tail)
     }
@@ -160,30 +163,8 @@ class P2 extends P1 {
   }
 
   def addClass(code: String) {
-    val ast = parseClass(code)
-    Type.typeOf(ast)(Type.emptyContext) // make sure it typechecks
+    val ast = loader.load(code)(loader.parseClass)
     // When typecheck is ok, the class is added to CT
   }
 
-  def parseExpr(input: String): Expr = {
-    val parser = FJ.phrase(FJ.Expr)
-    val token = new FJ.lexical.Scanner(input)
-    val res = parser(token)
-    res match {
-      case FJ.Success(ast, _) => ast
-      case FJ.Failure(msg, _) => fail(s"unable to parse $input: $msg")
-      case FJ.Error(msg, _) => fail(s"unable to parse $input: $msg")
-    }
-  }
-
-  def parseClass(input: String): ClassDef = {
-    val parser = FJ.phrase(FJ.ClsDef)
-    val token = new FJ.lexical.Scanner(input)
-    val res = parser(token)
-    res match {
-      case FJ.Success(ast, _) => ast
-      case FJ.Failure(msg, _) => fail(s"unable to parse $input: $msg")
-      case FJ.Error(msg, _) => fail(s"unable to parse $input: $msg")
-    }
-  }
 }

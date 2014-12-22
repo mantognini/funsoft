@@ -1,67 +1,44 @@
 package fos
 
+import helper.Loader
+
 import org.scalatest._
-import Type._
 
 class TypecheckerTest extends WordSpec with Matchers {
+  private val loader = new Loader(this.info)
+  private implicit val parser = loader.parseClass
+
   private var id = 0
   def testId(): Int = {
     id += 1
     id
   }
 
-  def parseClass(input: String): ClassDef = {
-    val parser = FJ.phrase(FJ.ClsDef)
-    val token = new FJ.lexical.Scanner(input)
-    val res = parser(token)
-    res match {
-      case FJ.Success(ast, _) => ast
-
-      case FJ.Failure(msg, _) =>
-        fail(s"unable to parse $input: $msg")
-
-      case FJ.Error(msg, _) =>
-        fail(s"unable to parse $input: $msg")
-    }
-  }
-
-  def load(input: String)(implicit parser: String => Tree): Type.Class = {
-    info(s"input: $input")
-    val ast = parser(input)
-    info(s"AST: $ast")
-    val typ = typeOf(ast)(emptyContext)
-    info(s"type: $typ")
-    typ
-  }
-
-  def loadAll(inputs: List[String])(implicit parser: String => Tree): List[Type.Class] =
-    for { input <- inputs } yield load(input)
-
   // Check that input parses and typechecks
-  def testPass(input: String, expected: Type.Class)(implicit parser: String => Tree = parseClass) {
+  def testPass(input: String, expected: Type.Class)(implicit parser: String => Tree) {
     s"accept solo class $expected [$testId]" in {
       CT.clear
-      val typ = load(input)
+      val typ = loader.load(input)
       info(s"expected: $expected")
       assert(typ == expected)
       info("🍺")
     }
   }
 
-  def testPassTogether(inputs: List[String])(implicit parser: String => Tree = parseClass) {
+  def testPassTogether(inputs: List[String])(implicit parser: String => Tree) {
     s"accept class pack [$testId]" in {
       CT.clear
-      loadAll(inputs)
+      loader.loadAll(inputs)
       info("🍺")
     }
   }
 
   // Test that the input parses but does *not* typecheck
-  def testFail(input: String)(implicit parser: String => Tree = parseClass) {
+  def testFail(input: String)(implicit parser: String => Tree) {
     s"reject bad code [$testId]" in {
       CT.clear
       val exception = intercept[TypeError] {
-        val typ = load(input)
+        val typ = loader.load(input)
         info(s"unexpected type: $typ")
       }
       info(s"excepted error: ${exception.msg}")
@@ -69,13 +46,13 @@ class TypecheckerTest extends WordSpec with Matchers {
     }
   }
 
-  def testLastFail(inputs: List[String])(implicit parser: String => Tree = parseClass) {
+  def testLastFail(inputs: List[String])(implicit parser: String => Tree) {
     s"reject batch of bad code [$testId]" in {
       assert(inputs.size >= 1)
       CT.clear
-      loadAll(inputs dropRight 1) // Those that should succeed
+      loader.loadAll(inputs dropRight 1) // Those that should succeed
       val exception = intercept[TypeError] {
-        val typ = load(inputs.last)
+        val typ = loader.load(inputs.last)
         info(s"unexpected type: $typ")
       }
       info(s"excepted error: ${exception.msg}")
