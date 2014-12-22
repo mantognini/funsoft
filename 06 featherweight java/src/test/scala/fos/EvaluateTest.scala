@@ -10,7 +10,7 @@ class EvaluateTest extends WordSpec with Matchers {
       val klass = Type.typeOf(ast)(Type.emptyContext)
       info(s"successfully typecheck expression to $klass")
     } catch {
-      case TypeError(msg) => fail(s"$ast didn't typecheck")
+      case TypeError(msg) => fail(s"$ast didn't typecheck: $msg")
     }
   }
 
@@ -31,11 +31,15 @@ class EvaluateTest extends WordSpec with Matchers {
         fail("unexpected empty steps")
 
       case step :: Nil =>
-        val exception = intercept[NoRuleApplies] {
+        try {
           val result = evaluate(step)
           fail(s"`$step` was evaluated to `$result` but it was expected to be the last evaluation step")
+        } catch {
+          case NoRuleApplies(_) =>
+            info(s"step got stuck as expected")
+          case e: Throwable => // Such as TestFailedException
+            fail(e)
         }
-        info(s"got stuck on $step as expected!")
 
       case current :: next :: tail =>
         val result = evaluate(current)
@@ -83,7 +87,7 @@ class EvaluateTest extends WordSpec with Matchers {
     }
 
     validTestCases foreach { steps =>
-      s"successfully evaluate expression $steps" in {
+      s"successfully evaluate expressions $steps" in {
         testSteps(steps)
         info("🍺")
       }
