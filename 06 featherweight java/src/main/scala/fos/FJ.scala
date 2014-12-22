@@ -148,9 +148,9 @@ object FJ extends StandardTokenParsers {
   def eval(t: Tree): Tree = {
     //    PrettyPrinter(t)
     t match {
-      case Program(cls, expr) =>
+      case Program(cds, expr) =>
         try {
-          cls foreach (cl => typeOf(cl, Nil))
+          cds foreach (cl => typeOf(cl, Nil))
           val typeExpr = typeOf(expr, Nil)
           println("TYPE EXPR: " + typeExpr)
           val evExpr = Evaluate(expr)
