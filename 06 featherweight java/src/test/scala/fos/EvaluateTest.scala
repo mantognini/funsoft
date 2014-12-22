@@ -32,6 +32,9 @@ class EvaluateTest extends WordSpec with Matchers {
   CTHelper.addClassA()
   CTHelper.addClassB()
   CTHelper.addClassPair()
+  CTHelper.addClassP0()
+  CTHelper.addClassP1()
+  CTHelper.addClassP2()
 
   "The Evaluator" should {
     s"evaluate expressions" in {
@@ -76,6 +79,33 @@ class Pair extends Object {
     """)
 
     CT.add("Pair", cd)
+  }
+  def addClassP0(): Unit = {
+    val cd = EvaluateHelper.parseClass("""
+class P0 extends Object {
+    P0(){super();}
+}
+    """)
+
+    CT.add("P0", cd)
+  }
+  def addClassP1(): Unit = {
+    val cd = EvaluateHelper.parseClass("""
+class P1 extends P0 {
+    P1(){super();}
+}
+    """)
+
+    CT.add("P1", cd)
+  }
+  def addClassP2(): Unit = {
+    val cd = EvaluateHelper.parseClass("""
+class P2 extends P1 {
+    P2(){super();}
+}
+    """)
+
+    CT.add("P2", cd)
   }
 }
 
