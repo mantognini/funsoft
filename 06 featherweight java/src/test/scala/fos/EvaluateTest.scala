@@ -22,6 +22,13 @@ class EvaluateTest extends WordSpec with Matchers {
       ("new Pair(new A(), new B()).setfst((A) new A())" :: "new Pair(new A(), new B()).setfst(new A())" :: "new Pair(new A(), new Pair(new A(), new B()).snd)" :: "new Pair(new A(), new B())" :: Nil) ::
       Nil
 
+  val stuckCases: List[String] =
+    // Downcast is well-typed but stuck
+    "(P1) new P0()" ::
+      // Stupid cast is well-typed (with a warning) but stuck
+      "(A) new P0()" ::
+      Nil
+
   CTHelper.addClassA()
   CTHelper.addClassB()
   CTHelper.addClassPair()
