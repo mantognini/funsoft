@@ -3,13 +3,20 @@ package fos
 import org.scalatest._
 import scala.annotation.tailrec
 
-case class EvaluateTestError(str: String) extends Exception(str)
-
 class EvaluateTest extends WordSpec with Matchers {
+
+  def typecheck(ast: Tree) {
+    try {
+      val klass = Type.typeOf(ast)(Type.emptyContext)
+      info(s"successfully typecheck expression to $klass")
+    } catch {
+      case TypeError(msg) => fail(s"$ast didn't typecheck")
+    }
+  }
 
   def evaluate(input: String): Expr = {
     val ast = parseExpr(input)
-    val typ = Type.typeOf(ast)(Type.emptyContext) // Make sure it typechecks first
+    val typ = typecheck(ast) // Make sure it typechecks first
     val expr = Evaluate(ast)
     expr
   }
@@ -159,8 +166,8 @@ class P2 extends P1 {
     val res = parser(token)
     res match {
       case FJ.Success(ast, _) => ast
-      case FJ.Failure(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
-      case FJ.Error(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
+      case FJ.Failure(msg, _) => fail(s"unable to parse $input: $msg")
+      case FJ.Error(msg, _) => fail(s"unable to parse $input: $msg")
     }
   }
 
@@ -170,8 +177,8 @@ class P2 extends P1 {
     val res = parser(token)
     res match {
       case FJ.Success(ast, _) => ast
-      case FJ.Failure(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
-      case FJ.Error(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
+      case FJ.Failure(msg, _) => fail(s"unable to parse $input: $msg")
+      case FJ.Error(msg, _) => fail(s"unable to parse $input: $msg")
     }
   }
 }

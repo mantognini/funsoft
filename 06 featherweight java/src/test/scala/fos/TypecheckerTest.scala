@@ -18,12 +18,10 @@ class TypecheckerTest extends WordSpec with Matchers {
       case FJ.Success(ast, _) => ast
 
       case FJ.Failure(msg, _) =>
-        info(s"unable to parse $input: $msg")
-        throw new RuntimeException(s"unable to parse $input: $msg")
+        fail(s"unable to parse $input: $msg")
 
       case FJ.Error(msg, _) =>
-        info(s"unable to parse $input: $msg")
-        throw new RuntimeException(s"unable to parse $input: $msg")
+        fail(s"unable to parse $input: $msg")
     }
   }
 
