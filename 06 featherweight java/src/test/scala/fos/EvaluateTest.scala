@@ -92,6 +92,7 @@ class EvaluateTest extends WordSpec with Matchers {
   "The Evaluator" should {
     validTestCases foreach { steps =>
       s"successfully evaluate expressions $steps" in {
+        CT.clear
         testSteps(steps)
         info("🍺")
       }
@@ -99,6 +100,7 @@ class EvaluateTest extends WordSpec with Matchers {
 
     stuckCases foreach { lastStep =>
       s"get stuck on expression $lastStep" in {
+        CT.clear
         testSteps(lastStep :: Nil)
         info("🍺")
       }
@@ -163,7 +165,8 @@ class P2 extends P1 {
   }
 
   def addClass(code: String) {
-    val ast = loader.load(code)(loader.parseClass)
+    val klass = loader.load(code)(loader.parseClass)
+    info(s"$klass was loaded")
     // When typecheck is ok, the class is added to CT
   }
 

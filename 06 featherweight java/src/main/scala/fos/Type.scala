@@ -284,9 +284,7 @@ object CT {
   private var ct: MutableMap[Type.Class, ClassDef] = new MutableHashMap[String, ClassDef]
   override def toString() = "CT = " + ct.keys.mkString("(", ", ", ")")
 
-  add(objectClass, objectClassDef)
-
-  def elements = ct iterator
+  clear()
 
   // `Object` is a class def with no method nor field and a simple ctor
   def lookup(classname: String): Option[ClassDef] = if (classname != null) ct get classname else None

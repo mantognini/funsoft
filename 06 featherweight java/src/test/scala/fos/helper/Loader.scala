@@ -21,7 +21,7 @@ class Loader(info: Informer) {
   }
 
   def loadAll(inputs: List[String])(implicit parser: String => Tree): List[Type.Class] =
-    for { input <- inputs } yield load(input)
+    inputs map { load(_) }
 
   private def parse[A](p: FJ.Parser[A])(input: String): A = {
     val parser = FJ.phrase(p)
