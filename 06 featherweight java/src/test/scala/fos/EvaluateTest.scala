@@ -54,6 +54,7 @@ class A extends Object {
 
     CT.add("A", cd)
   }
+
   def addClassB(): Unit = {
     val cd = EvaluateHelper.parseClass("""
 class B extends Object {
@@ -63,6 +64,7 @@ class B extends Object {
 
     CT.add("B", cd)
   }
+
   def addClassPair(): Unit = {
     val cd = EvaluateHelper.parseClass("""
 class Pair extends Object {
@@ -81,6 +83,7 @@ class Pair extends Object {
 
     CT.add("Pair", cd)
   }
+
   def addClassP0(): Unit = {
     val cd = EvaluateHelper.parseClass("""
 class P0 extends Object {
@@ -90,6 +93,7 @@ class P0 extends Object {
 
     CT.add("P0", cd)
   }
+
   def addClassP1(): Unit = {
     val cd = EvaluateHelper.parseClass("""
 class P1 extends P0 {
@@ -99,6 +103,7 @@ class P1 extends P0 {
 
     CT.add("P1", cd)
   }
+
   def addClassP2(): Unit = {
     val cd = EvaluateHelper.parseClass("""
 class P2 extends P1 {
@@ -121,6 +126,7 @@ object EvaluateHelper {
       case FJ.Error(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
     }
   }
+
   def parseClass(input: String): ClassDef = {
     val parser = FJ.phrase(FJ.ClsDef)
     val token = new FJ.lexical.Scanner(input)
@@ -131,11 +137,13 @@ object EvaluateHelper {
       case FJ.Error(msg, _) => throw new RuntimeException(s"unable to parse $input: $msg")
     }
   }
+
   def evaluate(input: String): Expr = {
     val ast = EvaluateHelper.parseExpr(input)
     val expr = Evaluate(ast)
     expr
   }
+
   def test(steps: List[String], info: Informer): Option[String] = {
     def testAStep(step: String, expected: Option[String]): Option[String] = {
       info(s"info: testing that `$step` evaluates to `$expected`")
@@ -164,6 +172,7 @@ object EvaluateHelper {
         }
       }
     }
+
     def testRec(steps: List[String]): Option[String] = {
       steps match {
         case Nil => None
@@ -174,6 +183,7 @@ object EvaluateHelper {
         }
       }
     }
+
     testRec(steps)
   }
 }

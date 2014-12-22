@@ -1,6 +1,6 @@
 package fos
 
-import scala.collection.mutable.{ Map, HashMap }
+import scala.collection.mutable.{ Map => MutableMap, HashMap => MutableHashMap }
 
 case class TypeError(msg: String) extends Exception(msg)
 
@@ -10,11 +10,157 @@ object Type {
   import Utils._
 
   type Class = String
-  type Context = List[Pair[Class, String]]
-  val emptyContext: Context = Nil
+  type Context = Map[String, Class] // List[Pair[Class, String]]
+  val emptyContext: Context = Map.empty withDefault { name => throw TypeError(s"unknown variable $name in context") }
 
-  def typeOf(tree: Tree, ctx: Context): Class = ???
-  //   ... To complete ... 
+  implicit class ContextOps(ctx: Context) {
+    type VarType = (String, Class)
+
+    // Add one var with its type
+    def ~(vt: VarType): Context = {
+      ctx + (vt)
+    }
+
+    // Add fields def with their types
+    def ~(vts: List[FieldDef]): Context = {
+      ctx ++ (vts map { case FieldDef(tpe, name) => (name, tpe) })
+    }
+  }
+
+  // Throws some exception if k is not in CT 
+  implicit class ClassOps(k: Class) {
+    val klass = (CT lookup k).get
+
+    // Returns true iff k <: l
+    // Throws if either k or l is not in CT
+    // Note: `<:` is reserved so we use `<<=` to avoid clash and right associativity
+    def <<=(l: Class): Boolean = {
+      val llass = (CT lookup l).get
+      klass isSubClassOf llass
+    }
+
+    // Get the fields name and type
+    def getFields(): List[FieldDef] = klass fieldLookup
+
+    // Get the method
+    def getMethod(m: String) = klass findMethod m
+  }
+
+  // T-Method, assume klass is in CT
+  // Throws MethodOverrideException or FieldAlreadyDefined
+  def typecheckMethod(klass: ClassDef, md: MethodDef)(implicit ctx: Context) {
+    val MethodDef(returnType, name, args, body) = md // extract info
+    val exprType = typeOf(body)(ctx ~ ("this" -> klass.name) ~ args)
+    if (!(exprType <<= returnType)) throw TypeError(s"return expression type mismatch, $returnType expected")
+    klass.overrideMethod(returnType, name, args, body)
+  }
+
+  def typeOf(tree: Tree)(implicit ctx: Context): Class = tree match {
+    // T-Class
+    case klass @ ClassDef(thiz, _, fields, ctor, methods) =>
+      // TODO should we check that ctx is empty?
+
+      // Make sure the class is not being redefined
+      if ((CT lookup thiz).isDefined) throw TypeError(s"redefinition of $thiz")
+
+      try {
+        /**
+         * Check that everything is correct inside the class definition, i.e.:
+         *  - the super class exists
+         *  - no cyclic inheritance
+         *  - no field shadowing
+         *  - the constructor is valid, meaning:
+         *    + the arguments match the fields (same names, same order, super's fields first)
+         *    + the call to `super(...)` match the mother class' ctor
+         *    + the "local" field are all initialised in the proper order
+         *  - every method typechecks
+         */
+        def cyclicInheritance(opt: Option[ClassDef]) {
+          opt map {
+            case ClassDef(_, zuper, _, _, _) =>
+              if (zuper == thiz) throw TypeError(s"Cyclic inheritance with $thiz")
+              else cyclicInheritance(CT lookup zuper)
+          }
+        }
+
+        klass.checkMotherIsAlive() // the super class was loaded
+        cyclicInheritance(Some(klass)) // no cyclic inheritance
+        klass.checkFields() // no shadowing
+        klass.verifyConstructorArgs() // arguments' type and name match thiz and zuper's fields
+        klass.ctor.check(klass); // proper call to super and valid initialisation of fields
+
+        // We need to add the class to CT before typechecking the methods
+        // since they can return a object of type klass.
+        CT.add(thiz, klass)
+
+        // Typecheck methods
+        klass.methods foreach { typecheckMethod(klass, _) }
+
+        // Everything was fine so we are entitled to add it to the CT
+        // but we already did it earlier for method checking.
+        // Also, if methods don't typecheck we have to remove klass from CT.
+        // This is done below.
+
+        thiz
+      } catch {
+        case e: TreeException =>
+          // Cleanup and forward error
+          CT.delete(thiz)
+          throw TypeError(e.error)
+      }
+
+    // T-New
+    case New(klass, args) =>
+      val argsTypes = args map { typeOf(_) } // Check argument expressions
+      val fieldsTypes = klass.getFields()
+      for {
+        (arg, field) <- argsTypes zip fieldsTypes
+        if !(arg <<= field.tpe)
+      } {
+        // If any arguments is not a subclass a field we throw
+        throw TypeError(s"$arg is not a subtype of $field in new statement $tree")
+      }
+      klass
+
+    // T-Var
+    case Var(name) =>
+      ctx(name)
+
+    // T-Field
+    case Select(obj, field) =>
+      val klass = typeOf(obj)
+      val fieldDef = klass.getFields() find { _.name == field }
+      val tpe = fieldDef map { _.tpe }
+      tpe getOrElse { throw TypeError(s"no such field $field in $klass") }
+
+    // T-Invk
+    case Apply(obj, method, args) =>
+      val klass = typeOf(obj)
+      val methodDef = klass.getMethod(method) getOrElse { throw TypeError(s"no such method $method in $klass") }
+      val paramsTypes = methodDef.args map { _.tpe }
+      val argsTypes = args map { typeOf(_) } // Check argument expressions
+      for {
+        (arg, param) <- argsTypes zip paramsTypes
+        if !(arg <<= param)
+      } {
+        // If any arguments is not a subclass a parameter we throw
+        throw TypeError(s"$arg is not a subtype of $param in method invocation $tree")
+      }
+      methodDef.tpe // Return type of the method
+
+    // T-UCast, T-DCast, T-SCast
+    case Cast(klass, expr) =>
+      val llass = typeOf(expr)
+      if (llass <<= klass) klass // upcast
+      else if ((klass <<= llass) && (klass != llass)) klass // downcast
+      else if (!(klass <<= llass) && !(llass <<= klass)) {
+        Console.err.println(s"WARNING: stupid cast from $llass to $klass")
+        klass
+      } else throw TypeError(s"invalid cast from $llass to $klass")
+
+    case t =>
+      throw new NotImplementedError(t.toString) // Same as `???` but with some debug info
+  }
 }
 
 case class EvaluationException(msg: String) extends Exception
@@ -128,17 +274,18 @@ object Evaluate extends (Expr => Expr) {
 object CT {
 
   val objectClass: String = "Object"
-  private val objectClassDef = ClassDef(objectClass, null, Nil, CtrDef(objectClass, Nil, Nil, Nil), Nil)
+  private val objectClassDef = ClassDef(objectClass, null, Nil, CtorDef(objectClass, Nil, Nil, Nil), Nil)
 
-  private var ct: Map[String, ClassDef] = new HashMap[String, ClassDef]
+  private var ct: MutableMap[Type.Class, ClassDef] = new MutableHashMap[String, ClassDef]
 
   add(objectClass, objectClassDef)
 
   def elements = ct iterator
 
+  // `Object` is a class def with no method nor field and a simple ctor
   def lookup(classname: String): Option[ClassDef] = if (classname != null) ct get classname else None
 
-  def add(key: String, element: ClassDef): Unit = ct += key -> element
+  def add(key: Type.Class, element: ClassDef): Unit = ct += key -> element
 
   def delete(key: String) = ct -= key
 
