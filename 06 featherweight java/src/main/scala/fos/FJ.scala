@@ -25,14 +25,14 @@ object FJ extends StandardTokenParsers {
 
   /**
    * <pre>
-   *  ClassDef ::= "class" C extends C "{"
+   *  ClassDef ::= "class" C "extends" C "{"
    *                   { FieldDef } ConstructorDef  { MethodDef }
    *               "}"
    *  </pre>
    */
   def ClsDef: Parser[ClassDef] = positioned(
     "class" ~ ident ~ "extends" ~ ident ~ "{" ~
-      rep(FldDef) ~ CtorDef ~ rep(MethDef) ~
+      rep(FldDef) ~ CtrDef ~ rep(MethDef) ~
       "}"
       ^^ { case "class" ~ name ~ "extends" ~ superc ~ "{" ~ fields ~ ctor ~ methods ~ "}" => ClassDef(name, superc, fields, ctor, methods) }
       | failure("illegal start of class definition"))
@@ -54,11 +54,11 @@ object FJ extends StandardTokenParsers {
    *                     "}"
    *  </pre>
    */
-  def CtorDef: Parser[CtrDef] = positioned(
+  def CtrDef: Parser[CtorDef] = positioned(
     ident ~ "(" ~ ParamList ~ ")" ~ "{" ~
       "super" ~ "(" ~ VarList ~ ")" ~ ";" ~
       rep(Init) ~
-      "}" ^^ { case name ~ "(" ~ params ~ ")" ~ "{" ~ "super" ~ "(" ~ supArgs ~ ")" ~ ";" ~ seq ~ "}" => CtrDef(name, params, supArgs, seq) }
+      "}" ^^ { case name ~ "(" ~ params ~ ")" ~ "{" ~ "super" ~ "(" ~ supArgs ~ ")" ~ ";" ~ seq ~ "}" => CtorDef(name, params, supArgs, seq) }
       | failure("illegal start of constructor"))
 
   /**
@@ -148,10 +148,10 @@ object FJ extends StandardTokenParsers {
   def eval(t: Tree): Tree = {
     //    PrettyPrinter(t)
     t match {
-      case Program(cds, expr) =>
+      case Program(klasses, expr) =>
         try {
-          cds foreach (cl => typeOf(cl, Nil))
-          val typeExpr = typeOf(expr, Nil)
+          klasses foreach { typeOf(_)(emptyContext) }
+          val typeExpr = typeOf(expr)(emptyContext)
           println("TYPE EXPR: " + typeExpr)
           val evExpr = Evaluate(expr)
           print("EVALUATE TO: ")
