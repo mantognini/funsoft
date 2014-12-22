@@ -29,44 +29,50 @@ class EvaluateTest extends WordSpec with Matchers {
       "(A) new P0()" ::
       Nil
 
-  CTHelper.addClassA()
-  CTHelper.addClassB()
-  CTHelper.addClassPair()
-  CTHelper.addClassP0()
-  CTHelper.addClassP1()
-  CTHelper.addClassP2()
-
   "The Evaluator" should {
-    s"evaluate expressions" in {
-      validTestCases.map(EvaluateHelper.test(_, info) should be(None))
-      stuckCases.map(x => EvaluateHelper.test(x :: Nil, info) should be(None))
+    s"successfully initialise the context with a few classes" in {
+      CT.clear()
+      addClassA()
+      addClassB()
+      addClassPair()
+      addClassP0()
+      addClassP1()
+      addClassP2()
+    }
+
+    validTestCases foreach { t =>
+      s"successfully evaluate expression $t" in {
+        test(t) should be(None)
+        info("🍺")
+      }
+    }
+
+    stuckCases foreach { t =>
+      s"get stuck on expression $t" in {
+        test(t :: Nil) should be(None)
+        info("🍺")
+      }
     }
   }
-}
 
-object CTHelper {
   def addClassA(): Unit = {
-    val cd = EvaluateHelper.parseClass("""
+    addClass("""
 class A extends Object {
     A(){super();}
 }
-    """)
-
-    CT.add("A", cd)
+""")
   }
 
   def addClassB(): Unit = {
-    val cd = EvaluateHelper.parseClass("""
+    addClass("""
 class B extends Object {
     B(){super();}
 }
-    """)
-
-    CT.add("B", cd)
+""")
   }
 
   def addClassPair(): Unit = {
-    val cd = EvaluateHelper.parseClass("""
+    addClass("""
 class Pair extends Object {
     Object fst;
     Object snd;
@@ -79,43 +85,39 @@ class Pair extends Object {
         return new Pair(newfst, this.snd);
     }
 }
-    """)
-
-    CT.add("Pair", cd)
+""")
   }
 
   def addClassP0(): Unit = {
-    val cd = EvaluateHelper.parseClass("""
+    addClass("""
 class P0 extends Object {
     P0(){super();}
 }
-    """)
-
-    CT.add("P0", cd)
+""")
   }
 
   def addClassP1(): Unit = {
-    val cd = EvaluateHelper.parseClass("""
+    addClass("""
 class P1 extends P0 {
     P1(){super();}
 }
-    """)
-
-    CT.add("P1", cd)
+""")
   }
 
   def addClassP2(): Unit = {
-    val cd = EvaluateHelper.parseClass("""
+    addClass("""
 class P2 extends P1 {
     P2(){super();}
 }
-    """)
-
-    CT.add("P2", cd)
+""")
   }
-}
 
-object EvaluateHelper {
+  def addClass(code: String) {
+    val ast = parseClass(code)
+    Type.typeOf(ast)(Type.emptyContext) // make sure it typechecks
+    // When typecheck is ok, the class is added to CT
+  }
+
   def parseExpr(input: String): Expr = {
     val parser = FJ.phrase(FJ.Expr)
     val token = new FJ.lexical.Scanner(input)
@@ -139,19 +141,19 @@ object EvaluateHelper {
   }
 
   def evaluate(input: String): Expr = {
-    val ast = EvaluateHelper.parseExpr(input)
+    val ast = parseExpr(input)
     val expr = Evaluate(ast)
     expr
   }
 
-  def test(steps: List[String], info: Informer): Option[String] = {
+  def test(steps: List[String]): Option[String] = {
     def testAStep(step: String, expected: Option[String]): Option[String] = {
       info(s"info: testing that `$step` evaluates to `$expected`")
       expected match {
         case Some(nextStep) => {
           try {
             val effectiveNextStep = evaluate(step)
-            if (effectiveNextStep == EvaluateHelper.parseExpr(nextStep)) {
+            if (effectiveNextStep == parseExpr(nextStep)) {
               None
             } else {
               Some(s"`$step` does not evaluate to `$nextStep` but rather to `$effectiveNextStep`")
