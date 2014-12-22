@@ -39,6 +39,7 @@ class EvaluateTest extends WordSpec with Matchers {
   "The Evaluator" should {
     s"evaluate expressions" in {
       validTestCases.map(EvaluateHelper.test(_, info) should be(None))
+      stuckCases.map(x => EvaluateHelper.test(x :: Nil, info) should be(None))
     }
   }
 }
