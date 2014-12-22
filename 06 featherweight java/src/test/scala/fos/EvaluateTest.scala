@@ -5,6 +5,16 @@ import scala.annotation.tailrec
 
 class EvaluateTest extends WordSpec with Matchers {
 
+  def initContext() {
+    CT.clear()
+    addClassA()
+    addClassB()
+    addClassPair()
+    addClassP0()
+    addClassP1()
+    addClassP2()
+  }
+
   def typecheck(ast: Tree) {
     try {
       val klass = Type.typeOf(ast)(Type.emptyContext)
@@ -17,6 +27,7 @@ class EvaluateTest extends WordSpec with Matchers {
   def evaluate(input: String): Expr = {
     val ast = parseExpr(input)
     val typ = typecheck(ast) // Make sure it typechecks first
+    initContext()
     val expr = Evaluate(ast)
     expr
   }
@@ -76,16 +87,6 @@ class EvaluateTest extends WordSpec with Matchers {
       Nil
 
   "The Evaluator" should {
-    s"successfully initialise the context with a few classes" in {
-      CT.clear()
-      addClassA()
-      addClassB()
-      addClassPair()
-      addClassP0()
-      addClassP1()
-      addClassP2()
-    }
-
     validTestCases foreach { steps =>
       s"successfully evaluate expressions $steps" in {
         testSteps(steps)
