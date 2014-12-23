@@ -45,7 +45,7 @@ object Type {
     }
 
     // Get the fields name and type
-    def getFields(): List[FieldDef] = klass fieldLookup
+    def getFields(): List[FieldDef] = klass.fieldLookup
 
     // Get the method
     def getMethod(m: String) = klass findMethod m
