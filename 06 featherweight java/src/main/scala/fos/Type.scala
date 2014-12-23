@@ -66,7 +66,7 @@ object Type {
       // TODO should we check that ctx is empty?
 
       // Make sure the class is not being redefined
-      if ((CT lookup thiz).isDefined) throw TypeError(s"redefinition of $thiz")
+      if ((CT lookup thiz).isDefined) throw TypeError(s"redefinition of $thiz, ctx = $ctx, CT = $CT")
 
       try {
         /**
@@ -282,7 +282,7 @@ object CT {
   private val objectClassDef = ClassDef(objectClass, null, Nil, CtorDef(objectClass, Nil, Nil, Nil), Nil)
 
   private var ct: MutableMap[Type.Class, ClassDef] = new MutableHashMap[String, ClassDef]
-  override def toString() = "CT = " + ct.keys.mkString("(", ", ", ")")
+  override def toString() = ct.keys.mkString("(", ", ", ")")
 
   clear()
 
