@@ -1,0 +1,62 @@
+class Pair extends Object {
+    Object fst;
+    Object snd;
+
+    Pair(Object fst, Object snd) {
+        super();
+        this.fst = fst;
+        this.snd = snd;
+    }
+
+    Pair setfst(Object newfst) {
+        return new Pair(newfst, this.snd);
+    }
+
+    Pair setsnd(Object newsnd) {
+        return new Pair(this.fst, newsnd);
+    }
+}
+
+class Quad extends Object {
+    Pair p;
+    Pair q;
+
+    Quad(Pair p, Pair q) {
+        super();
+        this.p = p;
+        this.q = q;
+    }
+
+    Quad set1(Object o) { return new Quad(this.p.setfst(o), this.q); }
+    Quad set2(Object o) { return new Quad(this.p.setsnd(o), this.q); }
+    Quad set3(Object o) { return new Quad(this.p, this.q.setfst(o)); }
+    Quad set4(Object o) { return new Quad(this.p, this.q.setsnd(o)); }
+}
+
+class Factory extends Object {
+    Factory() { super(); }
+
+    Quad quad(Object a, Object b, Object c, Object d) {
+        return new Quad(new Pair(a, b), new Pair(c, d));
+    }
+
+    Quad foo() {
+        return new Factory()
+            .quad(new Factory(), new Factory(), new Factory(), new Factory())
+            .set1(new Pair(new Factory(), new Factory()));
+    }
+}
+
+class Foo extends Object {
+    Foo() { super(); }
+
+    Object fun() { return new Pair(new Factory(), new Factory()); }
+    Pair gun() { return (Pair)(this.fun()); }
+    Factory hun() { return (Factory)(this.gun().fst); }
+
+    Pair purr(Object pair) { return (Pair)pair; }
+    Pair knead() { return this.purr( (Object)(new Factory().foo().p) ); }
+    Pair mew() { return this.purr( (Pair)(new Factory().foo()) ); }
+}
+
+((Quad) ((Factory) ((Pair) new Foo().gun().setfst(new Factory())).fst).foo().p.fst).q.fst
