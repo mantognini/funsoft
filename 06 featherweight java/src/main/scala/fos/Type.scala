@@ -11,7 +11,7 @@ object Type {
 
   type Class = String
   type Context = Map[String, Class] // List[Pair[Class, String]]
-  val emptyContext: Context = Map.empty withDefault { name => throw TypeError(s"unknown variable $name in context") }
+  val emptyContext: Context = Map.empty
 
   implicit class ContextOps(ctx: Context) {
     type VarType = (String, Class)
@@ -31,7 +31,7 @@ object Type {
   implicit class ClassOps(k: Class) {
     val klass = (CT lookup k) match {
       case None =>
-        throw TypeError(s"Unknown class $k in context $CT")
+        throw TypeError(s"unknown class $k in context CT = $CT")
       case Some(klass) =>
         klass
     }
@@ -54,10 +54,10 @@ object Type {
   // T-Method, assume klass is in CT
   // Throws MethodOverrideException or FieldAlreadyDefined
   def typecheckMethod(klass: ClassDef, md: MethodDef)(implicit ctx: Context) {
-    val MethodDef(returnType, name, args, body) = md // extract info
+    val MethodDef(returnType, _, args, body) = md // extract info
     val exprType = typeOf(body)(ctx ~ ("this" -> klass.name) ~ args)
     if (!(exprType <<= returnType)) throw TypeError(s"return expression type mismatch, $returnType expected\n${body.pos.longString}")
-    klass.overrideMethod(returnType, name, args, body)
+    klass.overrideMethod(md)
   }
 
   def typeOf(tree: Tree)(implicit ctx: Context): Class = tree match {
@@ -129,7 +129,10 @@ object Type {
 
     // T-Var
     case Var(name) =>
-      ctx(name)
+      ctx.get(name) match {
+        case Some(v) => v
+        case None => throw TypeError(s"unknown variable $name in context $ctx\n${tree.pos.longString}")
+      }
 
     // T-Field
     case Select(obj, field) =>

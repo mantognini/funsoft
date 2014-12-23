@@ -38,7 +38,7 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
 
   def checkMotherIsAlive() {
     if (superclass != null && superClass.isEmpty) {
-      throw ClassNotLoadedException(s"$superclass need to be loaded before $name")
+      throw ClassNotLoadedException(s"$superclass need to be loaded before $name\n${this.pos.longString}")
     }
   }
 
@@ -49,7 +49,7 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
   def checkFields(): Unit = checkListFieldsDef(fieldLookup)
 
   /**
-   * Verify that in the list there is no two occurrence of the same variable name
+   * Verify that in the list there is no two occurrences of the same variable name
    * Should throw FieldAlreadyDefined exception.
    */
   private def checkListFieldsDef(fs: List[FieldDef]): Unit = {
@@ -66,31 +66,33 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
     zelf orElse zuper
   }
 
-  def overrideMethod(tpe: String, name: String, args: List[FieldDef], body: Expr): Unit = {
+  def overrideMethod(md: MethodDef): Unit = {
+    val MethodDef(tpe, name, args, body) = md
+
     if ((methods count { _.name == name }) > 1)
-      throw new MethodOverrideException(s"In class ${this.name}, method $name is defined more than once")
+      throw new MethodOverrideException(s"In class ${this.name}, method $name is defined more than once\n${md.pos.longString}")
 
     try {
       checkListFieldsDef(args) // no two args with the same name
     } catch {
       case FieldAlreadyDefined(msg) =>
-        throw FieldAlreadyDefined(s"In class ${this.name}, in the arguments of method $name, $msg")
+        throw FieldAlreadyDefined(s"In class ${this.name}, in the arguments of method $name, $msg\n${md.pos.longString}")
     }
 
     val inheritedMethod = getClassDef(superclass) findMethod name
     inheritedMethod match {
       case None => ()
-      case Some(MethodDef(tpeS, _, argsS, _)) =>
+      case Some(md2 @ MethodDef(tpeS, _, argsS, _)) =>
         if (tpe == tpeS) {
           val paramsOvMethod = args map { _.tpe }
           val paramsInMethod = argsS map { _.tpe }
 
           if (paramsOvMethod != paramsInMethod)
-            throw new MethodOverrideException("can't apply " + paramsOvMethod.mkString("(", ",", ")") + " to " + paramsInMethod.mkString("(", ",", ")"))
+            throw new MethodOverrideException("can't apply " + paramsOvMethod.mkString("(", ",", ")") + " to " + paramsInMethod.mkString("(", ",", ")" + s"\n${md.pos.longString}\n${md2.pos.longString}"))
 
           // Everything was ok, so override ok
         } else {
-          throw new MethodOverrideException(s"Type mismatch. The return type $tpeS of inherithed method $name has different signature. Overriding method has type $tpe")
+          throw new MethodOverrideException(s"Type mismatch. The return type $tpeS of inherithed method $name has different signature. Overriding method has type $tpe\n${md.pos.longString}\n${md2.pos.longString}")
         }
     }
   }
@@ -104,10 +106,10 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
 
     if (typeFields.length == argsType.length) {
       for {
-        (arg, field) <- argsType zip typeFields
-        if !getClassDef(arg).isSubClassOf(field)
+        (argType, fieldType) <- argsType zip typeFields
+        if !getClassDef(argType).isSubClassOf(fieldType)
       } {
-        throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")") + " because " + arg + " is not a subtype of " + field)
+        throw new ClassConstructorArgsException("can't apply " + argsType.mkString("(", ",", ")") + " to " + typeFields.mkString("(", ",", ")") + " because " + argType + " is not a subtype of " + fieldType)
       }
 
       // No errors means everything was fine... U DON'T SAY!
@@ -125,13 +127,13 @@ case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ct
     try {
       checkListFieldsDef(ctor.args) // checks only names!!
     } catch {
-      case FieldAlreadyDefined(msg) => throw FieldAlreadyDefined(", in the constructor, " + msg)
+      case FieldAlreadyDefined(msg) => throw FieldAlreadyDefined(s", in the constructor, $msg\n${ctor.pos.longString}")
     }
 
     // Check that all parameters and fields' names plus their respective types match exactly, in the same order
     val fieldss = fieldLookup
     if (fieldss != ctor.args) {
-      throw new ClassConstructorArgsException("can't apply " + ctor.args.mkString("(", ",", ")") + " to " + fieldss.mkString("(", ",", ")"))
+      throw new ClassConstructorArgsException("can't apply " + ctor.args.mkString("(", ",", ")") + " to " + fieldss.mkString("(", ",", ")" + s"\n${ctor.pos.longString}"))
     }
   }
 
@@ -167,30 +169,30 @@ case class CtorDef(thiz: String, args: List[FieldDef], zuperArgs: List[Var], bod
      *
      *  NB: ClassDef.verifyConstructorArgs looks for name/type mismatch on the arguments list
      */
-    if (klass.name != thiz) throw ClassConstructorException(s"invalid ctor name $thiz for class ${klass.name}")
+    if (klass.name != thiz) throw ClassConstructorException(s"invalid ctor name $thiz for class ${klass.name}\n${this.pos.longString}")
 
     val argsName = args map { _.name }
     val zuperArgsName = zuperArgs map { _.name }
     val assignsName = body map { _.rhs.name }
     val used = zuperArgsName ::: assignsName
 
-    if (argsName != used) throw ClassConstructorException(s"invalid use of ctor arguments in $thiz")
+    if (argsName != used) throw ClassConstructorException(s"invalid use of ctor arguments in $thiz\n${this.pos.longString}")
 
     klass.superClass match {
       case None =>
         // a.k.a. `Object`
-        if (zuperArgsName != Nil) throw ClassConstructorException(s"invalid call to Object ctor in $thiz")
+        if (zuperArgsName != Nil) throw ClassConstructorException(s"invalid call to Object ctor in $thiz\n${this.pos.longString}")
 
       case Some(zuper) =>
         // We just need to check for the number of arguments here
         // because ClassDef.verifyConstructorArgs already take care of the types and names
-        if (zuper.ctor.args.size != zuperArgs.size) throw ClassConstructorException(s"invalid call of super ctor in $thiz")
+        if (zuper.ctor.args.size != zuperArgs.size) throw ClassConstructorException(s"invalid call of super ctor in $thiz\n${this.pos.longString}")
     }
 
     body foreach {
-      case Assign(obj, field, rhs) =>
-        if (obj != "this") throw ClassConstructorException(s"invalid use of $obj in ctor $thiz")
-        if (field != rhs.name) throw ClassConstructorException(s"invalid assignement of $rhs in ctor $thiz")
+      case eq @ Assign(obj, field, rhs) =>
+        if (obj != "this") throw ClassConstructorException(s"invalid use of $obj in ctor $thiz\n${eq.pos.longString}")
+        if (field != rhs.name) throw ClassConstructorException(s"invalid assignement of $rhs in ctor $thiz\n${eq.pos.longString}")
     }
   }
 }
