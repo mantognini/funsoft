@@ -88,15 +88,15 @@ object Type {
           }
         }
 
+        // We need to add the class to CT before typechecking the methods, fields or ctor
+        // since they can refer to an object of type klass.
+        CT.add(thiz, klass)
+
         klass.checkMotherIsAlive() // the super class was loaded
         cyclicInheritance(Some(klass)) // no cyclic inheritance
         klass.checkFields() // no shadowing
         klass.verifyConstructorArgs() // arguments' type and name match thiz and zuper's fields
-        klass.ctor.check(klass); // proper call to super and valid initialisation of fields
-
-        // We need to add the class to CT before typechecking the methods
-        // since they can return a object of type klass.
-        CT.add(thiz, klass)
+        klass.ctor.check(klass) // proper call to super and valid initialisation of fields
 
         // Typecheck methods
         klass.methods foreach { typecheckMethod(klass, _) }

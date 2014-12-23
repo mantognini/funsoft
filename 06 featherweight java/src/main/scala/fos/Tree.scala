@@ -26,9 +26,7 @@ case class FieldAlreadyDefined(msg: String) extends FieldException(msg)
 
 sealed abstract class Tree extends Positional
 
-case class Program(klasses: List[ClassDef], expr: Expr) extends Tree {
-  klasses foreach { klass => CT.add(klass.name, klass) }
-}
+case class Program(klasses: List[ClassDef], expr: Expr) extends Tree
 
 case class ClassDef(name: String, superclass: String, fields: List[FieldDef], ctor: CtorDef, methods: List[MethodDef]) extends Tree {
   def fieldLookup: List[FieldDef] = {
