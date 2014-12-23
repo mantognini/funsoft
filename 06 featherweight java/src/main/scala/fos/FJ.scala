@@ -171,8 +171,8 @@ object FJ extends StandardTokenParsers {
           walk(expr)
         } catch {
           case TypeError(msg) =>
-            println("Type Error: " + msg)
-            print("The expression will not be evaluated. Expr: ")
+            println(s"Type Error: $msg")
+            print("The expression will not be evaluated.")
 
           case EvaluationException(msg) =>
             println("The expression generate an exception in Java: " + msg)

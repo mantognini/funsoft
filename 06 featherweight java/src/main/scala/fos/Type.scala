@@ -56,7 +56,7 @@ object Type {
   def typecheckMethod(klass: ClassDef, md: MethodDef)(implicit ctx: Context) {
     val MethodDef(returnType, name, args, body) = md // extract info
     val exprType = typeOf(body)(ctx ~ ("this" -> klass.name) ~ args)
-    if (!(exprType <<= returnType)) throw TypeError(s"return expression type mismatch, $returnType expected")
+    if (!(exprType <<= returnType)) throw TypeError(s"return expression type mismatch, $returnType expected\n${body.pos.longString}")
     klass.overrideMethod(returnType, name, args, body)
   }
 
@@ -66,7 +66,7 @@ object Type {
       // TODO should we check that ctx is empty?
 
       // Make sure the class is not being redefined
-      if ((CT lookup thiz).isDefined) throw TypeError(s"redefinition of $thiz, ctx = $ctx, CT = $CT")
+      if ((CT lookup thiz).isDefined) throw TypeError(s"redefinition of $thiz, ctx = $ctx, CT = $CT\n${klass.pos.longString}")
 
       try {
         /**
@@ -83,7 +83,7 @@ object Type {
         def cyclicInheritance(opt: Option[ClassDef]) {
           opt map {
             case ClassDef(_, zuper, _, _, _) =>
-              if (zuper == thiz) throw TypeError(s"Cyclic inheritance with $thiz")
+              if (zuper == thiz) throw TypeError(s"Cyclic inheritance with $thiz\n${klass.pos.longString}")
               else cyclicInheritance(CT lookup zuper)
           }
         }
@@ -117,13 +117,13 @@ object Type {
     // T-New
     case New(klass, args) =>
       val argsTypes = args map { typeOf(_) } // Check argument expressions
-      val fieldsTypes = klass.getFields()
+      val fieldsDefs = klass.getFields()
       for {
-        (arg, field) <- argsTypes zip fieldsTypes
-        if !(arg <<= field.tpe)
+        (arg, argType, fieldDef) <- (args, argsTypes, fieldsDefs).zipped
+        if !(argType <<= fieldDef.tpe)
       } {
         // If any arguments is not a subclass a field we throw
-        throw TypeError(s"$arg is not a subtype of $field in new statement $tree")
+        throw TypeError(s"$arg is not a subtype of $fieldDef in new statement $tree\n${arg.pos.longString}")
       }
       klass
 
@@ -136,20 +136,20 @@ object Type {
       val klass = typeOf(obj)
       val fieldDef = klass.getFields() find { _.name == field }
       val tpe = fieldDef map { _.tpe }
-      tpe getOrElse { throw TypeError(s"no such field $field in $klass") }
+      tpe getOrElse { throw TypeError(s"no such field $field in $klass\n${tree.pos.longString}") }
 
     // T-Invk
     case Apply(obj, method, args) =>
       val klass = typeOf(obj)
-      val methodDef = klass.getMethod(method) getOrElse { throw TypeError(s"no such method $method in $klass") }
+      val methodDef = klass.getMethod(method) getOrElse { throw TypeError(s"no such method $method in $klass\n${tree.pos.longString}") }
       val paramsTypes = methodDef.args map { _.tpe }
       val argsTypes = args map { typeOf(_) } // Check argument expressions
       for {
-        (arg, param) <- argsTypes zip paramsTypes
-        if !(arg <<= param)
+        (arg, argType, paramType) <- (args, argsTypes, paramsTypes).zipped
+        if !(argType <<= paramType)
       } {
         // If any arguments is not a subclass a parameter we throw
-        throw TypeError(s"$arg is not a subtype of $param in method invocation $tree")
+        throw TypeError(s"$arg is not a subtype of $paramType in method invocation $tree\n${arg.pos.longString}")
       }
       methodDef.tpe // Return type of the method
 
@@ -159,9 +159,9 @@ object Type {
       if (llass <<= klass) klass // upcast
       else if ((klass <<= llass) && (klass != llass)) klass // downcast
       else if (!(klass <<= llass) && !(llass <<= klass)) {
-        Console.err.println(s"WARNING: stupid cast from $llass to $klass")
+        Console.err.println(s"WARNING: stupid cast from $llass to $klass\n${tree.pos.longString}")
         klass
-      } else throw TypeError(s"invalid cast from $llass to $klass")
+      } else throw TypeError(s"invalid cast from $llass to $klass\n${tree.pos.longString}")
 
     case t =>
       throw new NotImplementedError(t.toString) // Same as `???` but with some debug info
@@ -301,7 +301,6 @@ object CT {
 }
 
 object Utils {
-
   def getClassDef(className: String): ClassDef = CT lookup className match {
     case None => throw new TypeError("class " + className + " not declared")
     case Some(c: ClassDef) => c
