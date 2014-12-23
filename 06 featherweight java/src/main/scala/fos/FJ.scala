@@ -2,7 +2,6 @@ package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
-
 import scala.collection.mutable.HashMap
 
 /**
@@ -145,37 +144,44 @@ object FJ extends StandardTokenParsers {
 
   import Type._
 
-  def eval(t: Tree): Tree = {
-    //    PrettyPrinter(t)
-    t match {
+  def fullyEvaluate(ast: Tree) {
+    // Recursively evaluate an expression until there's nothing to do
+    def walk(expr: Expr): Tree = try {
+      val res = Evaluate(expr)
+      println(s"STEP: $res")
+      walk(res)
+    } catch {
+      case NoRuleApplies(expr) => expr
+    }
+
+    CT.clear
+    PrettyPrinter(ast)
+
+    ast match {
       case Program(klasses, expr) =>
         try {
-          klasses foreach { typeOf(_)(emptyContext) }
+          klasses foreach { k =>
+            val klass = typeOf(k)(emptyContext)
+            println(s"LOADED CLASS $klass")
+          }
+
           val typeExpr = typeOf(expr)(emptyContext)
           println("TYPE EXPR: " + typeExpr)
-          val evExpr = Evaluate(expr)
-          print("EVALUATE TO: ")
-          evExpr
+
+          walk(expr)
         } catch {
           case TypeError(msg) =>
             println("Type Error: " + msg)
             print("The expression will not be evaluated. Expr: ")
-            CT.clear
-            expr
+
           case EvaluationException(msg) =>
             println("The expression generate an exception in Java: " + msg)
-            CT.clear
-            expr
 
           case e: Throwable =>
             println(e)
-            CT.clear
-            expr
         }
       case _ =>
         println("The file must start with a class definition")
-        System.exit(-1)
-        null
     }
   }
 
@@ -185,8 +191,8 @@ object FJ extends StandardTokenParsers {
     val inputStream = if (args.length > 0) new FileInputStream(args(0)) else System.in
     val tokens = new lexical.Scanner(StreamReader(new InputStreamReader(inputStream)))
     phrase(Prog)(tokens) match {
-      case Success(trees, _) =>
-        print(eval(trees))
+      case Success(ast, _) =>
+        fullyEvaluate(ast)
 
       case e =>
         println(e)
