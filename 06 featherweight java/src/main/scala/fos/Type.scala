@@ -29,7 +29,12 @@ object Type {
 
   // Throws some exception if k is not in CT 
   implicit class ClassOps(k: Class) {
-    val klass = (CT lookup k).get
+    val klass = (CT lookup k) match {
+      case None =>
+        throw TypeError(s"Unknown class $k in context $CT")
+      case Some(klass) =>
+        klass
+    }
 
     // Returns true iff k <: l
     // Throws if either k or l is not in CT
@@ -277,10 +282,9 @@ object CT {
   private val objectClassDef = ClassDef(objectClass, null, Nil, CtorDef(objectClass, Nil, Nil, Nil), Nil)
 
   private var ct: MutableMap[Type.Class, ClassDef] = new MutableHashMap[String, ClassDef]
+  override def toString() = "CT = " + ct.keys.mkString("(", ", ", ")")
 
-  add(objectClass, objectClassDef)
-
-  def elements = ct iterator
+  clear()
 
   // `Object` is a class def with no method nor field and a simple ctor
   def lookup(classname: String): Option[ClassDef] = if (classname != null) ct get classname else None
