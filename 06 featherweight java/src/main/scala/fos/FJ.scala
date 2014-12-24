@@ -182,7 +182,7 @@ object FJ extends StandardTokenParsers {
             println("The expression will not be evaluated.")
 
           case EvaluationException(msg) =>
-            println("The expression generate an exception in Java: $msg")
+            println(s"The expression generate an exception in Java: $msg")
 
           case e: Throwable =>
             println(e)
