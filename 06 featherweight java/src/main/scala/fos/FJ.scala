@@ -148,34 +148,41 @@ object FJ extends StandardTokenParsers {
     // Recursively evaluate an expression until there's nothing to do
     def walk(expr: Expr): Tree = try {
       val res = Evaluate(expr)
-      println(s"STEP: $res")
+      println(s"$res")
       walk(res)
     } catch {
-      case NoRuleApplies(expr) => expr
+      case NoRuleApplies(_) => expr
     }
 
     CT.clear
-    PrettyPrinter(ast)
+    //    PrettyPrinter(ast)
 
     ast match {
       case Program(klasses, expr) =>
         try {
+          println(s"Loading program classes")
           klasses foreach { k =>
             val klass = typeOf(k)(emptyContext)
-            println(s"LOADED CLASS $klass")
+            //            println(s"LOADED CLASS $klass")
           }
 
-          val typeExpr = typeOf(expr)(emptyContext)
-          println("TYPE EXPR: " + typeExpr)
+          println(s"Program expression is: $expr")
 
-          walk(expr)
+          val typeExpr = typeOf(expr)(emptyContext)
+          println(s".. which typechecks into: $typeExpr")
+
+          println(".. and the evaluation steps are:")
+          walk(expr) match {
+            case Value(fv) => println(s"The output is hence: $fv")
+            case _ => println(".. and is stuck there since no further evaluation rule applies")
+          }
         } catch {
           case TypeError(msg) =>
             println(s"Type Error: $msg")
-            print("The expression will not be evaluated.")
+            println("The expression will not be evaluated.")
 
           case EvaluationException(msg) =>
-            println("The expression generate an exception in Java: " + msg)
+            println("The expression generate an exception in Java: $msg")
 
           case e: Throwable =>
             println(e)
