@@ -4,7 +4,6 @@ Repo for foundation of software project & co
 Some links
 
 * [Foundation of software website] [1]
-* ..
 
 Installation & Customizations
 ------------
